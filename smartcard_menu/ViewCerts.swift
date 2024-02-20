@@ -1,0 +1,66 @@
+//
+//  ViewCerts.swift
+//  SC Menu
+//
+//  Created by Gendler, Bob (Fed) on 2/20/24.
+//
+
+import Foundation
+
+class ViewCerts{
+    var certErr: OSStatus
+    
+    init() {
+        certErr = 0
+    }
+    func getIdentity(pivToken: String) -> Set<String>? {
+        var myCN: CFString? = nil
+        var searchResults: AnyObject? = nil
+        var myCert: SecCertificate? = nil
+        var certSet = Set<String>()
+//        var myCert: SecCertificate? = nil
+        
+//        let getquery: [String: Any] = [kSecClass as String: kSecClassKey,
+//                                       kSecAttrTokenID as String: pivToken,
+//                                       kSecReturnRef as String: true,
+//                                       ]
+        let getquery: [String: Any] = [ 
+            kSecAttrAccessGroup as String:  kSecAttrAccessGroupToken,
+            kSecClass as String: kSecClassIdentity,
+            kSecReturnAttributes as String: true as AnyObject,
+            kSecAttrTokenID as String: pivToken,
+            kSecReturnRef as String: true as AnyObject,
+            kSecMatchLimit as String : kSecMatchLimitAll as AnyObject
+        ]
+        
+        
+        if getquery.count > 0 {
+            let status = SecItemCopyMatching(getquery as CFDictionary, &searchResults)
+            if status != 0 {
+                return nil
+            }
+            let existingCerts = searchResults as! CFArray as Array
+            print(existingCerts.count)
+            for cert in existingCerts{
+                
+                
+                certErr = SecIdentityCopyCertificate(cert["v_Ref"] as! SecIdentity, &myCert)
+                if certErr != 0 {
+                    continue
+                }
+                certErr = SecCertificateCopyCommonName(myCert!, &myCN)
+//                
+
+                let labelString = cert["labl"] as? String ?? "no label"
+                print(labelString)
+                certSet.insert(labelString)
+                
+            }
+            
+            return certSet
+        }
+        
+        return nil
+        
+    }
+}

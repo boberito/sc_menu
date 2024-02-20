@@ -13,6 +13,7 @@ let kNotificationRemove = "com.bob.smartcard-menu"
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
+    let certViewing = ViewCerts()
     typealias handler = (String) -> Swift.Void
     let myHandler: handler = { tokenID in
         DispatchQueue.main.async {
@@ -35,6 +36,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         update()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
+        
+        
+        statusItem.menu?.addItem(NSMenuItem.separator())
         let quitMenu = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "")
         statusItem.menu?.addItem(quitMenu)
         if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
@@ -60,7 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func showReader(TkID: String) {
-        if let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName {
+        if let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName, let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
             if readerMenuItemExists == nil {
@@ -68,8 +72,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let subMenu = NSMenu()
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                let something = NSMenuItem(title: "CERT 1", action: nil, keyEquivalent: "")
-                subMenu.addItem(something)
+                
+                if let certLabels = certViewing.getIdentity(pivToken: pivToken)?.sorted() {
+                    var seperator = false
+                    for certLabel in certLabels {
+                        if certLabel.contains("Retired") && !seperator {
+                            subMenu.addItem(NSMenuItem.separator())
+                            seperator = true
+                        }
+                        let label = NSMenuItem(title: certLabel, action: nil, keyEquivalent: "")
+                        subMenu.addItem(label)
+                    }
+                }
+                
             } else {
                 return()
             }
@@ -133,19 +148,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         }
     }
-//    @objc func stuff(_ sender: NSMenuItem) {
-//        print("Hello world")
-//        print(myTKWatcher?.tokenIDs.count)
-//        if let tokenCount = myTKWatcher?.tokenIDs {
-//            for CTKToken in tokenCount {
-//                print("--------")
-//                                print(myTKWatcher?.tokenInfo(forTokenID: CTKToken)?.tokenID)
-//                                print(myTKWatcher?.tokenInfo(forTokenID: CTKToken)?.slotName)
-//
-//                print(myTKWatcher?.tokenInfo(forTokenID: CTKToken)?.driverName)
-//            }
-//        }
-//        
-//    }
 }
 
