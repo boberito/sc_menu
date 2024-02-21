@@ -18,12 +18,7 @@ class ViewCerts{
         var searchResults: AnyObject? = nil
         var myCert: SecCertificate? = nil
         var certSet = Set<String>()
-//        var myCert: SecCertificate? = nil
-        
-//        let getquery: [String: Any] = [kSecClass as String: kSecClassKey,
-//                                       kSecAttrTokenID as String: pivToken,
-//                                       kSecReturnRef as String: true,
-//                                       ]
+
         let getquery: [String: Any] = [ 
             kSecAttrAccessGroup as String:  kSecAttrAccessGroupToken,
             kSecClass as String: kSecClassIdentity,
@@ -40,19 +35,18 @@ class ViewCerts{
                 return nil
             }
             let existingCerts = searchResults as! CFArray as Array
-            print(existingCerts.count)
+            
             for cert in existingCerts{
                 
                 
                 certErr = SecIdentityCopyCertificate(cert["v_Ref"] as! SecIdentity, &myCert)
+                
                 if certErr != 0 {
                     continue
                 }
                 certErr = SecCertificateCopyCommonName(myCert!, &myCN)
-//                
 
                 let labelString = cert["labl"] as? String ?? "no label"
-                print(labelString)
                 certSet.insert(labelString)
                 
             }

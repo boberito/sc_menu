@@ -9,38 +9,27 @@ import Cocoa
 import CryptoTokenKit
 
 //@main
-let kNotificationRemove = "com.bob.smartcard-menu"
-
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     let certViewing = ViewCerts()
-    typealias handler = (String) -> Swift.Void
-    let myHandler: handler = { tokenID in
-        DispatchQueue.main.async {
-            NotificationQueue.default.enqueue( Notification(name: Notification.Name(rawValue: kNotificationRemove), object: nil), postingStyle: .now, coalesceMask: .onName, forModes: nil)
-        }
-    }
+
     
     var myTKWatcher: TKTokenWatcher? = nil
-    var slotName: String?
+    var inUseTKWatchers: [TKTokenWatcher.TokenInfo?] = []
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         
         myTKWatcher = TKTokenWatcher.init()
-        myTKWatcher?.setInsertionHandler(myHandler)
-        NotificationCenter.default.addObserver(self, selector: #selector(update), name: NSNotification.Name(rawValue: kNotificationRemove), object: nil)
         
-        
-        update()
+        myTKWatcher?.setInsertionHandler({ tokenID in
+            self.update(CTKTokenID: tokenID)
+        })
+
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
         
-        
-        statusItem.menu?.addItem(NSMenuItem.separator())
-        let quitMenu = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "")
-        statusItem.menu?.addItem(quitMenu)
         if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
             //                                removeReaderMenu()
@@ -52,7 +41,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 self.statusItem.button?.title = "NOT Inserted"
             }
         }
-        
+        myTKWatcher?.setInsertionHandler({ tokenID in
+            self.update(CTKTokenID: tokenID)
+//            self.update()
+        })
+        addQuit()
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -68,12 +61,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
             if readerMenuItemExists == nil {
-                statusItem.menu?.removeItem(at: 0)
                 let subMenu = NSMenu()
+                if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
+                    statusItem.menu?.removeItem(nothingInsertedMenu)
+                }
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
                 
                 if let certLabels = certViewing.getIdentity(pivToken: pivToken)?.sorted() {
+                    
                     var seperator = false
                     for certLabel in certLabels {
                         if certLabel.contains("Retired") && !seperator {
@@ -84,6 +80,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         subMenu.addItem(label)
                     }
                 }
+                addQuit()
                 
             } else {
                 return()
@@ -95,58 +92,75 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func quit() {
         exit(0)
     }
-    @objc func update() {
+    
+    func addQuit() {
         
-        if let tokenCount = myTKWatcher?.tokenIDs, let tokenWatcher = myTKWatcher {
-            for CTKTokenID in tokenCount {
-                
-                if tokenWatcher.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-                    slotName = tokenWatcher.tokenInfo(forTokenID: CTKTokenID)?.slotName
-                    if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
-                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                            if fileExists {
-                                if let button = statusItem.button {
-                                    
-                                    button.image = NSImage(byReferencingFile: fileURLString)
-                                }
-                            } else {
-                                statusItem.button?.title = "Inserted"
-                            }
-                    }
-                    
-                    showReader(TkID: CTKTokenID)
-                    
-                    
-                    myTKWatcher?.addRemovalHandler({ _ in
-                        
-                        RunLoop.main.perform {
-                            if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
-                                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                                //                                removeReaderMenu()
-                                if fileExists {
-                                    if let button = self.statusItem.button {
-                                        button.image = NSImage(byReferencingFile: fileURLString)
-                                    }
-                                } else {
-                                    self.statusItem.button?.title = "NOT Inserted"
-                                }
-                            }
+        if statusItem.menu?.indexOfItem(withTitle: "Quit") == -1 {
+            statusItem.menu?.addItem(NSMenuItem.separator())
+            let quitMenu = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "")
+            statusItem.menu?.addItem(quitMenu)
+        }
+        
+        if statusItem.menu?.indexOfItem(withTitle: "Quit") == 1 {
+            statusItem.menu?.insertItem(self.nothingInsertedMenu, at: 0)
+        }
+        
+    }
+    
+    @objc func update(CTKTokenID: String) {
+        if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
+            inUseTKWatchers.append(myTKWatcher!.tokenInfo(forTokenID: CTKTokenID))
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
+                RunLoop.main.perform {
+                    let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                    if fileExists {
+                        if let button = self.statusItem.button {
                             
-                            if let slotName = self.slotName {
-                                if let menuIndex = self.statusItem.menu?.indexOfItem(withTitle: slotName) {
-                                    self.statusItem.menu?.removeItem(at: menuIndex)
-                                    self.statusItem.menu?.insertItem(self.nothingInsertedMenu, at: 0)
-                                }
+                            button.image = NSImage(byReferencingFile: fileURLString)
+                            
+                            
+                        }
+                    } else {
+                        self.statusItem.button?.title = "Inserted"
+                    }
+                }
+                
+                showReader(TkID: CTKTokenID)
+            }
+        }
+        
+        myTKWatcher?.addRemovalHandler({ CTKTokenID in
+            RunLoop.main.perform {
+
+                for inUseTKWatcher in self.inUseTKWatchers {
+                    if inUseTKWatcher?.tokenID == CTKTokenID {
+                        if let slotName = inUseTKWatcher?.slotName {
+                            if let menuIndex = self.statusItem.menu?.indexOfItem(withTitle: slotName) {
+                                self.statusItem.menu?.removeItem(at: menuIndex)
+                                let index = self.inUseTKWatchers.firstIndex(of: inUseTKWatcher)
+                                self.inUseTKWatchers.remove(at: index!)
+                                self.addQuit()
                             }
                         }
-                    }, forTokenID: CTKTokenID)
-                    return()
-                    
+                    }
+                }
+                if self.inUseTKWatchers.count == 0 {
+                    if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        //                                removeReaderMenu()
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                button.image = NSImage(byReferencingFile: fileURLString)
+                            }
+                        } else {
+                            self.statusItem.button?.title = "NOT Inserted"
+                        }
+                    }
                 }
                 
             }
-
-        }
+        }, forTokenID: CTKTokenID)
     }
+
 }
 
