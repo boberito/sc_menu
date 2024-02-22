@@ -8,10 +8,10 @@
 import Cocoa
 import CryptoTokenKit
 import SecurityInterface.SFCertificatePanel
+import NotificationCenter
 
 //@main
 class AppDelegate: NSObject, NSApplicationDelegate {
-    
     let certViewing = ViewCerts()
     
     var code: Any?
@@ -21,8 +21,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
+                                                              name: NSWorkspace.didWakeNotification, object: nil)
+        inUseTKWatchers.removeAll()
         
+        startup()
+    }
+    func startup() {
         myTKWatcher = TKTokenWatcher.init()
         
         myTKWatcher?.setInsertionHandler({ tokenID in
@@ -48,9 +55,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         })
         addQuit()
     }
+    @objc private func sleepListener(_ aNotification: Notification) {
+        if aNotification.name == NSWorkspace.didWakeNotification {
+            for currentWindow in NSApplication.shared.windows {
+                if String(describing: type(of: currentWindow)) == "NSStatusBarWindow" {
+                    continue
+                } else {
+                    currentWindow.close()
+                }
+            }
+            
+            startup()
+        }
+    }
     
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
+    }
+    
+    func applicationWillResignActive(_ notification: Notification) {
+        
     }
     
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -83,7 +107,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 certView.setDetailsDisclosed(true)
                 scrollView.translatesAutoresizingMaskIntoConstraints = false
                 certView.translatesAutoresizingMaskIntoConstraints = false
-//                window.contentView = certView
                 
                 scrollView.documentView = certView
                 window.contentView = scrollView
@@ -118,13 +141,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                 subMenu.addItem(NSMenuItem.separator())
                                 seperator = true
                             }
-//
+
                             let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
                             label.representedObject = certDict[key]
                             subMenu.addItem(label)
                         }
-                        
-//                    }
+
                 }
                 addQuit()
                 
@@ -177,7 +199,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             RunLoop.main.perform {
-
                 for inUseTKWatcher in self.inUseTKWatchers {
                     if inUseTKWatcher?.tokenID == CTKTokenID {
                         if let slotName = inUseTKWatcher?.slotName {
