@@ -4,8 +4,22 @@
 //
 //  Created by Gendler, Bob (Fed) on 2/20/24.
 //
-
+import SecurityInterface.SFCertificatePanel
 import Foundation
+
+struct identityList {
+    var cn: String
+    var pubKeyHash: String
+    var identity: SecIdentity
+    var oids: String
+    var token: Bool
+    var keychain: Int
+    var keychainRef : SecKeychain?
+    var principal : String?
+    var friendlyName: String?
+    var ca: String?
+    var caOrg: String?
+}
 
 class ViewCerts{
     var certErr: OSStatus
@@ -13,11 +27,13 @@ class ViewCerts{
     init() {
         certErr = 0
     }
-    func getIdentity(pivToken: String) -> Set<String>? {
+    func getIdentity(pivToken: String) -> Dictionary<String,SecIdentity>? {
         var myCN: CFString? = nil
         var searchResults: AnyObject? = nil
         var myCert: SecCertificate? = nil
-        var certSet = Set<String>()
+//        var certSet = Set<String>()
+        var certSet = Set<[String:SecIdentity]>()
+        var certDict = [String:SecIdentity]()
 
         let getquery: [String: Any] = [ 
             kSecAttrAccessGroup as String:  kSecAttrAccessGroupToken,
@@ -30,8 +46,10 @@ class ViewCerts{
         
         
         if getquery.count > 0 {
+            
             let status = SecItemCopyMatching(getquery as CFDictionary, &searchResults)
             if status != 0 {
+                
                 return nil
             }
             let existingCerts = searchResults as! CFArray as Array
@@ -47,11 +65,11 @@ class ViewCerts{
                 certErr = SecCertificateCopyCommonName(myCert!, &myCN)
 
                 let labelString = cert["labl"] as? String ?? "no label"
-                certSet.insert(labelString)
-                
+                certDict.updateValue(cert["v_Ref"] as! SecIdentity, forKey: labelString)
             }
             
-            return certSet
+            return certDict
+
         }
         
         return nil

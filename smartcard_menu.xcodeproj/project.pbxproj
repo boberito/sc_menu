@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860203512B84F2DE00E84186 /* ViewCerts.swift */; };
+		868A890E2B86CAB600328DDE /* CertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868A890D2B86CAB600328DDE /* CertViewController.swift */; };
+		868A89122B87BB0800328DDE /* CertWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868A89112B87BB0800328DDE /* CertWindow.swift */; };
 		86FF1DC42B7FA45A007F3959 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */; };
 		86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FF1DC52B7FA45A007F3959 /* ViewController.swift */; };
 		86FF1DC82B7FA45B007F3959 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86FF1DC72B7FA45B007F3959 /* Assets.xcassets */; };
@@ -19,6 +21,8 @@
 
 /* Begin PBXFileReference section */
 		860203512B84F2DE00E84186 /* ViewCerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCerts.swift; sourceTree = "<group>"; };
+		868A890D2B86CAB600328DDE /* CertViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertViewController.swift; sourceTree = "<group>"; };
+		868A89112B87BB0800328DDE /* CertWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertWindow.swift; sourceTree = "<group>"; };
 		86FF1DC02B7FA45A007F3959 /* SC Menu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SC Menu.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		86FF1DC52B7FA45A007F3959 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -62,6 +66,8 @@
 			children = (
 				86FF1DD22B7FA942007F3959 /* main.swift */,
 				86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */,
+				868A89112B87BB0800328DDE /* CertWindow.swift */,
+				868A890D2B86CAB600328DDE /* CertViewController.swift */,
 				860203512B84F2DE00E84186 /* ViewCerts.swift */,
 				86FF1DC52B7FA45A007F3959 /* ViewController.swift */,
 				86FF1DC72B7FA45B007F3959 /* Assets.xcassets */,
@@ -146,9 +152,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */,
+				868A890E2B86CAB600328DDE /* CertViewController.swift in Sources */,
 				86FF1DC42B7FA45A007F3959 /* AppDelegate.swift in Sources */,
 				860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */,
 				86FF1DD32B7FA942007F3959 /* main.swift in Sources */,
+				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

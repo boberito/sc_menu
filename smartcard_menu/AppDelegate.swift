@@ -7,19 +7,21 @@
 
 import Cocoa
 import CryptoTokenKit
+import SecurityInterface.SFCertificatePanel
 
 //@main
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     let certViewing = ViewCerts()
-
+    
+    var code: Any?
     
     var myTKWatcher: TKTokenWatcher? = nil
     var inUseTKWatchers: [TKTokenWatcher.TokenInfo?] = []
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
         
         myTKWatcher = TKTokenWatcher.init()
         
@@ -43,7 +45,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         myTKWatcher?.setInsertionHandler({ tokenID in
             self.update(CTKTokenID: tokenID)
-//            self.update()
         })
         addQuit()
     }
@@ -54,6 +55,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
+    }
+    
+    @objc func certSelected(_ sender: NSMenuItem) {
+        let selectedCert = sender.representedObject as! SecIdentity
+        
+        var secRef: SecCertificate? = nil
+            let certRefErr = SecIdentityCopyCertificate(selectedCert, &secRef)
+        
+            if certRefErr == 0 {
+
+                var window: CertWindow!
+                let windowController = NSWindowController(
+                    window: window)
+                let _wndW : CGFloat = 500
+                let _wndH : CGFloat = 500
+                window = CertWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable], backing:.buffered, defer:false)
+                let scrollView = NSScrollView()
+                scrollView.borderType = .lineBorder
+                scrollView.hasHorizontalScroller = true
+                scrollView.hasVerticalScroller = true
+                       
+                window.center()
+                window.title = sender.title
+                let certView = SFCertificateView()
+                certView.setCertificate(secRef!)
+                certView.setDetailsDisclosed(true)
+                scrollView.translatesAutoresizingMaskIntoConstraints = false
+                certView.translatesAutoresizingMaskIntoConstraints = false
+//                window.contentView = certView
+                
+                scrollView.documentView = certView
+                window.contentView = scrollView
+                if #available(OSX 14.0, *) {
+                    NSApp.activate()
+                } else {
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                
+                window.makeKeyAndOrderFront(window)
+
+            }
     }
     
     func showReader(TkID: String) {
@@ -67,18 +109,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                
-                if let certLabels = certViewing.getIdentity(pivToken: pivToken)?.sorted() {
+                if let certDict = certViewing.getIdentity(pivToken: pivToken){
                     
                     var seperator = false
-                    for certLabel in certLabels {
-                        if certLabel.contains("Retired") && !seperator {
-                            subMenu.addItem(NSMenuItem.separator())
-                            seperator = true
+                    let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
+                        for key in sortedDictKeys {
+                            if key.contains("Retired") && !seperator {
+                                subMenu.addItem(NSMenuItem.separator())
+                                seperator = true
+                            }
+//
+                            let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
+                            label.representedObject = certDict[key]
+                            subMenu.addItem(label)
                         }
-                        let label = NSMenuItem(title: certLabel, action: nil, keyEquivalent: "")
-                        subMenu.addItem(label)
-                    }
+                        
+//                    }
                 }
                 addQuit()
                 
@@ -140,14 +186,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                 let index = self.inUseTKWatchers.firstIndex(of: inUseTKWatcher)
                                 self.inUseTKWatchers.remove(at: index!)
                                 self.addQuit()
+                                break
                             }
                         }
                     }
                 }
-                if self.inUseTKWatchers.count == 0 {
+                
+                if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
                     if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
                         let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                        //                                removeReaderMenu()
                         if fileExists {
                             if let button = self.statusItem.button {
                                 button.image = NSImage(byReferencingFile: fileURLString)
