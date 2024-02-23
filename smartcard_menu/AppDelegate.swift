@@ -17,16 +17,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var code: Any?
     
     var myTKWatcher: TKTokenWatcher? = nil
-    var inUseTKWatchers: [TKTokenWatcher.TokenInfo?] = []
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
-                                                              name: NSWorkspace.didWakeNotification, object: nil)
-        inUseTKWatchers.removeAll()
-        
+                                                          name: NSWorkspace.didWakeNotification, object: nil)
         startup()
     }
     func startup() {
@@ -35,13 +32,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         myTKWatcher?.setInsertionHandler({ tokenID in
             self.update(CTKTokenID: tokenID)
         })
-
+        
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
         
         if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-            //                                removeReaderMenu()
             if fileExists {
                 if let button = self.statusItem.button {
                     button.image = NSImage(byReferencingFile: fileURLString)
@@ -85,45 +81,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let selectedCert = sender.representedObject as! SecIdentity
         
         var secRef: SecCertificate? = nil
-            let certRefErr = SecIdentityCopyCertificate(selectedCert, &secRef)
+        let certRefErr = SecIdentityCopyCertificate(selectedCert, &secRef)
         
-            if certRefErr == 0 {
-
-                var window: CertWindow!
-                let windowController = NSWindowController(
-                    window: window)
-                let _wndW : CGFloat = 500
-                let _wndH : CGFloat = 500
-                window = CertWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable], backing:.buffered, defer:false)
-                let scrollView = NSScrollView()
-                scrollView.borderType = .lineBorder
-                scrollView.hasHorizontalScroller = true
-                scrollView.hasVerticalScroller = true
-                       
-                window.center()
-                window.title = sender.title
-                let certView = SFCertificateView()
-                certView.setCertificate(secRef!)
-                certView.setDetailsDisclosed(true)
-                scrollView.translatesAutoresizingMaskIntoConstraints = false
-                certView.translatesAutoresizingMaskIntoConstraints = false
-                
-                scrollView.documentView = certView
-                window.contentView = scrollView
-                if #available(OSX 14.0, *) {
-                    NSApp.activate()
-                } else {
-                    NSApp.activate(ignoringOtherApps: true)
-                }
-                
-                window.makeKeyAndOrderFront(window)
-
+        if certRefErr == 0 {
+            
+            var window: CertWindow!
+            let windowController = NSWindowController(
+                window: window)
+            let _wndW : CGFloat = 500
+            let _wndH : CGFloat = 500
+            window = CertWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable], backing:.buffered, defer:false)
+            let scrollView = NSScrollView()
+            scrollView.borderType = .lineBorder
+            scrollView.hasHorizontalScroller = true
+            scrollView.hasVerticalScroller = true
+            
+            window.center()
+            window.title = sender.title
+            let certView = SFCertificateView()
+            certView.setCertificate(secRef!)
+            certView.setDetailsDisclosed(true)
+            scrollView.translatesAutoresizingMaskIntoConstraints = false
+            certView.translatesAutoresizingMaskIntoConstraints = false
+            
+            scrollView.documentView = certView
+            window.contentView = scrollView
+            if #available(OSX 14.0, *) {
+                NSApp.activate()
+            } else {
+                NSApp.activate(ignoringOtherApps: true)
             }
+            
+            window.makeKeyAndOrderFront(window)
+            
+        }
     }
     
     func showReader(TkID: String) {
         if let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName, let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
+            readerMenuItem.representedObject = TkID
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
             if readerMenuItemExists == nil {
                 let subMenu = NSMenu()
@@ -136,17 +133,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     
                     var seperator = false
                     let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
-                        for key in sortedDictKeys {
-                            if key.contains("Retired") && !seperator {
-                                subMenu.addItem(NSMenuItem.separator())
-                                seperator = true
-                            }
-
-                            let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
-                            label.representedObject = certDict[key]
-                            subMenu.addItem(label)
+                    for key in sortedDictKeys {
+                        if key.contains("Retired") && !seperator {
+                            subMenu.addItem(NSMenuItem.separator())
+                            seperator = true
                         }
-
+                        
+                        let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
+                        label.representedObject = certDict[key]
+                        subMenu.addItem(label)
+                    }
+                    
                 }
                 addQuit()
                 
@@ -177,7 +174,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func update(CTKTokenID: String) {
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            inUseTKWatchers.append(myTKWatcher!.tokenInfo(forTokenID: CTKTokenID))
             if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
                 RunLoop.main.perform {
                     let fileExists = FileManager.default.fileExists(atPath: fileURLString)
@@ -199,19 +195,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             RunLoop.main.perform {
-                for inUseTKWatcher in self.inUseTKWatchers {
-                    if inUseTKWatcher?.tokenID == CTKTokenID {
-                        if let slotName = inUseTKWatcher?.slotName {
-                            if let menuIndex = self.statusItem.menu?.indexOfItem(withTitle: slotName) {
-                                self.statusItem.menu?.removeItem(at: menuIndex)
-                                let index = self.inUseTKWatchers.firstIndex(of: inUseTKWatcher)
-                                self.inUseTKWatchers.remove(at: index!)
-                                self.addQuit()
-                                break
-                            }
+                
+                for scMenuItem in self.statusItem.menu!.items {
+                    if let scMenuItemRepresentedObj = scMenuItem.representedObject as? String {
+                        if scMenuItemRepresentedObj == CTKTokenID {
+                            self.statusItem.menu?.removeItem(scMenuItem)
+                            self.addQuit()
+                            break
                         }
                     }
                 }
+                
                 
                 if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
                     if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
@@ -229,6 +223,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }, forTokenID: CTKTokenID)
     }
-
+    
 }
 
