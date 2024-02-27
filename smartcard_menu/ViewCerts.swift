@@ -4,7 +4,6 @@
 //
 //  Created by Gendler, Bob (Fed) on 2/20/24.
 //
-import SecurityInterface.SFCertificatePanel
 import Foundation
 
 struct identityList {
@@ -63,7 +62,6 @@ class ViewCerts{
                     continue
                 }
                 certErr = SecCertificateCopyCommonName(myCert!, &myCN)
-
                 let labelString = cert["labl"] as? String ?? "no label"
                 certDict.updateValue(cert["v_Ref"] as! SecIdentity, forKey: labelString)
             }

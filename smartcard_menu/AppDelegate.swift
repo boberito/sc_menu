@@ -9,6 +9,8 @@ import Cocoa
 import CryptoTokenKit
 import SecurityInterface.SFCertificatePanel
 import NotificationCenter
+import CoreGraphics
+
 
 //@main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -24,15 +26,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
         startup()
     }
+    
+    @objc func screenUnlocked() {
+        startup()
+    }
+    
     func startup() {
+    
         myTKWatcher = TKTokenWatcher.init()
-        
-        myTKWatcher?.setInsertionHandler({ tokenID in
-            self.update(CTKTokenID: tokenID)
-        })
-        
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
         
@@ -52,6 +56,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         addQuit()
     }
     @objc private func sleepListener(_ aNotification: Notification) {
+        
         if aNotification.name == NSWorkspace.didWakeNotification {
             for currentWindow in NSApplication.shared.windows {
                 if String(describing: type(of: currentWindow)) == "NSStatusBarWindow" {
@@ -60,7 +65,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     currentWindow.close()
                 }
             }
-            
+            if let menuItems = statusItem.menu {
+                for item in menuItems.items {
+                    statusItem.menu?.removeItem(item)
+                }
+            }
             startup()
         }
     }
@@ -130,7 +139,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
                 if let certDict = certViewing.getIdentity(pivToken: pivToken){
-                    
                     var seperator = false
                     let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
                     for key in sortedDictKeys {
