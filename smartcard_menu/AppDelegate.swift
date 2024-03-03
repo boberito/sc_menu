@@ -111,40 +111,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
     @objc func preferencesWindow(_ sender: NSMenuItem) {
-        var window: PreferencesWindow!
-        let _wndW : CGFloat = 400
-        let _wndH : CGFloat = 200
-        window = PreferencesWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable], backing:.buffered, defer:false)
-        window.center()
-        window.title = "SC Menu Preferences"
-        let prefView = PrefView()
-        prefView.frame = NSRect(x:0,y:0, width:400, height:200)
-        prefView.translatesAutoresizingMaskIntoConstraints = true
-        let iconLabel = NSTextField(frame: NSRect(x: 25, y: 160, width: 150, height: 25))
-        iconLabel.stringValue = "Select Menu Icon"
-        iconLabel.isBordered = false
-        iconLabel.isBezeled = false
-        iconLabel.isEditable = false
-        iconLabel.drawsBackground = false
-        
-//        let startUpLabel = NSTextField(frame: NSRect(x: 200, y: 160, width: 150, height: 25))
-//        startUpLabel.stringValue = "Start at Login"
-//        startUpLabel.isBordered = false
-//        startUpLabel.isBezeled = false
-//        startUpLabel.isEditable = false
-//        startUpLabel.drawsBackground = false
-        
-        let startUpButton = NSButton(checkboxWithTitle: "Start at Login", target: Any?, action: #selector(loginItemChange))
-        prefView.addSubview(iconLabel)
-//        prefView.addSubview(startUpLabel)
-        window.contentView = prefView
+        var window: PreferencesWindow?
+        let windowSize = NSSize(width: 400, height: 200)
+        let screenSize = NSScreen.main?.frame.size ?? .zero
+        let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
+        window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .resizable, .titled], backing: .buffered, defer: false)
+        window?.title = "SC Menu Preferences"
         if #available(OSX 14.0, *) {
             NSApp.activate()
         } else {
             NSApp.activate(ignoringOtherApps: true)
         }
+        window?.makeKeyAndOrderFront(nil)
+        window?.contentViewController = PreferencesViewController()
         
-        window.makeKeyAndOrderFront(window)
     }
     @objc func ATRfunc(_ sender: NSMenuItem) {
         let token = sender.representedObject as! String

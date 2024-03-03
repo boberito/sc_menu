@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
 		860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860203512B84F2DE00E84186 /* ViewCerts.swift */; };
 		862CDBB62B911BD000E75D2D /* ATR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862CDBB52B911BD000E75D2D /* ATR.swift */; };
 		862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862CDBB72B91209A00E75D2D /* WebWindow.swift */; };
@@ -23,6 +24,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		860203512B84F2DE00E84186 /* ViewCerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCerts.swift; sourceTree = "<group>"; };
 		862CDBB52B911BD000E75D2D /* ATR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATR.swift; sourceTree = "<group>"; };
 		862CDBB72B91209A00E75D2D /* WebWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWindow.swift; sourceTree = "<group>"; };
@@ -76,6 +78,7 @@
 				862CDBB52B911BD000E75D2D /* ATR.swift */,
 				868A89112B87BB0800328DDE /* CertWindow.swift */,
 				862CDBB72B91209A00E75D2D /* WebWindow.swift */,
+				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
 				86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */,
 				860203512B84F2DE00E84186 /* ViewCerts.swift */,
 				86FF1DC52B7FA45A007F3959 /* ViewController.swift */,
@@ -165,6 +168,7 @@
 				860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */,
 				862CDBB62B911BD000E75D2D /* ATR.swift in Sources */,
 				86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */,
+				735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */,
 				862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */,
 				86FF1DD32B7FA942007F3959 /* main.swift in Sources */,
 				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,

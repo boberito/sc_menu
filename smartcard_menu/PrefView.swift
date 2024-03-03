@@ -9,12 +9,9 @@ import Cocoa
 
 class PrefView: NSView {
     override func viewDidMoveToWindow() {
-        <#code#>
-    /*viewDidMoveToWindow {*/
         
     }
     override func viewWillDraw() {
-        <#code#>
     }
     @objc func iconChange(_ sender: Any) {
         
@@ -25,8 +22,3 @@ class PrefView: NSView {
     }
 }
 
-//class PreferencesWindow: NSWindow {
-//    override func close() {
-//        self.orderOut(NSApp)
-//    }
-//}
