@@ -127,9 +127,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func preferencesWindow(_ sender: NSMenuItem) {
         
         for currentWindow in NSApplication.shared.windows {
-            print(currentWindow.title)
             if currentWindow.title.contains("SC Menu Preferences") {
-                print("Found one")
+                if #available(OSX 14.0, *) {
+                    NSApp.activate()
+                } else {
+                    NSApp.activate(ignoringOtherApps: true)
+                }
                 return
             }
         }

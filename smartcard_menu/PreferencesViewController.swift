@@ -66,8 +66,24 @@ class PreferencesViewController: NSViewController {
             default:
                 startUpButton.intValue = 0
         }
+        
+        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
+        infoTextView.textContainerInset = NSSize(width: 10, height: 10)
+        infoTextView.isEditable = false
+        infoTextView.isSelectable = true
+        infoTextView.drawsBackground = false
+//        textView.textStorage?.setAttributedString(attributedString)
+        
 //        let infoVersionLabel = NSTextField(frame: NSRect(x: 160, y: 50, width: 240, height: 100))
-                let infoVersionLabel = NSTextField(frame: NSRect(x: 160, y: 85, width: 240, height: 100))
+//                let infoVersionLabel = NSTextField(frame: NSRect(x: 160, y: 85, width: 240, height: 100))
+//        let InfotextView = NSTextView(frame: NSRect(x: 169, y: 85, width: 240, height: 100))
+//        InfotextView.textContainerInset = NSSize(width: 10, height: 10)
+//        InfotextView.isEditable = false
+//        InfotextView.isSelectable = true
+//        infoVersionLabel.isEditable = false
+//        infoVersionLabel.isSelectable = true
+//        
+//        InfotextView.textStorage?.setAttributedString(attributedString)
         if let versionText = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
             let infoString = """
     SC Menu
@@ -75,24 +91,25 @@ class PreferencesViewController: NSViewController {
     
     https://github.com/boberito/sc_menu
     """
-            let urlLength = infoString.split(separator: "\n")[2].count
-            let titleLength = infoString.split(separator: "\n")[0].count
-            let versionLength = infoString.split(separator: "\n")[1].count
             
 //            let firstAttributes: [NSAttributedString.Key: Any] = [.backgroundColor: UIColor.green, NSAttributedString.Key.kern: 10]
             let infoAttributedString = NSMutableAttributedString(string: infoString)
-            infoAttributedString.addAttribute(.link, value: "https://github.com/boberito/sc_menu", range: NSRange(location: titleLength + versionLength + 3, length: urlLength ))
+//            infoAttributedString.addAttribute(.link, value: "https://github.com/boberito/sc_menu", range: NSRange(location: titleLength + versionLength + 3, length: urlLength ))     
+            let url = URL(string: "https://github.com/boberito/sc_menu")!
+            let linkRange = (infoString as NSString).range(of: url.absoluteString)
+            infoAttributedString.addAttribute(.link, value: url, range: linkRange)
             
             let boldFont = NSFont.boldSystemFont(ofSize: 17)
             let boldRange = (infoString as NSString).range(of: "SC Menu")
             infoAttributedString.addAttribute(.font, value: boldFont, range: boldRange)
-
-            infoVersionLabel.attributedStringValue = infoAttributedString
+            
+//            infoVersionLabel.attributedStringValue = infoAttributedString
+            infoTextView.textStorage?.setAttributedString(infoAttributedString)
         }
-        infoVersionLabel.isBordered = false
-        infoVersionLabel.isEditable = false
-        infoVersionLabel.lineBreakStrategy = .standard
-        infoVersionLabel.drawsBackground = false
+//        infoVersionLabel.isBordered = false
+//        infoVersionLabel.isEditable = false
+//        infoVersionLabel.lineBreakStrategy = .standard
+//        infoVersionLabel.drawsBackground = false
         
         let appIcon = NSImageView(frame:NSRect(x: 255, y:145, width: 40, height: 40))
         appIcon.image = NSImage(named: "AppIcon")
@@ -105,7 +122,8 @@ class PreferencesViewController: NSViewController {
         view.addSubview(iconOneImageIn)
         view.addSubview(iconTwoImageOut)
         view.addSubview(iconTwoImageIn)
-        view.addSubview(infoVersionLabel)
+//        view.addSubview(infoVersionLabel)
+        view.addSubview(infoTextView)
         view.addSubview(appIcon)
     }
     override func viewDidLoad() {
