@@ -23,6 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var myTKWatcher: TKTokenWatcher? = nil
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
+    let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
@@ -64,17 +65,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
-        
-        if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
-            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-            if fileExists {
-                if let button = self.statusItem.button {
-                    button.image = NSImage(byReferencingFile: fileURLString)
+        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
+                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                if fileExists {
+                    if let button = self.statusItem.button {
+                        button.image = NSImage(byReferencingFile: fileURLString)
+                    }
+                } else {
+                    self.statusItem.button?.title = "NOT Inserted"
                 }
-            } else {
-                self.statusItem.button?.title = "NOT Inserted"
+            }
+        } else {
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
+                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                if fileExists {
+                    if let button = self.statusItem.button {
+                        button.image = NSImage(byReferencingFile: fileURLString)
+                    }
+                } else {
+                    self.statusItem.button?.title = "NOT Inserted"
+                }
             }
         }
+        
         myTKWatcher?.setInsertionHandler({ tokenID in
             self.update(CTKTokenID: tokenID)
         })
@@ -112,10 +126,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     @objc func preferencesWindow(_ sender: NSMenuItem) {
         var window: PreferencesWindow?
-        let windowSize = NSSize(width: 400, height: 200)
+        let windowSize = NSSize(width: 415, height: 200)
         let screenSize = NSScreen.main?.frame.size ?? .zero
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
-        window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .resizable, .titled], backing: .buffered, defer: false)
+        window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
         if #available(OSX 14.0, *) {
             NSApp.activate()
@@ -392,21 +406,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func update(CTKTokenID: String) {
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
-                RunLoop.main.perform {
-                    let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                    if fileExists {
-                        if let button = self.statusItem.button {
-                            
-                            button.image = NSImage(byReferencingFile: fileURLString)
+            
+            if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
+                    RunLoop.main.perform {
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                
+                                button.image = NSImage(byReferencingFile: fileURLString)
 
+                            }
+                        } else {
+                            self.statusItem.button?.title = "Inserted"
                         }
-                    } else {
-                        self.statusItem.button?.title = "Inserted"
+                    
+                    
+                        self.showReader(TkID: CTKTokenID)
                     }
-                
-                
-                    self.showReader(TkID: CTKTokenID)
+                }
+            } else {
+                if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
+                    RunLoop.main.perform {
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                
+                                button.image = NSImage(byReferencingFile: fileURLString)
+                                
+                            }
+                        } else {
+                            self.statusItem.button?.title = "Inserted"
+                        }
+                        
+                        
+                        self.showReader(TkID: CTKTokenID)
+                    }
                 }
             }
         }
@@ -425,14 +460,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 
                 if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
-                    if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
-                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                        if fileExists {
-                            if let button = self.statusItem.button {
-                                button.image = NSImage(byReferencingFile: fileURLString)
+                    if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                        
+                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
+                            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                            if fileExists {
+                                if let button = self.statusItem.button {
+                                    button.image = NSImage(byReferencingFile: fileURLString)
+                                }
+                            } else {
+                                self.statusItem.button?.title = "NOT Inserted"
                             }
-                        } else {
-                            self.statusItem.button?.title = "NOT Inserted"
+                        }
+                    } else {
+                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
+                            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                            if fileExists {
+                                if let button = self.statusItem.button {
+                                    button.image = NSImage(byReferencingFile: fileURLString)
+                                }
+                            } else {
+                                self.statusItem.button?.title = "NOT Inserted"
+                            }
                         }
                     }
                 }
