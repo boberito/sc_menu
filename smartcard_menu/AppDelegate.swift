@@ -125,6 +125,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
     @objc func preferencesWindow(_ sender: NSMenuItem) {
+        
+        for currentWindow in NSApplication.shared.windows {
+            print(currentWindow.title)
+            if currentWindow.title.contains("SC Menu Preferences") {
+                print("Found one")
+                return
+            }
+        }
         var window: PreferencesWindow?
         let windowSize = NSSize(width: 415, height: 200)
         let screenSize = NSScreen.main?.frame.size ?? .zero
