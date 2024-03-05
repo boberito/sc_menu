@@ -30,8 +30,6 @@ class ViewCerts{
         var myCN: CFString? = nil
         var searchResults: AnyObject? = nil
         var myCert: SecCertificate? = nil
-//        var certSet = Set<String>()
-        var certSet = Set<[String:SecIdentity]>()
         var certDict = [String:SecIdentity]()
 
         let getquery: [String: Any] = [ 

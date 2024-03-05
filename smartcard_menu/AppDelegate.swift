@@ -484,7 +484,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             }
                         }
                     } else {
-                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
+                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
                             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                             if fileExists {
                                 if let button = self.statusItem.button {
