@@ -272,13 +272,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         accessoryView.addSubview(formatPopup)
         accessoryView.addSubview(certsPopUpLabel)
         savePanel.accessoryView = accessoryView
+        
         savePanel.begin(completionHandler: { response in
-            if #available(OSX 14.0, *) {
-                NSApp.activate()
-            } else {
-                NSApp.activate(ignoringOtherApps: true)
-            }
-            savePanel.makeKeyAndOrderFront(savePanel)
+            
+            
             if response.rawValue != 0 {
             
             do {
@@ -302,6 +299,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             }
         })
+        savePanel.makeKeyAndOrderFront(savePanel)
+        savePanel.orderFrontRegardless()
+        if #available(OSX 14.0, *) {
+            NSApp.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        
     }
     @objc func certSelected(_ sender: NSMenuItem) {
         let selectedCert = sender.representedObject as! SecIdentity
