@@ -588,22 +588,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let sema = DispatchSemaphore.init(value: 0)
         
-//        print(slots.debugDescription)
-        
-//        if slots.count > 1 {
-//            RunLoop.main.perform {
-//                print("Attempts: multiple tokens")
-//            }
-//            return
-//        }
-//        
-//        if slots.count < 1 {
-//            return
-//        }
         guard let slotName = slotName else { return false }
         sm.getSlot(withName: slotName, reply: { currentslot in
-            //print("Slot:")
-            //print(currentslot as Any)
             card = currentslot?.makeSmartCard()
             sema.signal()
         })
@@ -615,14 +601,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
             let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
             
-            let apidRequest = Data.init(bytes: apid)
-            let request2 = Data.init(bytes: pinVerifyNull)
+            let apidRequest = Data(apid)
+            let request2 = Data(pinVerifyNull)
             
             card?.transmit(apidRequest, reply: { data, error in
                 if error == nil {
                     
                     card?.transmit(request2, reply: { data, error in
-                        //print("Send:")
+                        
                         let result = data!.hexEncodedString()
                         
                         // convert from hex to decimal
@@ -640,8 +626,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         } else {
                             locked = false
                         }
-                        
-                        //print(data!.hexEncodedString())
                         
                         // check for "63" in the sequence
                         // TODO: check just first two words
