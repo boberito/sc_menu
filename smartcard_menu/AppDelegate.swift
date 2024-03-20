@@ -12,7 +12,7 @@ import NotificationCenter
 import CoreGraphics
 import WebKit
 
-//@main
+@NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     let certViewing = ViewCerts()
     
@@ -61,7 +61,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func startup() {
-    
+//        if let image = NSImage(systemSymbolName: "exclamationmark.warninglight",
+//                               accessibilityDescription: "A multiply symbol inside a filled circle.") {
+//                
+//            var config = NSImage.SymbolConfiguration(textStyle: .body,
+//                                                             scale: .large)
+//            config = config.applying(.init(paletteColors: [.systemTeal, .systemGray]))
+////            imageView.image = image.withSymbolConfiguration(config)
+//            
+//        }
+
+        
+        var x = statusItem.menu?.propertiesToUpdate
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
@@ -421,16 +432,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func update(CTKTokenID: String) {
+        var isCardLocked = false
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            
+            isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     RunLoop.main.perform {
                         let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                         if fileExists {
                             if let button = self.statusItem.button {
-                                
-                                button.image = NSImage(byReferencingFile: fileURLString)
+                                let buttonImage = NSImage(byReferencingFile: fileURLString)
+                                if isCardLocked {
+                                    if let buttonImage = NSImage(byReferencingFile: fileURLString){
+                                        
+                                        let circleSize = NSSize(width: 10, height: 10)
+                                        let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                        
+                                        // Create a red circle image
+                                        let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                            // Draw the buttonImage
+                                            buttonImage.draw(in: newImageRect)
+                                            
+                                            // Draw the red circle
+                                            let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                            NSColor.red.setFill()
+                                            circlePath.fill()
+                                            
+                                            return true
+                                        }
+                                        
+                                        guard let newImageRef = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                            fatalError("Failed to create CGImage")
+                                        }
+                                        button.image = redCircleImage
+                                    }
+                                } else {
+                                    button.image = NSImage(byReferencingFile: fileURLString)
+                                }
+//                                button.image = NSImage(byReferencingFile: fileURLString)
 
                             }
                         } else {
@@ -446,11 +485,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     RunLoop.main.perform {
                         let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                         if fileExists {
+                            
                             if let button = self.statusItem.button {
                                 
-                                button.image = NSImage(byReferencingFile: fileURLString)
-                                
+                                let buttonImage = NSImage(byReferencingFile: fileURLString)
+                                if isCardLocked {
+                                    if let buttonImage = NSImage(byReferencingFile: fileURLString){
+                                        
+                                        let circleSize = NSSize(width: 10, height: 10)
+                                        let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                        
+                                        // Create a red circle image
+                                        let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                            // Draw the buttonImage
+                                            buttonImage.draw(in: newImageRect)
+                                            
+                                            // Draw the red circle
+                                            let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                            NSColor.red.setFill()
+                                            circlePath.fill()
+                                            
+                                            return true
+                                        }
+                                        
+                                        guard let newImageRef = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                            fatalError("Failed to create CGImage")
+                                        }
+                                        button.image = redCircleImage
+                                    }
+                                    //                                button.image = NSImage(byReferencingFile: fileURLString)
+                                    
+                                } else {
+                                    button.image = NSImage(byReferencingFile: fileURLString)
+                                }
                             }
+                            
                         } else {
                             self.statusItem.button?.title = "Inserted"
                         }
@@ -461,6 +530,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+        if isCardLocked {
+//            self.statusItem.button?.title = "!"
+            print("locked")
+        }
+        
+        
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             RunLoop.main.perform {
@@ -504,6 +579,96 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 
             }
         }, forTokenID: CTKTokenID)
+    }
+    
+    func isLocked(slotName: String?) -> Bool {
+        let sm = TKSmartCardSlotManager()
+        let slots = sm.slotNames.filter { $0 != "TCS Virtual Serial" }
+        var card : TKSmartCard? = nil
+        
+        let sema = DispatchSemaphore.init(value: 0)
+        
+//        print(slots.debugDescription)
+        
+//        if slots.count > 1 {
+//            RunLoop.main.perform {
+//                print("Attempts: multiple tokens")
+//            }
+//            return
+//        }
+//        
+//        if slots.count < 1 {
+//            return
+//        }
+        guard let slotName = slotName else { return false }
+        sm.getSlot(withName: slotName, reply: { currentslot in
+            //print("Slot:")
+            //print(currentslot as Any)
+            card = currentslot?.makeSmartCard()
+            sema.signal()
+        })
+        sema.wait()
+        
+        
+        var locked = false
+        card?.beginSession(reply: { something, error in
+            let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
+            let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
+            
+            let apidRequest = Data.init(bytes: apid)
+            let request2 = Data.init(bytes: pinVerifyNull)
+            
+            card?.transmit(apidRequest, reply: { data, error in
+                if error == nil {
+                    
+                    card?.transmit(request2, reply: { data, error in
+                        //print("Send:")
+                        let result = data!.hexEncodedString()
+                        
+                        // convert from hex to decimal
+                        
+                        let attempts = Int(String(result.last!), radix: 16)
+                        
+//                        var attemptsText = ""
+                        
+                        // if attempts left == 0, card is locked
+                        // otherwise print attempts
+                        // unless we didn't get a success code
+                        
+                        if attempts == 0 {
+                            locked = true
+                        } else {
+                            locked = false
+                        }
+                        
+                        //print(data!.hexEncodedString())
+                        
+                        // check for "63" in the sequence
+                        // TODO: check just first two words
+                        
+                        if !String(describing: data!.hexEncodedString()).contains("63") {
+                            locked = true
+                        }
+                        
+                        sema.signal()
+                    })
+                } else {
+
+                    sema.signal()
+                }
+            })
+            
+        })
+        sema.wait()
+        
+        // be nice and end the session
+        
+        card?.endSession()
+        if locked {
+            return true
+        }
+        
+        return false
     }
     
 }
