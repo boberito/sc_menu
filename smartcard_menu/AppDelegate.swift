@@ -11,10 +11,13 @@ import SecurityInterface.SFCertificatePanel
 import NotificationCenter
 import CoreGraphics
 import WebKit
+import UserNotifications
+
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     let certViewing = ViewCerts()
+    var notificationsAllowed = Bool()
     var lockedDictArray = [[String:Bool]]()
     var code: Any?
     var debugMenuItems = [NSMenuItem]()
@@ -54,7 +57,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
             }
         }
+        notificationsAllowed = false
+        Task {
+            await notificationPermissions()
+        }
         startup()
+    }
+    
+    func notificationPermissions() async {
+        let center = UNUserNotificationCenter.current()
+
+        // Obtain the notification settings.
+        let settings = await center.notificationSettings()
+
+        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
+            if granted {
+                self.notificationsAllowed = true
+            } else {
+                self.notificationsAllowed = false
+            }
+        }
+       
+        // Verify the authorization status.
+        guard (settings.authorizationStatus == .authorized) ||
+              (settings.authorizationStatus == .provisional) else 
+        {
+            
+            return }
+
+
+        
     }
     
     @objc func screenUnlocked() {
@@ -90,6 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         myTKWatcher?.setInsertionHandler({ tokenID in
+            
             self.update(CTKTokenID: tokenID)
         })
         addQuit()
@@ -472,6 +505,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
+            if self.notificationsAllowed {
+                let center = UNUserNotificationCenter.current()
+                let content = UNMutableNotificationContent()
+                content.title = "SC Menu"
+                content.body = "Smartcard Inserted"
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+
+                let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                center.add(request)
+                //                content.categoryIdentifier = "alarm"
+//                content.userInfo = ["customData": "fizzbuzz"]
+//                content.sound = UNNotificationSound.default
+                
+            }
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
@@ -490,7 +537,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             
+            
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
+                if self.notificationsAllowed {
+                    let center = UNUserNotificationCenter.current()
+                    let content = UNMutableNotificationContent()
+                    content.title = "SC Menu"
+                    content.body = "Smartcard Removed"
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+
+                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                    center.add(request)
+                    //                content.categoryIdentifier = "alarm"
+    //                content.userInfo = ["customData": "fizzbuzz"]
+    //                content.sound = UNNotificationSound.default
+                    
+                }
                 self.lockedDictArray.remove(at: index)
                 if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                     if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {

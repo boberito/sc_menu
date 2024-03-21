@@ -4,3 +4,6 @@ smartcard_menu.xcodeproj/project.pbxproj
 *.xcuserstate
 *.xcbkptlist
 .DS_Store
+.DS_Store
+*.pbxproj
+*.xcuserstate
