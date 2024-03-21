@@ -12,10 +12,10 @@ import NotificationCenter
 import CoreGraphics
 import WebKit
 
-@NSApplicationMain
+//@NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     let certViewing = ViewCerts()
-    
+    var lockedDictArray = [[String:Bool]]()
     var code: Any?
     var debugMenuItems = [NSMenuItem]()
     var seperatorLines = [NSMenuItem]()
@@ -31,26 +31,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
         NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) {
             switch $0.modifierFlags.intersection(.deviceIndependentFlagsMask) {
-            case [.option]:
-                for seperatorLine in self.seperatorLines {
-                    seperatorLine.isHidden = false
-                }
-                for debugMenuItem in self.debugMenuItems {
-                    debugMenuItem.isHidden = false
-                }
-                for exportMenuItem in self.exportMenuItems {
-                    exportMenuItem.isHidden = false
-                }
-            default:
-                for debugMenuItem in self.debugMenuItems {
-                    debugMenuItem.isHidden = true
-                }
-                for exportMenuItem in self.exportMenuItems {
-                    exportMenuItem.isHidden = true
-                }
-                for seperatorLine in self.seperatorLines {
-                    seperatorLine.isHidden = true
-                }
+                case [.option]:
+                    for seperatorLine in self.seperatorLines {
+                        seperatorLine.isHidden = false
+                    }
+                    for debugMenuItem in self.debugMenuItems {
+                        debugMenuItem.isHidden = false
+                    }
+                    for exportMenuItem in self.exportMenuItems {
+                        exportMenuItem.isHidden = false
+                    }
+                default:
+                    for debugMenuItem in self.debugMenuItems {
+                        debugMenuItem.isHidden = true
+                    }
+                    for exportMenuItem in self.exportMenuItems {
+                        exportMenuItem.isHidden = true
+                    }
+                    for seperatorLine in self.seperatorLines {
+                        seperatorLine.isHidden = true
+                    }
             }
         }
         startup()
@@ -61,18 +61,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func startup() {
-//        if let image = NSImage(systemSymbolName: "exclamationmark.warninglight",
-//                               accessibilityDescription: "A multiply symbol inside a filled circle.") {
-//                
-//            var config = NSImage.SymbolConfiguration(textStyle: .body,
-//                                                             scale: .large)
-//            config = config.applying(.init(paletteColors: [.systemTeal, .systemGray]))
-////            imageView.image = image.withSymbolConfiguration(config)
-//            
-//        }
-
-        
-        var x = statusItem.menu?.propertiesToUpdate
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
@@ -186,7 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.makeKeyAndOrderFront(window)
         }
         
-//
+        //
     }
     func PEMKeyFromDERKey(_ data: Data, PEMType: String) -> String {
         let kCryptoExportImportManagerPublicKeyInitialTag = "-----BEGIN RSA PUBLIC KEY-----\n"
@@ -234,32 +222,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let pivToken = sender.representedObject as! String
         var pemcerts = [String:String]()
         guard let certDict = certViewing.getIdentity(pivToken: pivToken) else { return }
-            for (k,v) in certDict {
-                var pem : String? = nil
-                
-                        var publicCert: SecCertificate? = nil
-                //
-                        let err = SecIdentityCopyCertificate(v, &publicCert)
-                //
-                        if err == 0 {
-                            let certData = SecCertificateCopyData(publicCert!)
-                            pem = PEMKeyFromDERKey(certData as Data, PEMType: "RSA")
-                        } else {
-                            print("Error getting public certificate.")
-                            return
-                        }
-                if let pem = pem {
-                    pemcerts.updateValue(pem, forKey: k)
-                }
-                
+        for (k,v) in certDict {
+            var pem : String? = nil
+            
+            var publicCert: SecCertificate? = nil
+            //
+            let err = SecIdentityCopyCertificate(v, &publicCert)
+            //
+            if err == 0 {
+                let certData = SecCertificateCopyData(publicCert!)
+                pem = PEMKeyFromDERKey(certData as Data, PEMType: "RSA")
+            } else {
+                print("Error getting public certificate.")
+                return
             }
+            if let pem = pem {
+                pemcerts.updateValue(pem, forKey: k)
+            }
+            
+        }
         
         let savePanel = NSSavePanel()
         savePanel.title = "Save a certificate file."
         savePanel.message = "Choose where to save your certificate file:"
         savePanel.prompt = "Save Certificate"
         savePanel.canCreateDirectories = true
-//        savePanel.allowedFileTypes = [ "cer" ]
+        //        savePanel.allowedFileTypes = [ "cer" ]
         savePanel.allowedContentTypes = [.x509Certificate]
         savePanel.allowsOtherFileTypes = true
         let certsPopup = NSPopUpButton(frame: NSRect(x: 55, y: 30, width: 400, height: 25), pullsDown: false)
@@ -288,26 +276,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             
             if response.rawValue != 0 {
-            
-            do {
-                guard let selectedCert = certsPopup.selectedItem?.title else { return }
                 
-                if formatPopup.selectedItem?.title == "DER" {
-                    var publicCert: SecCertificate? = nil
-                    let err = SecIdentityCopyCertificate(certDict[selectedCert]!, &publicCert)
-                    if err == 0 {
-                        let certData = SecCertificateCopyData(publicCert!) as Data
-                        try certData.write(to: savePanel.url!)
+                do {
+                    guard let selectedCert = certsPopup.selectedItem?.title else { return }
+                    
+                    if formatPopup.selectedItem?.title == "DER" {
+                        var publicCert: SecCertificate? = nil
+                        let err = SecIdentityCopyCertificate(certDict[selectedCert]!, &publicCert)
+                        if err == 0 {
+                            let certData = SecCertificateCopyData(publicCert!) as Data
+                            try certData.write(to: savePanel.url!)
+                        }
+                        
+                    } else {
+                        guard let pemcert = pemcerts[selectedCert] else { return }
+                        try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
                     }
-   
-                } else {
-                    guard let pemcert = pemcerts[selectedCert] else { return }
-                    try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
+                } catch {
+                    
+                    return
                 }
-            } catch {
-                
-                return
-            }
             }
         })
         savePanel.makeKeyAndOrderFront(savePanel)
@@ -431,113 +419,84 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
     }
     
+    func menuBarIcon(fileURLString: String) {
+        RunLoop.main.perform {
+            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+            if fileExists {
+                if let button = self.statusItem.button {
+                    for dict in self.lockedDictArray {
+                        
+                        if dict.values.contains(true) {
+                            if let buttonImage = NSImage(byReferencingFile: fileURLString){
+                                
+                                let circleSize = NSSize(width: 10, height: 10)
+                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                    buttonImage.draw(in: newImageRect)
+                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                    NSColor.red.setFill()
+                                    circlePath.fill()
+                                    
+                                    return true
+                                }
+                                
+                                guard let newImageRef = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                    fatalError("Failed to create CGImage")
+                                }
+                                button.image = redCircleImage
+                                
+                            }
+                            break
+                        } else {
+                            button.image = NSImage(byReferencingFile: fileURLString)
+                        }
+                        
+                    }
+
+                }
+            } else {
+                self.statusItem.button?.title = "Inserted"
+            }
+            
+        }
+    }
     @objc func update(CTKTokenID: String) {
         var isCardLocked = false
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
+            lockedDictArray.append([CTKTokenID:isCardLocked])
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
-                    RunLoop.main.perform {
-                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                        if fileExists {
-                            if let button = self.statusItem.button {
-                                let buttonImage = NSImage(byReferencingFile: fileURLString)
-                                if isCardLocked {
-                                    if let buttonImage = NSImage(byReferencingFile: fileURLString){
-                                        
-                                        let circleSize = NSSize(width: 10, height: 10)
-                                        let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
-                                        
-                                        // Create a red circle image
-                                        let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
-                                            // Draw the buttonImage
-                                            buttonImage.draw(in: newImageRect)
-                                            
-                                            // Draw the red circle
-                                            let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
-                                            NSColor.red.setFill()
-                                            circlePath.fill()
-                                            
-                                            return true
-                                        }
-                                        
-                                        guard let newImageRef = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                                            fatalError("Failed to create CGImage")
-                                        }
-                                        button.image = redCircleImage
-                                    }
-                                } else {
-                                    button.image = NSImage(byReferencingFile: fileURLString)
-                                }
-//                                button.image = NSImage(byReferencingFile: fileURLString)
-
-                            }
-                        } else {
-                            self.statusItem.button?.title = "Inserted"
-                        }
-                    
-                    
-                        self.showReader(TkID: CTKTokenID)
-                    }
+                    menuBarIcon(fileURLString: fileURLString)
+                    self.showReader(TkID: CTKTokenID)
                 }
             } else {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
-                    RunLoop.main.perform {
-                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                        if fileExists {
-                            
-                            if let button = self.statusItem.button {
-                                
-                                let buttonImage = NSImage(byReferencingFile: fileURLString)
-                                if isCardLocked {
-                                    if let buttonImage = NSImage(byReferencingFile: fileURLString){
-                                        
-                                        let circleSize = NSSize(width: 10, height: 10)
-                                        let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
-                                        
-                                        // Create a red circle image
-                                        let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
-                                            // Draw the buttonImage
-                                            buttonImage.draw(in: newImageRect)
-                                            
-                                            // Draw the red circle
-                                            let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
-                                            NSColor.red.setFill()
-                                            circlePath.fill()
-                                            
-                                            return true
-                                        }
-                                        
-                                        guard let newImageRef = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                                            fatalError("Failed to create CGImage")
-                                        }
-                                        button.image = redCircleImage
-                                    }
-                                    //                                button.image = NSImage(byReferencingFile: fileURLString)
-                                    
-                                } else {
-                                    button.image = NSImage(byReferencingFile: fileURLString)
-                                }
-                            }
-                            
-                        } else {
-                            self.statusItem.button?.title = "Inserted"
-                        }
-                        
-                        
+                    menuBarIcon(fileURLString: fileURLString)
                         self.showReader(TkID: CTKTokenID)
-                    }
+                    
                 }
             }
-        }
-        if isCardLocked {
-//            self.statusItem.button?.title = "!"
-            print("locked")
         }
         
         
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
+            
+            if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
+                self.lockedDictArray.remove(at: index)
+                if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                    if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
+                        self.menuBarIcon(fileURLString: fileURLString)
+                    }
+                } else {
+                    if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
+                        self.menuBarIcon(fileURLString: fileURLString)
+                    
+                    }
+                }
+                
+            }
             RunLoop.main.perform {
                 
                 for scMenuItem in self.statusItem.menu!.items {
@@ -608,14 +567,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if error == nil {
                     
                     card?.transmit(request2, reply: { data, error in
-                        
-                        let result = data!.hexEncodedString()
+                        guard let data = data else { return }
+                        let result = data.hexEncodedString()
                         
                         // convert from hex to decimal
                         
                         let attempts = Int(String(result.last!), radix: 16)
                         
-//                        var attemptsText = ""
+                        //                        var attemptsText = ""
                         
                         // if attempts left == 0, card is locked
                         // otherwise print attempts
@@ -630,14 +589,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         // check for "63" in the sequence
                         // TODO: check just first two words
                         
-                        if !String(describing: data!.hexEncodedString()).contains("63") {
+                        if !String(describing: data.hexEncodedString()).contains("63") {
                             locked = true
                         }
                         
                         sema.signal()
                     })
                 } else {
-
+                    
                     sema.signal()
                 }
             })
