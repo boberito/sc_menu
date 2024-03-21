@@ -12,7 +12,7 @@ import NotificationCenter
 import CoreGraphics
 import WebKit
 
-//@NSApplicationMain
+@NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     let certViewing = ViewCerts()
     var lockedDictArray = [[String:Bool]]()
@@ -26,6 +26,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
@@ -358,6 +359,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
                 if let certDict = certViewing.getIdentity(pivToken: pivToken){
+                    for dict in self.lockedDictArray {                        
+                        if dict[TkID] == true {
+                            let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                            subMenu.addItem(lockedMenuItem)
+                        }
+                    }
                     var seperator = false
                     let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
                     for key in sortedDictKeys {
