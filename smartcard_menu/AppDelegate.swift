@@ -69,21 +69,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Obtain the notification settings.
         let settings = await center.notificationSettings()
-
-        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
-            if granted {
-                self.notificationsAllowed = true
-            } else {
-                self.notificationsAllowed = false
-            }
-        }
-       
+//
+//        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
+//            if granted {
+//                self.notificationsAllowed = true
+//            } else {
+//                self.notificationsAllowed = false
+//            }
+//        }
         // Verify the authorization status.
         guard (settings.authorizationStatus == .authorized) ||
               (settings.authorizationStatus == .provisional) else 
-        {
-            
-            return }
+        { return }
+        self.notificationsAllowed = true
 
 
         

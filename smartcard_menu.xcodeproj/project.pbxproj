@@ -20,7 +20,6 @@
 		86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FF1DC52B7FA45A007F3959 /* ViewController.swift */; };
 		86FF1DC82B7FA45B007F3959 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86FF1DC72B7FA45B007F3959 /* Assets.xcassets */; };
 		86FF1DCB2B7FA45B007F3959 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 86FF1DC92B7FA45B007F3959 /* Main.storyboard */; };
-		86FF1DD32B7FA942007F3959 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FF1DD22B7FA942007F3959 /* main.swift */; };
 		86FF1DDB2B7FCE5C007F3959 /* smartcard_in.png in Resources */ = {isa = PBXBuildFile; fileRef = 86FF1DDA2B7FCE5C007F3959 /* smartcard_in.png */; };
 		86FF1DDD2B7FCE60007F3959 /* smartcard_out.png in Resources */ = {isa = PBXBuildFile; fileRef = 86FF1DDC2B7FCE60007F3959 /* smartcard_out.png */; };
 /* End PBXBuildFile section */
@@ -41,7 +40,6 @@
 		86FF1DC72B7FA45B007F3959 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		86FF1DCA2B7FA45B007F3959 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		86FF1DCC2B7FA45B007F3959 /* smartcard_menu.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = smartcard_menu.entitlements; sourceTree = "<group>"; };
-		86FF1DD22B7FA942007F3959 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		86FF1DDA2B7FCE5C007F3959 /* smartcard_in.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_in.png; sourceTree = "<group>"; };
 		86FF1DDC2B7FCE60007F3959 /* smartcard_out.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -76,7 +74,6 @@
 		86FF1DC22B7FA45A007F3959 /* smartcard_menu */ = {
 			isa = PBXGroup;
 			children = (
-				86FF1DD22B7FA942007F3959 /* main.swift */,
 				86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */,
 				86F7327C2B92D317007DFED7 /* PrefView.swift */,
 				862CDBB52B911BD000E75D2D /* ATR.swift */,
@@ -178,7 +175,6 @@
 				86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */,
 				735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */,
 				862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */,
-				86FF1DD32B7FA942007F3959 /* main.swift in Sources */,
 				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,
 				86F7327D2B92D317007DFED7 /* PrefView.swift in Sources */,
 			);
