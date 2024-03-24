@@ -53,7 +53,6 @@ class PreferencesViewController: NSViewController {
         }
         
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
-//        startUpButton.frame = NSRect(x: 160, y: 160, width: 150, height: 25)
         startUpButton.frame = NSRect(x: 160, y: 70, width: 200, height: 25)
         switch SMAppService.mainApp.status {
             case .enabled:
@@ -73,8 +72,8 @@ class PreferencesViewController: NSViewController {
         }
         
         
-//        startUpButton.frame = NSRect(x: 160, y: 160, width: 150, height: 25)
         notificationsButton.frame = NSRect(x: 160, y: 50, width: 200, height: 25)
+        notificationsButton.toolTip = "Once checked, this is controlled through Notifications in System Settings."
         let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
         infoTextView.isEditable = false
@@ -117,7 +116,6 @@ class PreferencesViewController: NSViewController {
         view.addSubview(iconOneImageIn)
         view.addSubview(iconTwoImageOut)
         view.addSubview(iconTwoImageIn)
-//        view.addSubview(infoVersionLabel)
         view.addSubview(infoTextView)
         view.addSubview(appIcon)
     }
@@ -137,10 +135,12 @@ class PreferencesViewController: NSViewController {
         
         if sender.title == "Black and White" {
             UserDefaults.standard.set("bw", forKey: "icon_mode")
+            NSLog("SC Menu - B&W Icon selected")
         }
         
         if sender.title == "Colorful" {
             UserDefaults.standard.set("colorful", forKey: "icon_mode")
+            NSLog("SC Menu - Colorful Icon selected")
         }
     }
     
@@ -151,11 +151,15 @@ class PreferencesViewController: NSViewController {
             if granted {
                 RunLoop.main.perform {
                     self.notificationsButton.intValue = 1
+                    self.notificationsButton.isEnabled = false
                 }
+                NSLog("Notifications are allowed")
             } else {
                 RunLoop.main.perform {
                     self.notificationsButton.intValue = 0
+                    self.notificationsButton.isEnabled = false
                 }
+                NSLog("Notifications denied")
             }
         }
     
@@ -165,14 +169,16 @@ class PreferencesViewController: NSViewController {
         if sender.intValue == 1 {
             do {
                 try SMAppService.mainApp.register()
+                NSLog("SC Menu set to launch at login")
             } catch {
-                print("register error")
+                NSLog("SMApp Service register error")
             }
         } else {
             do {
                 try SMAppService.mainApp.unregister()
+                NSLog("SC Menu removed from login items")
             } catch {
-                print("unregister error")
+                NSLog("SMApp Service unregister error")
             }
         }
     }

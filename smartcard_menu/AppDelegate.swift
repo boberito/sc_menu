@@ -29,6 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSLog("SC Menu launched")
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
@@ -69,15 +70,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Obtain the notification settings.
         let settings = await center.notificationSettings()
-//
-//        center.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
-//            if granted {
-//                self.notificationsAllowed = true
-//            } else {
-//                self.notificationsAllowed = false
-//            }
-//        }
-        // Verify the authorization status.
         guard (settings.authorizationStatus == .authorized) ||
               (settings.authorizationStatus == .provisional) else 
         { return }
@@ -145,7 +137,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        NSLog("SC Menu is quitting.")
     }
     
     func applicationWillResignActive(_ notification: Notification) {
@@ -183,6 +175,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
     }
     @objc func ATRfunc(_ sender: NSMenuItem) {
+        NSLog("Debug selected. Thanks Ludovic https://smartcard-atr.apdu.fr")
         let token = sender.representedObject as! String
         if let slotName = myTKWatcher?.tokenInfo(forTokenID: token)?.slotName, let driverName = myTKWatcher?.tokenInfo(forTokenID: token)?.driverName {
             let pivCard = PIVCard(token: token, slotName: slotName, driverName: driverName)
@@ -251,6 +244,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func exportCerts(_ sender: NSMenuItem) {
+        NSLog("Export certificates selected")
         let pivToken = sender.representedObject as! String
         var pemcerts = [String:String]()
         guard let certDict = certViewing.getIdentity(pivToken: pivToken) else { return }
@@ -373,7 +367,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             window.makeKeyAndOrderFront(window)
-            
+            NSLog("Cert \(sender.title) selected")
         }
     }
     
@@ -394,6 +388,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         if dict[TkID] == true {
                             let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
                             subMenu.addItem(lockedMenuItem)
+                            NSLog("\(TkID) is locked")
                         }
                     }
                     var seperator = false
@@ -501,6 +496,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func update(CTKTokenID: String) {
         var isCardLocked = false
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
+            NSLog("Smartcard inserted \(CTKTokenID)")
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
             if self.notificationsAllowed {
@@ -512,9 +508,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
                 center.add(request)
-                //                content.categoryIdentifier = "alarm"
-//                content.userInfo = ["customData": "fizzbuzz"]
-//                content.sound = UNNotificationSound.default
                 
             }
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
@@ -535,7 +528,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             
-            
+            NSLog("Smartcard removed \(CTKTokenID)")
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 if self.notificationsAllowed {
                     let center = UNUserNotificationCenter.current()
@@ -546,9 +539,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
                     center.add(request)
-                    //                content.categoryIdentifier = "alarm"
-    //                content.userInfo = ["customData": "fizzbuzz"]
-    //                content.sound = UNNotificationSound.default
                     
                 }
                 self.lockedDictArray.remove(at: index)
