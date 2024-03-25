@@ -30,6 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSLog("SC Menu launched")
+        let updater = UpdateCheck()
+        updater.check()
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)

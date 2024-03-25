@@ -74,6 +74,10 @@ class PreferencesViewController: NSViewController {
         
         notificationsButton.frame = NSRect(x: 160, y: 50, width: 200, height: 25)
         notificationsButton.toolTip = "Once checked, this is controlled through Notifications in System Settings."
+        
+        let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
+        updateButton.frame = NSRect(x: 155, y: 15, width: 150, height: 30)
+        
         let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
         infoTextView.isEditable = false
@@ -118,6 +122,7 @@ class PreferencesViewController: NSViewController {
         view.addSubview(iconTwoImageIn)
         view.addSubview(infoTextView)
         view.addSubview(appIcon)
+        view.addSubview(updateButton)
     }
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -141,6 +146,19 @@ class PreferencesViewController: NSViewController {
         if sender.title == "Colorful" {
             UserDefaults.standard.set("colorful", forKey: "icon_mode")
             NSLog("SC Menu - Colorful Icon selected")
+        }
+    }
+    
+    @objc func updateCheck(_ sender: NSButton) {
+        NSLog("Update button pressed")
+        let updater = UpdateCheck()
+        if !updater.check(){
+            let alert = NSAlert()
+            alert.messageText = "No Update Available"
+            alert.informativeText = """
+            SC Menu is currently up to date.
+            """
+            alert.runModal()
         }
     }
     
