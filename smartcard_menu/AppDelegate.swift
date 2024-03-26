@@ -31,7 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         NSLog("SC Menu launched")
         let updater = UpdateCheck()
-        updater.check()
+        _ = updater.check()
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
@@ -475,7 +475,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                     return true
                                 }
                                 
-                                guard let newImageRef = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
                                     fatalError("Failed to create CGImage")
                                 }
                                 button.image = redCircleImage
@@ -601,7 +601,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func isLocked(slotName: String?) -> Bool {
         let sm = TKSmartCardSlotManager()
-        let slots = sm.slotNames.filter { $0 != "TCS Virtual Serial" }
         var card : TKSmartCard? = nil
         
         let sema = DispatchSemaphore.init(value: 0)

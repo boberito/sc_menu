@@ -152,7 +152,17 @@ class PreferencesViewController: NSViewController {
     @objc func updateCheck(_ sender: NSButton) {
         NSLog("Update button pressed")
         let updater = UpdateCheck()
-        if !updater.check(){
+        switch updater.check() {
+        case 1:
+            NSLog("SC Menu update available")
+        case 2:
+            let alert = NSAlert()
+            alert.messageText = "Error"
+            alert.informativeText = """
+            Cannot reach GitHub to check SC Menu updates.
+            """
+            alert.runModal()
+        default:
             let alert = NSAlert()
             alert.messageText = "No Update Available"
             alert.informativeText = """
@@ -160,6 +170,7 @@ class PreferencesViewController: NSViewController {
             """
             alert.runModal()
         }
+        
     }
     
     @objc func allowNotifications(_ sender: NSButton) {
