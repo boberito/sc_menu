@@ -7,10 +7,11 @@
 import ServiceManagement
 import UserNotifications
 import Cocoa
+import os
 
 class PreferencesViewController: NSViewController {
     let notificationsButton = NSButton(checkboxWithTitle: "Allow Notifications", target: Any?.self, action: #selector(allowNotifications))
-
+    private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     override func loadView() {
         Task {
             await notificationPermissions()
@@ -140,21 +141,22 @@ class PreferencesViewController: NSViewController {
         
         if sender.title == "Black and White" {
             UserDefaults.standard.set("bw", forKey: "icon_mode")
-            NSLog("SC Menu - B&W Icon selected")
+            os_log("B&W Icon selected", log: prefsLog, type: .default)
+            
         }
         
         if sender.title == "Colorful" {
             UserDefaults.standard.set("colorful", forKey: "icon_mode")
-            NSLog("SC Menu - Colorful Icon selected")
+            os_log("Colorful Icon selected", log: prefsLog, type: .default)
         }
     }
     
     @objc func updateCheck(_ sender: NSButton) {
-        NSLog("Update button pressed")
+        os_log("Update button pressed", log: prefsLog, type: .default)
         let updater = UpdateCheck()
         switch updater.check() {
         case 1:
-            NSLog("SC Menu update available")
+            return
         case 2:
             let alert = NSAlert()
             alert.messageText = "Error"
@@ -182,13 +184,13 @@ class PreferencesViewController: NSViewController {
                     self.notificationsButton.intValue = 1
                     self.notificationsButton.isEnabled = false
                 }
-                NSLog("Notifications are allowed")
+                os_log("Notications allowed", log: self.prefsLog, type: .default)
             } else {
                 RunLoop.main.perform {
                     self.notificationsButton.intValue = 0
                     self.notificationsButton.isEnabled = false
                 }
-                NSLog("Notifications denied")
+                os_log("Notications denied", log: self.prefsLog, type: .default)
             }
         }
     
@@ -198,16 +200,16 @@ class PreferencesViewController: NSViewController {
         if sender.intValue == 1 {
             do {
                 try SMAppService.mainApp.register()
-                NSLog("SC Menu set to launch at login")
+                os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
             } catch {
-                NSLog("SMApp Service register error")
+                os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
             }
         } else {
             do {
                 try SMAppService.mainApp.unregister()
-                NSLog("SC Menu removed from login items")
+                os_log("SC Menu removed from login items", log: self.prefsLog, type: .default)
             } catch {
-                NSLog("SMApp Service unregister error")
+                os_log("SMApp Service unregister error %s", log: self.prefsLog, type: .default, error.localizedDescription)
             }
         }
     }

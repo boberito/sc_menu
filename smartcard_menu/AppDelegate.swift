@@ -12,10 +12,14 @@ import NotificationCenter
 import CoreGraphics
 import WebKit
 import UserNotifications
+import os
 
+
+let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+    let appLog = OSLog(subsystem: subsystem, category: "General")
     let certViewing = ViewCerts()
     var notificationsAllowed = Bool()
     var lockedDictArray = [[String:Bool]]()
@@ -29,7 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        NSLog("SC Menu launched")
+        os_log("SC Menu launched", log: appLog, type: .default)
         let updater = UpdateCheck()
         _ = updater.check()
         NSApplication.shared.setActivationPolicy(.accessory)
@@ -139,7 +143,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {
-        NSLog("SC Menu is quitting.")
     }
     
     func applicationWillResignActive(_ notification: Notification) {
@@ -177,7 +180,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
     }
     @objc func ATRfunc(_ sender: NSMenuItem) {
-        NSLog("Debug selected. Thanks Ludovic https://smartcard-atr.apdu.fr")
+        os_log("Debug selected. Thanks Ludovic https://smartcard-atr.apdu.fr", log: appLog, type: .default)
         let token = sender.representedObject as! String
         if let slotName = myTKWatcher?.tokenInfo(forTokenID: token)?.slotName, let driverName = myTKWatcher?.tokenInfo(forTokenID: token)?.driverName {
             let pivCard = PIVCard(token: token, slotName: slotName, driverName: driverName)
@@ -246,7 +249,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func exportCerts(_ sender: NSMenuItem) {
-        NSLog("Export certificates selected")
+        os_log("Export certificates selected", log: appLog, type: .default)
         let pivToken = sender.representedObject as! String
         var pemcerts = [String:String]()
         guard let certDict = certViewing.getIdentity(pivToken: pivToken) else { return }
@@ -369,7 +372,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             window.makeKeyAndOrderFront(window)
-            NSLog("Cert \(sender.title) selected")
+            os_log("Cert %s selected", log: appLog, type: .default, sender.title.description)
         }
     }
     
@@ -390,7 +393,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         if dict[TkID] == true {
                             let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
                             subMenu.addItem(lockedMenuItem)
-                            NSLog("\(TkID) is locked")
+                            os_log("%s is locked", log: appLog, type: .default, TkID.description)
                         }
                     }
                     var seperator = false
@@ -432,6 +435,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func quit() {
+        os_log("SC Menu is quitting.", log: appLog, type: .default)
         exit(0)
     }
     
@@ -498,7 +502,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func update(CTKTokenID: String) {
         var isCardLocked = false
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            NSLog("Smartcard inserted \(CTKTokenID)")
+            os_log("Smartcard Inserted %s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
             if self.notificationsAllowed {
@@ -530,7 +534,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             
-            NSLog("Smartcard removed \(CTKTokenID)")
+            os_log("Smartcard Removed %s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 if self.notificationsAllowed {
                     let center = UNUserNotificationCenter.current()
