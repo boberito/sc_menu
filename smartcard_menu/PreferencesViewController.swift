@@ -10,12 +10,8 @@ import Cocoa
 import os
 
 class PreferencesViewController: NSViewController {
-    let notificationsButton = NSButton(checkboxWithTitle: "Allow Notifications", target: Any?.self, action: #selector(allowNotifications))
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     override func loadView() {
-        Task {
-            await notificationPermissions()
-        }
         let rect = NSRect(x: 0, y: 0, width: 415, height: 200)
         view = NSView(frame: rect)
         view.wantsLayer = true
@@ -54,7 +50,7 @@ class PreferencesViewController: NSViewController {
         }
         
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
-        startUpButton.frame = NSRect(x: 160, y: 70, width: 200, height: 25)
+        startUpButton.frame = NSRect(x: 160, y: 90, width: 200, height: 25)
         switch SMAppService.mainApp.status {
             case .enabled:
                 startUpButton.intValue = 1
@@ -73,11 +69,9 @@ class PreferencesViewController: NSViewController {
         }
         
         
-        notificationsButton.frame = NSRect(x: 160, y: 50, width: 200, height: 25)
-        notificationsButton.toolTip = "Once checked, this is controlled through Notifications in System Settings."
-        
+
         let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
-        updateButton.frame = NSRect(x: 155, y: 15, width: 150, height: 30)
+        updateButton.frame = NSRect(x: 155, y: 50, width: 150, height: 30)
         
         let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
@@ -114,7 +108,6 @@ class PreferencesViewController: NSViewController {
         
         view.addSubview(iconLabel)
         view.addSubview(startUpButton)
-        view.addSubview(notificationsButton)
         view.addSubview(iconOneRadioButton)
         view.addSubview(iconTwoRadioButton)
         view.addSubview(iconOneImageOut)
@@ -175,26 +168,6 @@ class PreferencesViewController: NSViewController {
         
     }
     
-    @objc func allowNotifications(_ sender: NSButton) {
-        let nc = UNUserNotificationCenter.current()
-        
-        nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
-            if granted {
-                RunLoop.main.perform {
-                    self.notificationsButton.intValue = 1
-                    self.notificationsButton.isEnabled = false
-                }
-                os_log("Notications allowed", log: self.prefsLog, type: .default)
-            } else {
-                RunLoop.main.perform {
-                    self.notificationsButton.intValue = 0
-                    self.notificationsButton.isEnabled = false
-                }
-                os_log("Notications denied", log: self.prefsLog, type: .default)
-            }
-        }
-    
-    }
     
     @objc func loginItemChange(_ sender: NSButton) {
         if sender.intValue == 1 {
@@ -213,24 +186,6 @@ class PreferencesViewController: NSViewController {
             }
         }
     }
-    func notificationPermissions() async {
-        let center = UNUserNotificationCenter.current()
 
-        // Obtain the notification settings.
-        let settings = await center.notificationSettings()
-        if settings.authorizationStatus == .authorized {
-            notificationsButton.intValue = 1
-            notificationsButton.isEnabled = false
-        }
-        if settings.authorizationStatus == .denied {
-            notificationsButton.intValue = 0
-            notificationsButton.isEnabled = false
-        }
-        if settings.authorizationStatus == .notDetermined {
-            notificationsButton.isEnabled = true
-            notificationsButton.intValue = 0
-        }
-        
-    }
 
 }

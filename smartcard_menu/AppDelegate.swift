@@ -20,6 +20,7 @@ let subsystem = "com.ttinc.sc-menu"
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     let appLog = OSLog(subsystem: subsystem, category: "General")
+    let nc = UNUserNotificationCenter.current()
     let certViewing = ViewCerts()
     var notificationsAllowed = Bool()
     var lockedDictArray = [[String:Bool]]()
@@ -33,6 +34,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
+
         os_log("SC Menu launched", log: appLog, type: .default)
         let updater = UpdateCheck()
         _ = updater.check()
@@ -64,24 +67,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
             }
         }
-        notificationsAllowed = false
-        Task {
-            await notificationPermissions()
-        }
+        
+        notificationPermissions()
         startup()
     }
     
-    func notificationPermissions() async {
-        let center = UNUserNotificationCenter.current()
-
-        // Obtain the notification settings.
-        let settings = await center.notificationSettings()
-        guard (settings.authorizationStatus == .authorized) ||
-              (settings.authorizationStatus == .provisional) else 
-        { return }
-        self.notificationsAllowed = true
-
-
+    func notificationPermissions() {
+                nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
+                    if granted {
+                        
+                        os_log("Notications allowed", log: self.appLog, type: .default)
+                    } else {
+                        
+                        os_log("Notications denied", log: self.appLog, type: .default)
+                    }
+                }
         
     }
     
@@ -505,17 +505,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             os_log("Smartcard Inserted %s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
-            if self.notificationsAllowed {
-                let center = UNUserNotificationCenter.current()
+            Task {
+                let settings = await nc.notificationSettings()
+                guard (settings.authorizationStatus == .authorized) ||
+                      (settings.authorizationStatus == .provisional) else
+                { return }
                 let content = UNMutableNotificationContent()
                 content.title = "SC Menu"
                 content.body = "Smartcard Inserted"
                 let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
 
                 let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                center.add(request)
-                
+                try await nc.add(request)
             }
+            
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
@@ -536,15 +539,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             os_log("Smartcard Removed %s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
-                if self.notificationsAllowed {
-                    let center = UNUserNotificationCenter.current()
+                Task {
+                    let settings = await self.nc.notificationSettings()
+                    guard (settings.authorizationStatus == .authorized) ||
+                          (settings.authorizationStatus == .provisional) else
+                    { return }
                     let content = UNMutableNotificationContent()
                     content.title = "SC Menu"
                     content.body = "Smartcard Removed"
                     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
 
                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                    center.add(request)
+                    try await self.nc.add(request)
                     
                 }
                 self.lockedDictArray.remove(at: index)
@@ -674,6 +680,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         return false
+    }
+    
+}
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+           willPresent notification: UNNotification,
+           withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void)
+    {
+        completionHandler(.banner)
     }
     
 }
