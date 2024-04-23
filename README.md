@@ -7,3 +7,5 @@ Shows a green smartcard icon when the card is inserted. Shows a blank smartcard 
 ![card out](out.png "Title")
 
 ![cert menu](view.png "View")
+
+![locked](locked.png "Locked")
