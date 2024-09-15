@@ -20,8 +20,32 @@ let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
-    func didRecievePrefUpdate(iconMode: String) {
-        self.startup()
+    func didRecievePrefUpdate() {
+      
+        var cardStatus = "out"
+        if UserDefaults.standard.bool(forKey: "inserted") {
+            cardStatus = "in"
+        }
+        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+            
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_\(cardStatus)_bw", ofType: "png") {
+                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                if fileExists {
+                    if let button = self.statusItem.button {
+                        button.image = NSImage(byReferencingFile: fileURLString)
+                    }
+                }
+            }
+        } else {
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
+                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                if fileExists {
+                    if let button = self.statusItem.button {
+                        button.image = NSImage(byReferencingFile: fileURLString)
+                    }
+                }
+            }
+        }
     }
     
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
@@ -135,6 +159,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
+        UserDefaults.standard.setValue(false, forKey: "inserted")
         if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
             if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
@@ -429,6 +454,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             if readerMenuItemExists == nil {
                 let subMenu = NSMenu()
                 if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
+                    UserDefaults.standard.setValue(true, forKey: "inserted")
                     statusItem.menu?.removeItem(nothingInsertedMenu)
                 }
                 if certViewing.getIdentity(pivToken: pivToken) == nil {
@@ -505,6 +531,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         if statusItem.menu?.indexOfItem(withTitle: "Quit") == 2 {
             statusItem.menu?.insertItem(self.nothingInsertedMenu, at: 0)
+            UserDefaults.standard.setValue(false, forKey: "inserted")
         }
         
     }
