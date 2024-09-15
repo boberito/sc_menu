@@ -13,12 +13,13 @@ import CoreGraphics
 import WebKit
 import UserNotifications
 import os
-
+import ServiceManagement
 
 let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     let appLog = OSLog(subsystem: subsystem, category: "General")
     let nc = UNUserNotificationCenter.current()
     let certViewing = ViewCerts()
@@ -37,6 +38,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         UNUserNotificationCenter.current().delegate = self
 
         os_log("SC Menu launched", log: appLog, type: .default)
+        if CommandLine.arguments.count > 1 {
+            
+            let arguments = CommandLine.arguments
+            let stringarguments = String(describing: arguments)
+            NSLog(stringarguments)
+            if arguments[1] == "--register" {
+                do {
+                    try SMAppService.mainApp.register()
+
+                    os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
+                } catch {
+                    os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
+
+                }
+            }
+            
+            if arguments[1] == "--unregister" {
+                do {
+                    if SMAppService.mainApp.status == .enabled {
+                        try SMAppService.mainApp.unregister()
+                        os_log("SC Menu removed from login items", log: self.prefsLog, type: .default)
+                        
+                    } else {
+                        os_log("SC Menu was not registered to launch", log: self.prefsLog, type: .default)
+                    }
+                    
+                } catch {
+                    os_log("Problem unregistering service", log: self.prefsLog, type: .default)
+                }
+                
+            }
+            NSApp.terminate(nil)
+        }
+        
+        
         let updater = UpdateCheck()
         _ = updater.check()
         NSApplication.shared.setActivationPolicy(.accessory)
