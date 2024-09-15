@@ -99,7 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-//            NSApp.terminate(nil)
+            NSApp.terminate(nil)
         }
         
         

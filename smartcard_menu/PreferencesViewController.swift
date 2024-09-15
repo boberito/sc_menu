@@ -110,18 +110,8 @@ class PreferencesViewController: NSViewController {
             let url = URL(string: "https://github.com/boberito/sc_menu")!
             let linkRange = (infoString as NSString).range(of: url.absoluteString)
             infoAttributedString.addAttribute(.link, value: url, range: linkRange)
-//
-//            let boldFont = NSFont.boldSystemFont(ofSize: 17)
-//            let boldRange = (infoString as NSString).range(of: "SC Menu")
-//            infoAttributedString.addAttribute(.font, value: boldFont, range: boldRange)
-//            if UserDefaults.standard.string(forKey: "AppleInterfaceStyle") == "Dark" {
-//                infoAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: boldRange)
-//                let versionRange = (infoString as NSString).range(of: "Version: \(versionText)")
-//                infoAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: versionRange)
-//            }
             infoTextView.textStorage?.setAttributedString(infoAttributedString)
-            
-//        }
+           
         let appIcon = NSImageView(frame:NSRect(x: 255, y:145, width: 40, height: 40))
         appIcon.image = NSImage(named: "AppIcon")
         
