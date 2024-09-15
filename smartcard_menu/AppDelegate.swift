@@ -18,7 +18,11 @@ import ServiceManagement
 let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
+    func didRecievePrefUpdate(iconMode: String) {
+        self.startup()
+    }
+    
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     let appLog = OSLog(subsystem: subsystem, category: "General")
     let nc = UNUserNotificationCenter.current()
@@ -33,10 +37,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
+    let prefViewController = PreferencesViewController()
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         UNUserNotificationCenter.current().delegate = self
-
+        prefViewController.delegate = self
         os_log("SC Menu launched", log: appLog, type: .default)
         if CommandLine.arguments.count > 1 {
             
@@ -212,7 +217,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.activate(ignoringOtherApps: true)
         }
         window?.makeKeyAndOrderFront(nil)
-        window?.contentViewController = PreferencesViewController()
+//        window?.contentViewController = PreferencesViewController()
+        window?.contentViewController = prefViewController
         
     }
     @objc func ATRfunc(_ sender: NSMenuItem) {

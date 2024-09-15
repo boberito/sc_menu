@@ -9,7 +9,12 @@ import UserNotifications
 import Cocoa
 import os
 
+protocol PrefDataModelDelegate {
+    func didRecievePrefUpdate(iconMode: String)
+}
+
 class PreferencesViewController: NSViewController {
+    var delegate: PrefDataModelDelegate?
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     override func loadView() {
         let rect = NSRect(x: 0, y: 0, width: 415, height: 200)
@@ -72,37 +77,51 @@ class PreferencesViewController: NSViewController {
 
         let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
         updateButton.frame = NSRect(x: 155, y: 50, width: 150, height: 30)
-        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 110, width: 240, height: 75))
+        let infoTextView = NSTextView(frame: NSRect(x: 148, y: 110, width: 240, height: 25))
 //        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
         infoTextView.isEditable = false
         infoTextView.isSelectable = true
         infoTextView.drawsBackground = false
-        if let versionText = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-            let infoString = """
-    SC Menu
-    Version: \(versionText)
-    
-    https://github.com/boberito/sc_menu
-    """
+        guard let versionText = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {return}
+            let title = "SC Menu"
+        
+        let version = "Version: \(versionText)"
+//        let versionTextView = NSTextField(frame: NSRect(x: 140, y: 140, width: 200, height: 40))
+        let titleTextView = NSTextField(frame: NSRect(x: 160, y: 145, width: 100, height: 40))
+        
+        titleTextView.font = NSFont.boldSystemFont(ofSize: 16)
+        titleTextView.isBordered = false
+        titleTextView.isBezeled = false
+        titleTextView.isEditable = false
+        titleTextView.drawsBackground = false
+        titleTextView.stringValue = title
+        
+        let versionTextView = NSTextField(frame: NSRect(x: 160, y: 125, width: 100, height: 40))
+        versionTextView.isBordered = false
+        versionTextView.isBezeled = false
+        versionTextView.isEditable = false
+        versionTextView.drawsBackground = false
+        versionTextView.stringValue = version
+            let infoString = "https://github.com/boberito/sc_menu"
             
             let infoAttributedString = NSMutableAttributedString(string: infoString)
-
+            
             let url = URL(string: "https://github.com/boberito/sc_menu")!
             let linkRange = (infoString as NSString).range(of: url.absoluteString)
             infoAttributedString.addAttribute(.link, value: url, range: linkRange)
-            
-            let boldFont = NSFont.boldSystemFont(ofSize: 17)
-            let boldRange = (infoString as NSString).range(of: "SC Menu")
-            infoAttributedString.addAttribute(.font, value: boldFont, range: boldRange)
-            if UserDefaults.standard.string(forKey: "AppleInterfaceStyle") == "Dark" {
-                infoAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: boldRange)
-                let versionRange = (infoString as NSString).range(of: "Version: \(versionText)")
-                infoAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: versionRange)
-            }
+//
+//            let boldFont = NSFont.boldSystemFont(ofSize: 17)
+//            let boldRange = (infoString as NSString).range(of: "SC Menu")
+//            infoAttributedString.addAttribute(.font, value: boldFont, range: boldRange)
+//            if UserDefaults.standard.string(forKey: "AppleInterfaceStyle") == "Dark" {
+//                infoAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: boldRange)
+//                let versionRange = (infoString as NSString).range(of: "Version: \(versionText)")
+//                infoAttributedString.addAttribute(.foregroundColor, value: NSColor.white, range: versionRange)
+//            }
             infoTextView.textStorage?.setAttributedString(infoAttributedString)
             
-        }
+//        }
         let appIcon = NSImageView(frame:NSRect(x: 255, y:145, width: 40, height: 40))
         appIcon.image = NSImage(named: "AppIcon")
         
@@ -113,7 +132,9 @@ class PreferencesViewController: NSViewController {
         view.addSubview(iconOneImageOut)
         view.addSubview(iconOneImageIn)
         view.addSubview(iconTwoImageOut)
+        view.addSubview(titleTextView)
         view.addSubview(iconTwoImageIn)
+        view.addSubview(versionTextView)
         view.addSubview(infoTextView)
         view.addSubview(appIcon)
         view.addSubview(updateButton)
@@ -135,12 +156,14 @@ class PreferencesViewController: NSViewController {
         if sender.title == "Black and White" {
             UserDefaults.standard.set("bw", forKey: "icon_mode")
             os_log("B&W Icon selected", log: prefsLog, type: .default)
+            self.delegate?.didRecievePrefUpdate(iconMode: "bw")
             
         }
         
         if sender.title == "Colorful" {
             UserDefaults.standard.set("colorful", forKey: "icon_mode")
             os_log("Colorful Icon selected", log: prefsLog, type: .default)
+            self.delegate?.didRecievePrefUpdate(iconMode: "colorful")
         }
     }
     
