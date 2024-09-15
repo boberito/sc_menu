@@ -41,7 +41,6 @@ class ViewCerts{
             kSecMatchLimit as String : kSecMatchLimitAll as AnyObject
         ]
         
-        
         if getquery.count > 0 {
             
             let status = SecItemCopyMatching(getquery as CFDictionary, &searchResults)

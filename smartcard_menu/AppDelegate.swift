@@ -14,6 +14,7 @@ import WebKit
 import UserNotifications
 import os
 import ServiceManagement
+import Security
 
 let subsystem = "com.ttinc.sc-menu"
 
@@ -74,7 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-            NSApp.terminate(nil)
+//            NSApp.terminate(nil)
         }
         
         
@@ -419,7 +420,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     }
     
     func showReader(TkID: String) {
+      
         if let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName, let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
+            
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
             readerMenuItem.representedObject = TkID
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
@@ -427,6 +430,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 let subMenu = NSMenu()
                 if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
                     statusItem.menu?.removeItem(nothingInsertedMenu)
+                }
+                if certViewing.getIdentity(pivToken: pivToken) == nil {
+                    let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
+                    statusItem.menu?.insertItem(keychainLockedItem, at: 0)
+                    addQuit()
+                    return
                 }
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
