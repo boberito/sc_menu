@@ -73,8 +73,6 @@ class PreferencesViewController: NSViewController {
                 startUpButton.intValue = 0
         }
         
-        
-
         let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
         updateButton.frame = NSRect(x: 155, y: 50, width: 150, height: 30)
         let infoTextView = NSTextView(frame: NSRect(x: 148, y: 110, width: 240, height: 25))
