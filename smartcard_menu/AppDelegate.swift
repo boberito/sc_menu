@@ -243,7 +243,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             NSApp.activate(ignoringOtherApps: true)
         }
         window?.makeKeyAndOrderFront(nil)
-//        window?.contentViewController = PreferencesViewController()
+        window?.orderFrontRegardless()
         window?.contentViewController = prefViewController
         
     }
@@ -268,11 +268,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             } else {
                 NSApp.activate(ignoringOtherApps: true)
             }
-            
-            window.makeKeyAndOrderFront(window)
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+
         }
         
-        //
     }
     func PEMKeyFromDERKey(_ data: Data, PEMType: String) -> String {
         let kCryptoExportImportManagerPublicKeyInitialTag = "-----BEGIN RSA PUBLIC KEY-----\n"
@@ -397,8 +397,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
             }
         })
-        savePanel.makeKeyAndOrderFront(savePanel)
+        savePanel.makeKeyAndOrderFront(nil)
         savePanel.orderFrontRegardless()
+
         if #available(OSX 14.0, *) {
             NSApp.activate()
         } else {
@@ -413,7 +414,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         let certRefErr = SecIdentityCopyCertificate(selectedCert, &secRef)
         
         if certRefErr == 0 {
+            let openWindows = NSApplication.shared.windows.filter { $0.isVisible }
             
+            for openWindow in openWindows {
+               if openWindow.title == sender.title {
+                   // Activate the app before bringing the window to the front
+                   if #available(OSX 14.0, *) {
+                       NSApp.activate()
+                   } else {
+                       NSApp.activate(ignoringOtherApps: true)
+                   }
+                   openWindow.makeKeyAndOrderFront(nil)
+                   openWindow.orderFrontRegardless() // Ensure it comes to front
+                   return
+               }
+           }
             var window: CertWindow!
             let _wndW : CGFloat = 500
             let _wndH : CGFloat = 500
@@ -433,13 +448,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
             scrollView.documentView = certView
             window.contentView = scrollView
-            if #available(OSX 14.0, *) {
-                NSApp.activate()
-            } else {
-                NSApp.activate(ignoringOtherApps: true)
-            }
-            
-            window.makeKeyAndOrderFront(window)
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+                if #available(OSX 14.0, *) {
+                    NSApp.activate()
+                } else {
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                
             os_log("Cert %s selected", log: appLog, type: .default, sender.title.description)
         }
     }
