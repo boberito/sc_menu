@@ -223,11 +223,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         for currentWindow in NSApplication.shared.windows {
             if currentWindow.title.contains("SC Menu Preferences") {
-                if #available(OSX 14.0, *) {
-                    NSApp.activate()
-                } else {
-                    NSApp.activate(ignoringOtherApps: true)
-                }
+                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                 return
             }
         }
@@ -237,11 +233,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
-        if #available(OSX 14.0, *) {
-            NSApp.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
         window?.contentViewController = prefViewController
@@ -263,11 +255,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             webView.load(URLRequest(url: URL(string: debugURL)!))
             
             window.contentView = webView
-            if #available(OSX 14.0, *) {
-                NSApp.activate()
-            } else {
-                NSApp.activate(ignoringOtherApps: true)
-            }
+            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
 
@@ -400,11 +388,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         savePanel.makeKeyAndOrderFront(nil)
         savePanel.orderFrontRegardless()
 
-        if #available(OSX 14.0, *) {
-            NSApp.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         
     }
     @objc func certSelected(_ sender: NSMenuItem) {
@@ -419,11 +403,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             for openWindow in openWindows {
                if openWindow.title == sender.title {
                    // Activate the app before bringing the window to the front
-                   if #available(OSX 14.0, *) {
-                       NSApp.activate()
-                   } else {
-                       NSApp.activate(ignoringOtherApps: true)
-                   }
+                   NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                    openWindow.makeKeyAndOrderFront(nil)
                    openWindow.orderFrontRegardless() // Ensure it comes to front
                    return
@@ -450,11 +430,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             window.contentView = scrollView
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
-                if #available(OSX 14.0, *) {
-                    NSApp.activate()
-                } else {
-                    NSApp.activate(ignoringOtherApps: true)
-                }
+            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                 
             os_log("Cert %s selected", log: appLog, type: .default, sender.title.description)
         }
