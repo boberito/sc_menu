@@ -68,6 +68,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         UNUserNotificationCenter.current().delegate = self
         prefViewController.delegate = self
         os_log("SC Menu launched", log: appLog, type: .default)
+        let appService = SMAppService.mainApp
         if CommandLine.arguments.count > 1 {
             
             let arguments = CommandLine.arguments
@@ -75,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             NSLog(stringarguments)
             if arguments[1] == "--register" {
                 do {
-                    try SMAppService.mainApp.register()
+                    try appService.register()
 
                     os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
                 } catch {
@@ -86,8 +87,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
             if arguments[1] == "--unregister" {
                 do {
-                    if SMAppService.mainApp.status == .enabled {
-                        try SMAppService.mainApp.unregister()
+                    if appService.status == .enabled {
+                        try appService.unregister()
                         os_log("SC Menu removed from login items", log: self.prefsLog, type: .default)
                         
                     } else {
@@ -102,7 +103,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             NSApp.terminate(nil)
         }
         
-        
+        if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
+            
+            let alert = NSAlert()
+            alert.messageText = "First Launch"
+            alert.informativeText = """
+        Would you like to allow SC Menu to launch at login?
+"""
+            alert.addButton(withTitle: "Yes")
+            alert.addButton(withTitle: "No")
+            let response = alert.runModal()
+            if response == .alertFirstButtonReturn {
+                
+                do {
+                    try appService.register()
+                    NSLog("registered service")
+                } catch {
+                    NSLog("problem registering service")
+                }
+            }
+
+        }
+        UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
         let updater = UpdateCheck()
         _ = updater.check()
         NSApplication.shared.setActivationPolicy(.accessory)
