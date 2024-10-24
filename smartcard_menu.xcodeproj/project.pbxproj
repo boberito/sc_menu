@@ -30,6 +30,7 @@
 		734F914C2B95719F005C24ED /* smartcard_in_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_in_bw.png; sourceTree = "<group>"; };
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
+		766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "SC-Menu-Shared.xcconfig"; sourceTree = "<group>"; };
 		860203512B84F2DE00E84186 /* ViewCerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCerts.swift; sourceTree = "<group>"; };
 		862CDBB52B911BD000E75D2D /* ATR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATR.swift; sourceTree = "<group>"; };
 		862CDBB72B91209A00E75D2D /* WebWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWindow.swift; sourceTree = "<group>"; };
@@ -62,6 +63,7 @@
 			children = (
 				86FF1DC22B7FA45A007F3959 /* smartcard_menu */,
 				86FF1DC12B7FA45A007F3959 /* Products */,
+				766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -320,6 +322,7 @@
 		};
 		86FF1DD02B7FA45B007F3959 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -330,7 +333,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 345;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 2WUMX954UB;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
@@ -355,6 +357,7 @@
 		};
 		86FF1DD12B7FA45B007F3959 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -365,7 +368,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 345;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 2WUMX954UB;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
