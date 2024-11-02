@@ -10,7 +10,7 @@ import Cocoa
 import os
 
 protocol PrefDataModelDelegate {
-    func didRecievePrefUpdate()
+    func didReceivePrefUpdate()
 }
 
 class PreferencesViewController: NSViewController {
@@ -144,14 +144,14 @@ class PreferencesViewController: NSViewController {
         if sender.title == "Black and White" {
             UserDefaults.standard.set("bw", forKey: "icon_mode")
             os_log("B&W Icon selected", log: prefsLog, type: .default)
-            self.delegate?.didRecievePrefUpdate()
+            self.delegate?.didReceivePrefUpdate()
             
         }
         
         if sender.title == "Colorful" {
             UserDefaults.standard.set("colorful", forKey: "icon_mode")
             os_log("Colorful Icon selected", log: prefsLog, type: .default)
-            self.delegate?.didRecievePrefUpdate()
+            self.delegate?.didReceivePrefUpdate()
         }
     }
     

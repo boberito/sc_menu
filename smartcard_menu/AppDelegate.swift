@@ -20,7 +20,7 @@ let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
-    func didRecievePrefUpdate() {
+    func didReceivePrefUpdate() {
       
         var cardStatus = "out"
         if UserDefaults.standard.bool(forKey: "inserted") {
@@ -176,11 +176,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     @objc func screenUnlocked() {
         startup()
     }
-    
+
+    func insertExistingTokens(){
+
+        guard let tokenIDs = myTKWatcher?.tokenIDs else {
+            return
+        }
+        for token in tokenIDs {
+                self.showReader(TkID: token)
+
+
+        }
+
+    }
     func startup() {
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
+        statusItem.menu?.delegate = self
         UserDefaults.standard.setValue(false, forKey: "inserted")
         if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
             if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
@@ -459,9 +472,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     }
     
     func showReader(TkID: String) {
-      
-        if let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName, let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
-            
+        let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
+        if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
+
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
             readerMenuItem.representedObject = TkID
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
@@ -471,10 +484,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     UserDefaults.standard.setValue(true, forKey: "inserted")
                     statusItem.menu?.removeItem(nothingInsertedMenu)
                 }
-                if certViewing.getIdentity(pivToken: pivToken) == nil {
+                if certViewing.getIdentity(pivToken: pivToken) == nil{
+                    if TkID.contains("apple")==true {
+                        return;
+                    }
                     let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
-                    statusItem.menu?.insertItem(keychainLockedItem, at: 0)
-                    addQuit()
+                        statusItem.menu?.insertItem(keychainLockedItem, at: 0)
+                        addQuit()
                     return
                 }
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
@@ -774,6 +790,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         return false
     }
     
+}
+extension AppDelegate: NSMenuDelegate {
+    func menuWillOpen(_ menu: NSMenu) {
+        insertExistingTokens()
+    }
 }
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
