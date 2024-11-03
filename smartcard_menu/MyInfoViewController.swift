@@ -143,121 +143,271 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         let rect = NSRect(x: 0, y: 0, width: 700, height: 500)
         view = NSView(frame: rect)
         view.wantsLayer = true
-        cardImageView.frame = NSRect(x: 10, y: 100, width: 242, height: 307)
+        cardImageView.frame = NSRect(x: 35, y: 100, width: 242, height: 307)
         
-        holderNameLabel.frame = NSRect(x: 360, y: 450, width: 200, height: 25)
+        let holderName = NSTextField()
+        holderName.frame = NSRect(x:290, y:445, width: 100, height:25)
+        holderName.stringValue = "Name:"
+        holderName.isBordered = false
+        holderName.isBezeled = false
+        holderName.isEditable = false
+        holderName.drawsBackground = false
+        holderName.isSelectable = false
+        
+        
+        holderNameLabel.frame = NSRect(x: 465, y: 450, width: 200, height: 25)
         holderNameLabel.isBordered = true
         holderNameLabel.isBezeled = true
         holderNameLabel.isEditable = false
         holderNameLabel.drawsBackground = false
         holderNameLabel.isSelectable = true
 
-        holderAffiliationLabel.frame = NSRect(x: 360, y: 425, width: 200, height: 25)
+        let holderAffiliation = NSTextField()
+        holderAffiliation.frame = NSRect(x:290, y:420, width: 200, height: 25)
+        holderAffiliation.isEditable = false
+        holderAffiliation.drawsBackground = false
+        holderAffiliation.isSelectable = false
+        holderAffiliation.isBezeled = false
+        holderAffiliation.isBordered = false
+        holderAffiliation.stringValue = "Employee Affiliation:"
+        
+        holderAffiliationLabel.frame = NSRect(x: 465, y: 425, width: 200, height: 25)
         holderAffiliationLabel.isBordered = true
         holderAffiliationLabel.isBezeled = true
         holderAffiliationLabel.isEditable = false
         holderAffiliationLabel.drawsBackground = false
         holderAffiliationLabel.isSelectable = true
         
-        holderOrgLabel.frame = NSRect(x: 360, y: 400, width: 200, height: 25)
+        let holderOrg = NSTextField()
+        holderOrg.frame = NSRect(x:290, y:395, width: 200, height: 25)
+        holderOrg.isEditable = false
+        holderOrg.drawsBackground = false
+        holderOrg.isSelectable = false
+        holderOrg.isBezeled = false
+        holderOrg.isBordered = false
+        holderOrg.stringValue = "Organization Affiliation:"
+        
+        holderOrgLabel.frame = NSRect(x: 465, y: 400, width: 200, height: 25)
         holderOrgLabel.isBordered = true
         holderOrgLabel.isBezeled = true
         holderOrgLabel.isEditable = false
         holderOrgLabel.drawsBackground = false
         holderOrgLabel.isSelectable = true
         
-        holderExpLabel.frame = NSRect(x: 360, y: 375, width: 200, height: 25)
+        
+        let expDate = NSTextField()
+        expDate.frame = NSRect(x:290, y:370, width: 200, height: 25)
+        expDate.isEditable = false
+        expDate.drawsBackground = false
+        expDate.isSelectable = false
+        expDate.isBezeled = false
+        expDate.isBordered = false
+        expDate.stringValue = "Expiration Date:"
+        
+        holderExpLabel.frame = NSRect(x: 465, y: 375, width: 200, height: 25)
         holderExpLabel.isBordered = true
         holderExpLabel.isBezeled = true
         holderExpLabel.isEditable = false
         holderExpLabel.drawsBackground = false
         holderExpLabel.isSelectable = true
         
-        cardSerialLabel.frame = NSRect(x: 360, y:350, width: 200, height: 25)
+        let cardSerial = NSTextField()
+        cardSerial.frame = NSRect(x:290, y:345, width: 200, height: 25)
+        cardSerial.isEditable = false
+        cardSerial.drawsBackground = false
+        cardSerial.isSelectable = false
+        cardSerial.isBezeled = false
+        cardSerial.isBordered = false
+        cardSerial.stringValue = "Card Serial Number:"
+        
+        cardSerialLabel.frame = NSRect(x: 465, y:350, width: 200, height: 25)
         cardSerialLabel.isBordered = true
         cardSerialLabel.isBezeled = true
         cardSerialLabel.isEditable = false
         cardSerialLabel.drawsBackground = false
         cardSerialLabel.isSelectable = true
         
-        issuerIdentifierLabel.frame = NSRect(x: 360, y:325, width: 200, height: 25)
+        let issuerIdentifier = NSTextField()
+        issuerIdentifier.frame = NSRect(x:290, y:320, width: 200, height: 25)
+        issuerIdentifier.isEditable = false
+        issuerIdentifier.drawsBackground = false
+        issuerIdentifier.isSelectable = false
+        issuerIdentifier.isBezeled = false
+        issuerIdentifier.stringValue = "Issuer Identifier:"
+        issuerIdentifier.isBezeled = false
+        
+        issuerIdentifierLabel.frame = NSRect(x: 465, y:325, width: 200, height: 25)
         issuerIdentifierLabel.isBezeled = true
         issuerIdentifierLabel.isBordered = true
         issuerIdentifierLabel.isEditable = false
-        issuerIdentifierLabel.drawsBackground = false
+        issuerIdentifierLabel.drawsBackground = true
         issuerIdentifierLabel.isSelectable = true
         
-        agencyCardSerialLabel.frame = NSRect(x: 360, y:300, width: 200, height: 25)
+        let agencyCardSerial = NSTextField()
+        agencyCardSerial.frame = NSRect(x:290, y:295, width: 200, height: 25)
+        agencyCardSerial.isEditable = false
+        agencyCardSerial.drawsBackground = false
+        agencyCardSerial.isSelectable = false
+        agencyCardSerial.isBezeled = false
+        agencyCardSerial.stringValue = "Agency Card Serial:"
+        
+        agencyCardSerialLabel.frame = NSRect(x: 465, y:300, width: 200, height: 25)
         agencyCardSerialLabel.isBezeled = true
         agencyCardSerialLabel.isBordered = true
         agencyCardSerialLabel.isEditable = false
-        agencyCardSerialLabel.drawsBackground = false
+        agencyCardSerialLabel.drawsBackground = true
         agencyCardSerialLabel.isSelectable = true
         
-        systemCodeLabel.frame = NSRect(x: 360, y:275, width: 200, height: 25)
+        let systemCode = NSTextField()
+        systemCode.frame = NSRect(x:290, y:270, width: 200, height: 25)
+        systemCode.isEditable = false
+        systemCode.drawsBackground = false
+        systemCode.isSelectable = false
+        systemCode.isBezeled = false
+        systemCode.stringValue = "System Code:"
+        
+        systemCodeLabel.frame = NSRect(x: 465, y:275, width: 200, height: 25)
         systemCodeLabel.isBezeled = true
         systemCodeLabel.isBordered = true
         systemCodeLabel.isEditable = false
-        systemCodeLabel.drawsBackground = false
+        systemCodeLabel.drawsBackground = true
         systemCodeLabel.isSelectable = true
         
-        credentialsLabel.frame = NSRect(x: 360, y:250, width: 200, height:25)
+        let credentialsNumber = NSTextField()
+        credentialsNumber.frame = NSRect(x: 290, y:245, width: 200, height: 25)
+        credentialsNumber.isEditable = false
+        credentialsNumber.drawsBackground = false
+        credentialsNumber.isSelectable = false
+        credentialsNumber.isBezeled = false
+        credentialsNumber.stringValue = "Credential Number:"
+        
+        credentialsLabel.frame = NSRect(x: 465, y:250, width: 200, height:25)
         credentialsLabel.isBezeled = true
         credentialsLabel.isEditable = false
         credentialsLabel.isBordered = true
         credentialsLabel.isSelectable = true
         credentialsLabel.drawsBackground = true
         
-        credentialSeriesLabel.frame = NSRect(x: 360, y:225, width: 200, height:25)
+        let credentialSeries = NSTextField()
+        credentialSeries.frame = NSRect(x: 290, y:220, width: 200, height: 25)
+        credentialSeries.isEditable = false
+        credentialSeries.drawsBackground = false
+        credentialSeries.isSelectable = false
+        credentialSeries.isBezeled = false
+        credentialSeries.stringValue = "Credential Series:"
+        
+        credentialSeriesLabel.frame = NSRect(x: 465, y:225, width: 200, height:25)
         credentialSeriesLabel.isBezeled = true
         credentialSeriesLabel.isEditable = false
         credentialSeriesLabel.isBordered = true
         credentialSeriesLabel.isSelectable = true
         credentialSeriesLabel.drawsBackground = true
         
-        indivdualCredentialIssueLabel.frame = NSRect(x: 360, y:200, width: 200, height:25)
+        let individualCredentialIssue = NSTextField()
+        individualCredentialIssue.frame = NSRect(x: 290, y:195, width: 200, height: 25)
+        individualCredentialIssue.isEditable = false
+        individualCredentialIssue.drawsBackground = false
+        individualCredentialIssue.isSelectable = false
+        individualCredentialIssue.isBezeled = false
+        individualCredentialIssue.stringValue = "Individual Credential Issue:"
+        
+        indivdualCredentialIssueLabel.frame = NSRect(x: 465, y:200, width: 200, height:25)
         indivdualCredentialIssueLabel.isBezeled = true
         indivdualCredentialIssueLabel.isEditable = false
         indivdualCredentialIssueLabel.isSelectable = true
         indivdualCredentialIssueLabel.drawsBackground = true
         indivdualCredentialIssueLabel.isBordered = true
         
-        personIdentifierLabel.frame = NSRect(x: 360, y:175, width: 200, height:25)
+        let personIdentifier = NSTextField()
+        personIdentifier.frame = NSRect(x: 290, y: 170, width: 200, height: 25)
+        personIdentifier.isEditable = false
+        personIdentifier.isBezeled = false
+        personIdentifier.isBordered = false
+        personIdentifier.drawsBackground = false
+        personIdentifier.isSelectable = false
+        personIdentifier.stringValue = "Person Identifier:"
+        
+        personIdentifierLabel.frame = NSRect(x: 465, y:175, width: 200, height:25)
         personIdentifierLabel.isBezeled = true
         personIdentifierLabel.isEditable = false
         personIdentifierLabel.isSelectable = true
         personIdentifierLabel.drawsBackground = true
         personIdentifierLabel.isBordered = true
         
-        organizationalCategoryLabel.frame = NSRect(x: 360, y:150, width: 200, height: 25)
+        let orgCat = NSTextField()
+        orgCat.frame = NSRect(x: 290, y: 145, width: 200, height: 25)
+        orgCat.isEditable = false
+        orgCat.isBezeled = false
+        orgCat.isBordered = false
+        orgCat.drawsBackground = false
+        orgCat.isSelectable = false
+        orgCat.stringValue = "Organizational Category:"
+        
+        organizationalCategoryLabel.frame = NSRect(x: 465, y:150, width: 200, height: 25)
         organizationalCategoryLabel.isBezeled = true
         organizationalCategoryLabel.isEditable = false
         organizationalCategoryLabel.isSelectable = true
         organizationalCategoryLabel.drawsBackground = true
         organizationalCategoryLabel.isBordered = true
         
-        organizationalCodeLabel.frame = NSRect(x: 360, y:125, width: 200, height:25)
+        let orgID = NSTextField()
+        orgID.frame = NSRect(x: 290, y: 120, width: 200, height: 25)
+        orgID.isEditable = false
+        orgID.isBezeled = false
+        orgID.isBordered = false
+        orgID.isSelectable = false
+        orgID.drawsBackground = false
+        orgID.stringValue = "Organizational Identifier:"
+        
+        organizationalCodeLabel.frame = NSRect(x: 465, y:125, width: 200, height:25)
         organizationalCategoryLabel.isBezeled = true
         organizationalCategoryLabel.isEditable = false
         organizationalCategoryLabel.isSelectable = true
         organizationalCategoryLabel.drawsBackground = true
         organizationalCategoryLabel.isBordered = true
         
-        globalUniqueIdentifierLabel.frame = NSRect(x: 360, y:100, width: 200, height:25)
+        let globalUniqueIdentifier = NSTextField()
+        globalUniqueIdentifier.frame = NSRect(x: 290, y: 95, width: 200, height: 25)
+        globalUniqueIdentifier.isBezeled = false
+        globalUniqueIdentifier.isBordered = false
+        globalUniqueIdentifier.isSelectable = false
+        globalUniqueIdentifier.isEditable = false
+        globalUniqueIdentifier.drawsBackground = false
+        globalUniqueIdentifier.stringValue = "Global Unique Identifier:"
+        
+        globalUniqueIdentifierLabel.frame = NSRect(x: 465, y:100, width: 200, height:25)
         globalUniqueIdentifierLabel.isBezeled = true
         globalUniqueIdentifierLabel.isEditable = false
         globalUniqueIdentifierLabel.isBordered = true
         globalUniqueIdentifierLabel.isSelectable = true
         globalUniqueIdentifierLabel.drawsBackground = true
         
-        biometricsLabel.frame = NSRect(x:360, y:75, width: 200, height:25)
+        let biometricSupportLabel = NSTextField()
+        biometricSupportLabel.frame = NSRect(x: 290, y: 70, width: 200, height: 25)
+        biometricSupportLabel.isBezeled = false
+        biometricSupportLabel.isBordered = false
+        biometricSupportLabel.isSelectable = false
+        biometricSupportLabel.isEditable = false
+        biometricSupportLabel.drawsBackground = false
+        biometricSupportLabel.stringValue = "Biometric Support:"
+        
+        biometricsLabel.frame = NSRect(x: 465, y:75, width: 200, height:25)
         biometricsLabel.isBezeled = true
         biometricsLabel.isBordered = true
         biometricsLabel.isEditable = false
         biometricsLabel.drawsBackground = true
         biometricsLabel.isSelectable = true
         
-        secureMessagingLabel.frame = NSRect(x:360, y:50, width: 200, height:25)
+        let secureMessagingSupportLabel = NSTextField()
+        secureMessagingSupportLabel.frame = NSRect(x: 290, y: 45, width: 200, height: 25)
+        secureMessagingSupportLabel.isEditable = false
+        secureMessagingSupportLabel.isBordered = false
+        secureMessagingSupportLabel.isBezeled = false
+        secureMessagingSupportLabel.isSelectable = true
+        secureMessagingSupportLabel.drawsBackground = false
+        secureMessagingSupportLabel.stringValue = "Secure Messaging Support:"
+        
+        secureMessagingLabel.frame = NSRect(x: 465, y:50, width: 200, height:25)
         secureMessagingLabel.isBezeled = true
         secureMessagingLabel.isBordered = true
         secureMessagingLabel.drawsBackground = true
@@ -266,23 +416,39 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         
         view.addSubview(cardImageView)
         view.addSubview(holderNameLabel)
+        view.addSubview(holderName)
         view.addSubview(holderAffiliationLabel)
+        view.addSubview(holderAffiliation)
         view.addSubview(holderOrgLabel)
+        view.addSubview(holderOrg)
         view.addSubview(holderExpLabel)
+        view.addSubview(expDate)
         view.addSubview(cardSerialLabel)
+        view.addSubview(cardSerial)
         view.addSubview(issuerIdentifierLabel)
+        view.addSubview(issuerIdentifier)
         view.addSubview(agencyCardSerialLabel)
+        view.addSubview(agencyCardSerial)
         view.addSubview(systemCodeLabel)
+        view.addSubview(systemCode)
         view.addSubview(credentialsLabel)
+        view.addSubview(credentialsNumber)
         view.addSubview(credentialSeriesLabel)
+        view.addSubview(credentialSeries)
         view.addSubview(indivdualCredentialIssueLabel)
+        view.addSubview(individualCredentialIssue)
         view.addSubview(personIdentifierLabel)
+        view.addSubview(personIdentifier)
         view.addSubview(organizationalCategoryLabel)
+        view.addSubview(orgCat)
         view.addSubview(organizationalCodeLabel)
+        view.addSubview(orgID)
         view.addSubview(globalUniqueIdentifierLabel)
+        view.addSubview(globalUniqueIdentifier)
         view.addSubview(biometricsLabel)
+        view.addSubview(biometricSupportLabel)
         view.addSubview(secureMessagingLabel)
-        
+        view.addSubview(secureMessagingSupportLabel)
         
     }
     
