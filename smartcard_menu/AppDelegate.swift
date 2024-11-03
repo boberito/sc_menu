@@ -63,7 +63,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     let prefViewController = PreferencesViewController()
-    let myInfoViewController = MyInfoViewController()
+    
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         UNUserNotificationCenter.current().delegate = self
@@ -520,7 +520,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     }
                     
                     let seperatorLine = NSMenuItem.separator()
-                    let myCardInfo = NSMenuItem(title: "Additional Card Info", action: #selector(myCardInfo), keyEquivalent: "")
+                    let myCardInfo = NSMenuItem(title: "Additional Card Info", action: #selector(cardInfo), keyEquivalent: "")
+                    myCardInfo.representedObject = readerName
                     subMenu.addItem(seperatorLine)
                     subMenu.addItem(myCardInfo)
                     
@@ -547,12 +548,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
         }
     }
-    @objc func myCardInfo() {
+    @objc func cardInfo(_ sender: NSMenuItem) {
+        
+        let cardReader = sender.representedObject as! String
+        for currentWindow in NSApplication.shared.windows {
+//                if currentWindow.title.contains("Additonal Card Information") {
+            let identifier = cardReader
+            if currentWindow.identifier == NSUserInterfaceItemIdentifier(cardReader) {
+                
+                if let window = NSApp.windows.first(where: { $0.identifier?.rawValue ==  identifier }) {
+                        window.makeKeyAndOrderFront(nil)
+                    }
+//                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//                return
+                return
+            }
+        }
         let accessoryView = NSView()
         accessoryView.translatesAutoresizingMaskIntoConstraints = false // Use Auto Layout
-
-        
-        
         
         let textLabel = NSTextField(labelWithString: "Enter PIN.")
         textLabel.translatesAutoresizingMaskIntoConstraints = false // Use Auto Layout
@@ -605,21 +618,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 print("Invalid PIN format.")
                 return
             }
+            let myInfoViewController = MyInfoViewController()
             
             myInfoViewController.pin = pin
+            myInfoViewController.passedSlot = cardReader
             os_log("SC Menu is opening my card info.", log: appLog, type: .default)
-            for currentWindow in NSApplication.shared.windows {
-                if currentWindow.title.contains("Additonal Card Information") {
-                    NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                    return
-                }
-            }
+            
             var window: MyInfoWindow?
             let windowSize = NSSize(width: 415, height: 200)
             let screenSize = NSScreen.main?.frame.size ?? .zero
             let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
             window = MyInfoWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
             window?.title = "Additonal Card Information"
+            window?.identifier = NSUserInterfaceItemIdentifier(cardReader)
             NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             window?.makeKeyAndOrderFront(nil)
             window?.orderFrontRegardless()
@@ -630,52 +641,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             print("Cancel button pressed")
             return
         }
-//    
-        
-        
-//        let accessoryView = NSView()
-//        accessoryView.frame = NSRect(x:0, y:0, width: 200, height: 100)
-////        accessoryView.translatesAutoresizingMaskIntoConstraints = true
-//
-//        let accessory = NSTextView(frame: NSRect(x: 0, y: 0, width: 200, height: 15))
-//        let font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-//        let textAttributes: [NSAttributedString.Key: Any] = [.font: font]
-//        
-//        let attributedString = NSAttributedString(string: "Enter PIN.", attributes: textAttributes)
-//        let secureTextInput = NSSecureTextField(frame: NSRect(x: 0, y: 10, width: 200, height: 25))
-//        accessory.textStorage?.setAttributedString(attributedString)
-//        accessory.isEditable = false
-//        accessory.drawsBackground = false
-//        
-//        accessoryView.addSubview(accessory)
-//        accessoryView.addSubview(secureTextInput)
-//
-//        let alert = NSAlert()
-//        alert.messageText = "Message text."
-//        alert.informativeText = "Informative text."
-//        alert.accessoryView = accessoryView
-//        alert.runModal()
-        
-        
-        
-//        os_log("SC Menu is opening my card info.", log: appLog, type: .default)
-//        for currentWindow in NSApplication.shared.windows {
-//            if currentWindow.title.contains("Additonal Card Information") {
-//                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-//                return
-//            }
-//        }
-//        var window: MyInfoWindow?
-//        let windowSize = NSSize(width: 415, height: 200)
-//        let screenSize = NSScreen.main?.frame.size ?? .zero
-//        let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
-//        window = MyInfoWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
-//        window?.title = "Additonal Card Information"
-//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-//        window?.makeKeyAndOrderFront(nil)
-//        window?.orderFrontRegardless()
-//        window?.contentViewController = myInfoViewController
-//        window?.contentViewController = prefViewController
+
     }
     
     @objc func quit() {

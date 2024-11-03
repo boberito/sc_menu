@@ -519,20 +519,24 @@ class smartCardAPDU {
         return output
     }
 
-
-    
-    func initializeSmartCard(with pin: Data) async {
+    func initializeSmartCard(with pin: Data, with passedSlot: String) async {
         let cardSlotManager = TKSmartCardSlotManager()
-        
-        guard let slotName = cardSlotManager.slotNames.first,
-              let slot = cardSlotManager.slotNamed(slotName) else {
-            NSLog("No smart card readers found.")
-            return
+        print("Passed slot: \(passedSlot)")
+        var slot: TKSmartCardSlot?
+        for slotName in cardSlotManager.slotNames {
+            print(slotName)
+            if passedSlot == slotName {
+                slot = cardSlotManager.slotNamed(slotName)
+            }
+            
         }
-        
-        NSLog("Using reader: \(slot.name)")
-        
-        startSession(pin: pin, smartCardSlot: slot)
+
+        if let slot = slot {
+            NSLog("Using reader: \(slot.name)")
+            
+            startSession(pin: pin, smartCardSlot: slot)
+        }
+        return
     }
     func sendVerifyPINCommand(pin: Data, smartCardSlot: TKSmartCardSlot, completion: @escaping (Bool) -> Void) {
         // Convert Data to [UInt8]

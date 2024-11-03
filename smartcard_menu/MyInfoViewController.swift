@@ -11,6 +11,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     
     let apduFunctions = smartCardAPDU()
     
+    var passedSlot: String? = nil
     var pin: Data? = nil
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
 //      do things
@@ -131,9 +132,9 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         apduFunctions.delegate = self
         
        
-        if let pin = pin {
+        if let pin = pin, let passedSlot = passedSlot {
             Task {
-                await apduFunctions.initializeSmartCard(with: pin)
+                await apduFunctions.initializeSmartCard(with: pin, with: passedSlot)
             }
         } else {
             //close window
@@ -156,12 +157,12 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         
         
         holderNameLabel.frame = NSRect(x: 465, y: 450, width: 200, height: 25)
-        holderNameLabel.isBordered = true
         holderNameLabel.isBezeled = true
+        holderNameLabel.isBordered = true
         holderNameLabel.isEditable = false
-        holderNameLabel.drawsBackground = false
+        holderNameLabel.drawsBackground = true
         holderNameLabel.isSelectable = true
-
+        
         let holderAffiliation = NSTextField()
         holderAffiliation.frame = NSRect(x:290, y:420, width: 200, height: 25)
         holderAffiliation.isEditable = false
@@ -172,10 +173,10 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         holderAffiliation.stringValue = "Employee Affiliation:"
         
         holderAffiliationLabel.frame = NSRect(x: 465, y: 425, width: 200, height: 25)
-        holderAffiliationLabel.isBordered = true
         holderAffiliationLabel.isBezeled = true
+        holderAffiliationLabel.isBordered = true
         holderAffiliationLabel.isEditable = false
-        holderAffiliationLabel.drawsBackground = false
+        holderAffiliationLabel.drawsBackground = true
         holderAffiliationLabel.isSelectable = true
         
         let holderOrg = NSTextField()
@@ -188,10 +189,10 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         holderOrg.stringValue = "Organization Affiliation:"
         
         holderOrgLabel.frame = NSRect(x: 465, y: 400, width: 200, height: 25)
-        holderOrgLabel.isBordered = true
         holderOrgLabel.isBezeled = true
+        holderOrgLabel.isBordered = true
         holderOrgLabel.isEditable = false
-        holderOrgLabel.drawsBackground = false
+        holderOrgLabel.drawsBackground = true
         holderOrgLabel.isSelectable = true
         
         
@@ -205,10 +206,10 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         expDate.stringValue = "Expiration Date:"
         
         holderExpLabel.frame = NSRect(x: 465, y: 375, width: 200, height: 25)
-        holderExpLabel.isBordered = true
         holderExpLabel.isBezeled = true
+        holderExpLabel.isBordered = true
         holderExpLabel.isEditable = false
-        holderExpLabel.drawsBackground = false
+        holderExpLabel.drawsBackground = true
         holderExpLabel.isSelectable = true
         
         let cardSerial = NSTextField()
@@ -221,10 +222,10 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         cardSerial.stringValue = "Card Serial Number:"
         
         cardSerialLabel.frame = NSRect(x: 465, y:350, width: 200, height: 25)
-        cardSerialLabel.isBordered = true
         cardSerialLabel.isBezeled = true
+        cardSerialLabel.isBordered = true
         cardSerialLabel.isEditable = false
-        cardSerialLabel.drawsBackground = false
+        cardSerialLabel.drawsBackground = true
         cardSerialLabel.isSelectable = true
         
         let issuerIdentifier = NSTextField()
@@ -360,12 +361,12 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         orgID.stringValue = "Organizational Identifier:"
         
         organizationalCodeLabel.frame = NSRect(x: 465, y:125, width: 200, height:25)
-        organizationalCategoryLabel.isBezeled = true
-        organizationalCategoryLabel.isEditable = false
-        organizationalCategoryLabel.isSelectable = true
-        organizationalCategoryLabel.drawsBackground = true
-        organizationalCategoryLabel.isBordered = true
-        
+        organizationalCodeLabel.isBezeled = true
+        organizationalCodeLabel.isBordered = true
+        organizationalCodeLabel.isEditable = false
+        organizationalCodeLabel.drawsBackground = true
+        organizationalCodeLabel.isSelectable = true
+
         let globalUniqueIdentifier = NSTextField()
         globalUniqueIdentifier.frame = NSRect(x: 290, y: 95, width: 200, height: 25)
         globalUniqueIdentifier.isBezeled = false
