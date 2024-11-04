@@ -35,6 +35,7 @@ struct CardholderCapabilityContainer {
 
 protocol APDUDelgate {
     func didReceiveUpdate(cardInfo: CardHolderInfo)
+    func pinFailed()
 }
 
 class smartCardAPDU {
@@ -243,7 +244,7 @@ class smartCardAPDU {
     }
 
     
-    func retrieveFacialImage() {
+    func retrieveData() {
         print("Retrieving facial image...")
         
         sendAPDUCommand(apdu: GET_FACIAL_IMAGE) { data, sw1, sw2 in
@@ -253,8 +254,8 @@ class smartCardAPDU {
                 
                 for tv in tv_data {
                     
-                    if tv.count < 2 { return }
-                    
+//                    if tv.count < 2 { return }
+                    if tv.count < 2 { break }
                     let tlv_type = tv[0]
                     if tlv_type == 0xBC {
                         print("Facial Image Length \(tv.count)")
@@ -271,8 +272,7 @@ class smartCardAPDU {
                                     
                                     print("\t \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
 //                                    self.cardHolderInfo = self.hex_to_string(with: Data(tv[1..<tv.count]))
-                                    let myVar = self.hex_to_string(with: Data(tv[1..<tv.count]))
-                                    print("HERE IS MYVAR -----\(myVar)-")
+                                    
 //                                    self.cardInfoDict["Card Holder Name"] = self.hex_to_string(with: Data(tv[1..<tv.count]))
                                     if self.hex_to_string(with: Data(tv[1..<tv.count])) == "" {
                                         continue
@@ -282,85 +282,90 @@ class smartCardAPDU {
                             }
             
                         }
-                        self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
-                            if sw1 == 0x90 && sw2 == 0x00 {
-                                let tv_data = self.decodeBER_TLV(data: data)
-
-                                if let ccc = self.parseCCCResponse(tv_data) {
-                                    print("Parsed CCC Data: \(ccc)")
-//                                    self.CCCData = ccc
-                                    self.cardHolderInfo.CCCData = ccc
-                                    
-                                } else {
-                                    print("Failed to parse CCC response.")
-                                }
-
-                            }
-            
-                        }
-                        self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
-                            if sw1 == 0x90 && sw2 == 0x00 {
-                                
-                                let tv_data = self.decodeBER_TLV(data: data)
-                                
-                                print("---------------")
-//                                print(tv_data)
-//
-                                for tv in tv_data {
-                                    //
-                                    //                                    if tv.count < 2 { return }
-                                    let tlv_type = tv[0]
-                                    
-                                    //                                    print(tlv_type)
-                                    if tlv_type == 0x30 {
-                                        //                                        print(tv[1..<tv.count])
-                                        let fascNData = Data(tv[1..<tv.count])
-                                        
-                                        self.extractFascNFields(from: fascNData)
-                                    }
-                                    if tlv_type == 0x32 {
-                                        print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                    }
-                                    if tlv_type == 0x33 {
-                                        print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                    }
-                                    //                                    if tlv_type == 0x31 {
-                                    //                                        print("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                    //                                    }
-                                    if tlv_type == 0x34 {
-                                        print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                        self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
-                                    }
-                                    if tlv_type == 0x36 {
-                                        print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                    }
-                                    if tlv_type == 0x35 {
-                                        print("Expiration Data: \(self.getStr(inputList: tv))")
-                                    }
-                                    if tlv_type == 0x3E {
-                                        print("Asymmetric Signature: \(tv.count - 1)")
-                                    }
-                                    
-                                }
-                            }
-                            print("right before sending?")
-                            print(self.cardHolderInfo)
-//                            if let cardHolderInfo = self.cardHolderInfo {
-                                print("Am I sending an update here?")
-                            self.delegate?.didReceiveUpdate(cardInfo: self.cardHolderInfo)
-//                            } else {
-//                                print("I FAILED")
-//                            }
-                            print("ending session")
-                            self.smartCard?.endSession()
-                        }
+                        
                     }
+                    
                 }
                 
             } else {
                 print("Failed to retrieve facial image: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
             }
+            self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
+                if sw1 == 0x90 && sw2 == 0x00 {
+                    let tv_data = self.decodeBER_TLV(data: data)
+
+                    if let ccc = self.parseCCCResponse(tv_data) {
+                        print("Parsed CCC Data: \(ccc)")
+//                                    self.CCCData = ccc
+                        self.cardHolderInfo.CCCData = ccc
+                        
+                    } else {
+                        print("Failed to parse CCC response.")
+                    }
+
+                }
+
+            }
+            self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
+                if sw1 == 0x90 && sw2 == 0x00 {
+                    
+                    let tv_data = self.decodeBER_TLV(data: data)
+                    
+                    print("---------------")
+//                                print(tv_data)
+//
+                    for tv in tv_data {
+                        //
+                        //                                    if tv.count < 2 { return }
+                        let tlv_type = tv[0]
+                        
+                        //                                    print(tlv_type)
+                        if tlv_type == 0x30 {
+                            //                                        print(tv[1..<tv.count])
+                            let fascNData = Data(tv[1..<tv.count])
+                            
+                            self.extractFascNFields(from: fascNData)
+                        }
+                        if tlv_type == 0x32 {
+                            print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        }
+                        if tlv_type == 0x33 {
+                            print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        }
+                        //                                    if tlv_type == 0x31 {
+                        //                                        print("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        //                                    }
+                        if tlv_type == 0x34 {
+                            print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                            self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
+                        }
+                        if tlv_type == 0x36 {
+                            print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        }
+                        if tlv_type == 0x35 {
+                            print("Expiration Data: \(self.getStr(inputList: tv))")
+                        }
+                        if tlv_type == 0x3E {
+                            print("Asymmetric Signature: \(tv.count - 1)")
+                        }
+                        
+                    }
+                }
+                
+                self.smartCard?.endSession()
+                
+//                print(self.cardHolderInfo)
+//
+                self.delegate?.didReceiveUpdate(cardInfo: self.cardHolderInfo)
+//                            } else {
+//                                print("I FAILED")
+//                            }
+                print("ending session")
+                
+            }
+            
         }
+        
         
     }
 
@@ -573,6 +578,7 @@ class smartCardAPDU {
                 completion(true)
             } else {
                 print("PIN verification failed: SW1=\(sw1), SW2=\(sw2)")
+                
                 completion(false)
             }
         }
@@ -595,10 +601,12 @@ class smartCardAPDU {
                     self.sendVerifyPINCommand(pin: pin, smartCardSlot: smartCardSlot) { isVerified in
                         if isVerified {
                             NSLog("PIN verified successfully.")
-                            self.retrieveFacialImage()
+                            self.retrieveData()
                             
                         } else {
                             print("PIN verification failed.")
+                            self.delegate?.pinFailed()
+                            
                         }
                     }
                 }

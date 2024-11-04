@@ -13,6 +13,22 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     
     var passedSlot: String? = nil
     var pin: Data? = nil
+    func pinFailed() {
+        
+        DispatchQueue.main.async {
+            NSApplication.shared.keyWindow?.close()
+            let alert = NSAlert()
+            alert.messageText = "PIN Failed"
+            alert.informativeText = """
+    Incorrect PIN attempt.
+"""
+            
+            alert.runModal()
+            
+        }
+        
+        
+    }
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
 //      do things
         print("Hello from the update")
@@ -138,6 +154,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
         } else {
             //close window
+            NSApplication.shared.keyWindow?.close()
             return
         }
         

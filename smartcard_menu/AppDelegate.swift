@@ -823,7 +823,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func isLocked(slotName: String?) -> Bool {
         let sm = TKSmartCardSlotManager()
         var card : TKSmartCard? = nil
-        
+        print("SMARTCARD IS VALID: \(card?.isValid)")
         let sema = DispatchSemaphore.init(value: 0)
         
         guard let slotName = slotName else { return false }
@@ -847,30 +847,44 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     
                     card?.transmit(request2, reply: { data, error in
                         guard let data = data else { return }
+                        print(data.hexEncodedString())
                         let result = data.hexEncodedString()
                         
+                        if result.starts(with: "63C") {
+                            if let attempts = Int(String(result.last!), radix: 16) {
+                                if attempts == 0 {
+                                    locked = true
+                                } else {
+                                    locked = false
+                                }
+                            }
+                        } else if result == "9000" {
+                            locked = false
+                        } else {
+                            locked = true
+                        }
                         // convert from hex to decimal
                         
-                        let attempts = Int(String(result.last!), radix: 16)
-                        
-                        //                        var attemptsText = ""
-                        
-                        // if attempts left == 0, card is locked
-                        // otherwise print attempts
-                        // unless we didn't get a success code
-                        
-                        if attempts == 0 {
-                            locked = true
-                        } else {
-                            locked = false
-                        }
-                        
-                        // check for "63" in the sequence
-                        // TODO: check just first two words
-                        
-                        if !String(describing: data.hexEncodedString()).contains("63") {
-                            locked = true
-                        }
+//                        let attempts = Int(String(result.last!), radix: 16)
+//                        
+//                        //                        var attemptsText = ""
+//                        
+//                        // if attempts left == 0, card is locked
+//                        // otherwise print attempts
+//                        // unless we didn't get a success code
+////                        print("NUM of ATTEMPTS: \(attempts)")
+//                        if attempts == 0 {
+//                            locked = true
+//                        } else {
+//                            locked = false
+//                        }
+//                        
+//                        // check for "63" in the sequence
+//                        // TODO: check just first two words
+//                        print(data.hexEncodedString())
+//                        if !String(describing: data.hexEncodedString()).contains("63") {
+//                            locked = true
+//                        }
                         
                         sema.signal()
                     })
