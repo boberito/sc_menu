@@ -21,7 +21,7 @@ let subsystem = "com.ttinc.sc-menu"
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func didReceivePrefUpdate() {
-      
+        
         var cardStatus = "out"
         if UserDefaults.standard.bool(forKey: "inserted") {
             cardStatus = "in"
@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
             }
         } else {
-            if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_\(cardStatus)", ofType: "png") {
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
@@ -78,11 +78,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             if arguments[1] == "--register" {
                 do {
                     try appService.register()
-
+                    
                     os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
                 } catch {
                     os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
-
+                    
                 }
             }
             
@@ -101,7 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-//            NSApp.terminate(nil)
+            //            NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -123,7 +123,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     NSLog("problem registering service")
                 }
             }
-
+            
         }
         UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
         let updater = UpdateCheck()
@@ -134,26 +134,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
         NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) {
             switch $0.modifierFlags.intersection(.deviceIndependentFlagsMask) {
-                case [.option]:
-                    for seperatorLine in self.seperatorLines {
-                        seperatorLine.isHidden = false
-                    }
-                    for debugMenuItem in self.debugMenuItems {
-                        debugMenuItem.isHidden = false
-                    }
-                    for exportMenuItem in self.exportMenuItems {
-                        exportMenuItem.isHidden = false
-                    }
-                default:
-                    for debugMenuItem in self.debugMenuItems {
-                        debugMenuItem.isHidden = true
-                    }
-                    for exportMenuItem in self.exportMenuItems {
-                        exportMenuItem.isHidden = true
-                    }
-                    for seperatorLine in self.seperatorLines {
-                        seperatorLine.isHidden = true
-                    }
+            case [.option]:
+                for seperatorLine in self.seperatorLines {
+                    seperatorLine.isHidden = false
+                }
+                for debugMenuItem in self.debugMenuItems {
+                    debugMenuItem.isHidden = false
+                }
+                for exportMenuItem in self.exportMenuItems {
+                    exportMenuItem.isHidden = false
+                }
+            default:
+                for debugMenuItem in self.debugMenuItems {
+                    debugMenuItem.isHidden = true
+                }
+                for exportMenuItem in self.exportMenuItems {
+                    exportMenuItem.isHidden = true
+                }
+                for seperatorLine in self.seperatorLines {
+                    seperatorLine.isHidden = true
+                }
             }
         }
         
@@ -162,33 +162,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     }
     
     func notificationPermissions() {
-                nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
-                    if granted {
-                        
-                        os_log("Notications allowed", log: self.appLog, type: .default)
-                    } else {
-                        
-                        os_log("Notications denied", log: self.appLog, type: .default)
-                    }
-                }
+        nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
+            if granted {
+                
+                os_log("Notications allowed", log: self.appLog, type: .default)
+            } else {
+                
+                os_log("Notications denied", log: self.appLog, type: .default)
+            }
+        }
         
     }
     
     @objc func screenUnlocked() {
         startup()
     }
-
+    
     func insertExistingTokens(){
-
+        
         guard let tokenIDs = myTKWatcher?.tokenIDs else {
             return
         }
         for token in tokenIDs {
-                self.showReader(TkID: token)
-
-
+            self.showReader(TkID: token)
+            
+            
         }
-
+        
     }
     func startup() {
         myTKWatcher = TKTokenWatcher.init()
@@ -294,7 +294,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
-
+            
         }
         
     }
@@ -423,7 +423,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         })
         savePanel.makeKeyAndOrderFront(nil)
         savePanel.orderFrontRegardless()
-
+        
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         
     }
@@ -437,14 +437,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             let openWindows = NSApplication.shared.windows.filter { $0.isVisible }
             
             for openWindow in openWindows {
-               if openWindow.title == sender.title {
-                   // Activate the app before bringing the window to the front
-                   NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                   openWindow.makeKeyAndOrderFront(nil)
-                   openWindow.orderFrontRegardless() // Ensure it comes to front
-                   return
-               }
-           }
+                if openWindow.title == sender.title {
+                    // Activate the app before bringing the window to the front
+                    NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                    openWindow.makeKeyAndOrderFront(nil)
+                    openWindow.orderFrontRegardless() // Ensure it comes to front
+                    return
+                }
+            }
             var window: CertWindow!
             let _wndW : CGFloat = 500
             let _wndH : CGFloat = 500
@@ -467,7 +467,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
             NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                
+            
             os_log("Cert %s selected", log: appLog, type: .default, sender.title.description)
         }
     }
@@ -475,7 +475,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func showReader(TkID: String) {
         let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
         if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
-
+            
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
             readerMenuItem.representedObject = TkID
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
@@ -490,14 +490,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                         return;
                     }
                     let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
-                        statusItem.menu?.insertItem(keychainLockedItem, at: 0)
-                        addQuit()
+                    statusItem.menu?.insertItem(keychainLockedItem, at: 0)
+                    addQuit()
                     return
                 }
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
                 statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
                 if let certDict = certViewing.getIdentity(pivToken: pivToken){
-                    for dict in self.lockedDictArray {                        
+                    for dict in self.lockedDictArray {
                         if dict[TkID] == true {
                             let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
                             subMenu.addItem(lockedMenuItem)
@@ -552,15 +552,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         let cardReader = sender.representedObject as! String
         for currentWindow in NSApplication.shared.windows {
-//                if currentWindow.title.contains("Additonal Card Information") {
+            //                if currentWindow.title.contains("Additonal Card Information") {
             let identifier = cardReader
             if currentWindow.identifier == NSUserInterfaceItemIdentifier(cardReader) {
                 
                 if let window = NSApp.windows.first(where: { $0.identifier?.rawValue ==  identifier }) {
-                        window.makeKeyAndOrderFront(nil)
-                    }
-//                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-//                return
+                    window.makeKeyAndOrderFront(nil)
+                }
+                //                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                //                return
                 return
             }
         }
@@ -571,14 +571,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         textLabel.translatesAutoresizingMaskIntoConstraints = false // Use Auto Layout
         textLabel.font = NSFont.systemFont(ofSize: NSFont.systemFontSize)
         
-
+        
         let secureTextInput = NSSecureTextField()
         secureTextInput.translatesAutoresizingMaskIntoConstraints = false // Use Auto Layout
-
+        
         // Add subviews to the accessory view
         accessoryView.addSubview(textLabel)
         accessoryView.addSubview(secureTextInput)
-
+        
         // Add constraints to the subviews
         NSLayoutConstraint.activate([
             // Accessory text view constraints
@@ -591,27 +591,27 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             secureTextInput.leadingAnchor.constraint(equalTo: accessoryView.leadingAnchor),
             secureTextInput.trailingAnchor.constraint(equalTo: accessoryView.trailingAnchor),
             secureTextInput.heightAnchor.constraint(equalToConstant: 25),
-
+            
             // Accessory view bottom constraint
             secureTextInput.bottomAnchor.constraint(equalTo: accessoryView.bottomAnchor, constant: -10),
-
+            
             // Accessory view width constraint
             accessoryView.widthAnchor.constraint(equalToConstant: 200)
         ])
-
+        
         let alert = NSAlert()
         alert.messageText = "SC Menu"
-//        alert.informativeText = "Informative text."
+        //        alert.informativeText = "Informative text."
         alert.accessoryView = accessoryView
         alert.addButton(withTitle: "OK")
         alert.addButton(withTitle: "Cancel")
-
+        
         // Force layout update before displaying the alert
         accessoryView.layoutSubtreeIfNeeded()
-
+        
         // Run the alert and handle button response
         let response = alert.runModal()
-
+        
         if response == .alertFirstButtonReturn {
             //            let pin = secureTextInput.stringValue
             guard let pin = secureTextInput.stringValue.data(using: .utf8) else {
@@ -641,7 +641,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             print("Cancel button pressed")
             return
         }
-
+        
     }
     
     @objc func quit() {
@@ -702,7 +702,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                         }
                         
                     }
-
+                    
                 }
             } else {
                 self.statusItem.button?.title = "Inserted"
@@ -719,13 +719,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             Task {
                 let settings = await nc.notificationSettings()
                 guard (settings.authorizationStatus == .authorized) ||
-                      (settings.authorizationStatus == .provisional) else
+                        (settings.authorizationStatus == .provisional) else
                 { return }
                 let content = UNMutableNotificationContent()
                 content.title = "SC Menu"
                 content.body = "Smartcard Inserted"
                 let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-
+                
                 let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
                 try await nc.add(request)
             }
@@ -738,7 +738,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             } else {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
-                        self.showReader(TkID: CTKTokenID)
+                    self.showReader(TkID: CTKTokenID)
                     
                 }
             }
@@ -753,13 +753,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 Task {
                     let settings = await self.nc.notificationSettings()
                     guard (settings.authorizationStatus == .authorized) ||
-                          (settings.authorizationStatus == .provisional) else
+                            (settings.authorizationStatus == .provisional) else
                     { return }
                     let content = UNMutableNotificationContent()
                     content.title = "SC Menu"
                     content.body = "Smartcard Removed"
                     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-
+                    
                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
                     try await self.nc.add(request)
                     
@@ -772,7 +772,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 } else {
                     if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
                         self.menuBarIcon(fileURLString: fileURLString)
-                    
+                        
                     }
                 }
                 
@@ -823,7 +823,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func isLocked(slotName: String?) -> Bool {
         let sm = TKSmartCardSlotManager()
         var card : TKSmartCard? = nil
-        print("SMARTCARD IS VALID: \(card?.isValid)")
         let sema = DispatchSemaphore.init(value: 0)
         
         guard let slotName = slotName else { return false }
@@ -847,10 +846,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     
                     card?.transmit(request2, reply: { data, error in
                         guard let data = data else { return }
-                        print(data.hexEncodedString())
                         let result = data.hexEncodedString()
                         
-                        if result.starts(with: "63C") {
+                        if result.starts(with: "63c") {
                             if let attempts = Int(String(result.last!), radix: 16) {
                                 if attempts == 0 {
                                     locked = true
@@ -863,28 +861,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                         } else {
                             locked = true
                         }
-                        // convert from hex to decimal
-                        
-//                        let attempts = Int(String(result.last!), radix: 16)
-//                        
-//                        //                        var attemptsText = ""
-//                        
-//                        // if attempts left == 0, card is locked
-//                        // otherwise print attempts
-//                        // unless we didn't get a success code
-////                        print("NUM of ATTEMPTS: \(attempts)")
-//                        if attempts == 0 {
-//                            locked = true
-//                        } else {
-//                            locked = false
-//                        }
-//                        
-//                        // check for "63" in the sequence
-//                        // TODO: check just first two words
-//                        print(data.hexEncodedString())
-//                        if !String(describing: data.hexEncodedString()).contains("63") {
-//                            locked = true
-//                        }
                         
                         sema.signal()
                     })
@@ -916,8 +892,8 @@ extension AppDelegate: NSMenuDelegate {
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(_ center: UNUserNotificationCenter,
-           willPresent notification: UNNotification,
-           withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void)
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void)
     {
         completionHandler(.banner)
     }

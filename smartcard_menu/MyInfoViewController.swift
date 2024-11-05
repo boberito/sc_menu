@@ -14,7 +14,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     var passedSlot: String? = nil
     var pin: Data? = nil
     func pinFailed() {
-        
         DispatchQueue.main.async {
             NSApplication.shared.keyWindow?.close()
             let alert = NSAlert()
@@ -27,47 +26,52 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             
         }
         
-        
     }
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
-//      do things
-        print("Hello from the update")
-        if FileManager.default.fileExists(atPath: cardInfo.imagePath!) {
-            DispatchQueue.main.async {
-                self.cardImageView.image = NSImage(contentsOfFile: cardInfo.imagePath!)
-            }
-            
-        } else {
-            os_log("Image file not found at path: %@", log: prefsLog, type: .error, cardInfo.imagePath!)
-        }
-        DispatchQueue.main.async {
-            if let name = cardInfo.cardInfo[1], let affilation = cardInfo.cardInfo[2], let orgAffilation = cardInfo.cardInfo[3], let exp = cardInfo.cardInfo[4], let cardSerial = cardInfo.cardInfo[5], let issuerIdent = cardInfo.cardInfo[6] {
-                self.holderNameLabel.stringValue = name
-                self.holderAffiliationLabel.stringValue = affilation
-                self.holderOrgLabel.stringValue = orgAffilation
-                
+        //      do things
         
-                let startIndex = exp.startIndex
-                let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2028"
-                let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 7)  // "JUN"
-                let dayRange = exp.index(startIndex, offsetBy: 7)..<exp.index(startIndex, offsetBy: 9)  // "09"
-
-                // Extract components
-                let year = String(exp[yearRange])
-                let month = String(exp[monthRange])
-                let day = String(exp[dayRange])
-
-                // Combine into formatted string
-                let formattedDate = "\(month)-\(day)-\(year)"
-
-                // Assign to holderExpLabel
-                self.holderExpLabel.stringValue = formattedDate
-
-                self.cardSerialLabel.stringValue = cardSerial
+        if let imagePath = cardInfo.imagePath {
+            if FileManager.default.fileExists(atPath: imagePath) {
+                DispatchQueue.main.async {
+                    self.cardImageView.image = NSImage(contentsOfFile: imagePath)
+                }
                 
-                self.issuerIdentifierLabel.stringValue = issuerIdent
+            } else {
+                os_log("Image file not found at path: %@", log: prefsLog, type: .error, imagePath)
+            }
+        }
+        
+        DispatchQueue.main.async {
+            if cardInfo.cardInfo.count > 1 {
                 
-                
+                if let name = cardInfo.cardInfo[1], let affilation = cardInfo.cardInfo[2], let orgAffilation = cardInfo.cardInfo[3], let exp = cardInfo.cardInfo[4], let cardSerial = cardInfo.cardInfo[5], let issuerIdent = cardInfo.cardInfo[6] {
+                    self.holderNameLabel.stringValue = name
+                    self.holderAffiliationLabel.stringValue = affilation
+                    self.holderOrgLabel.stringValue = orgAffilation
+                    
+                    
+                    let startIndex = exp.startIndex
+                    let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2028"
+                    let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 7)  // "JUN"
+                    let dayRange = exp.index(startIndex, offsetBy: 7)..<exp.index(startIndex, offsetBy: 9)  // "09"
+                    
+                    // Extract components
+                    let year = String(exp[yearRange])
+                    let month = String(exp[monthRange])
+                    let day = String(exp[dayRange])
+                    
+                    // Combine into formatted string
+                    let formattedDate = "\(month)-\(day)-\(year)"
+                    
+                    // Assign to holderExpLabel
+                    self.holderExpLabel.stringValue = formattedDate
+                    
+                    self.cardSerialLabel.stringValue = cardSerial
+                    
+                    self.issuerIdentifierLabel.stringValue = issuerIdent
+                    
+                    
+                }
             }
             if let ac = cardInfo.ac {
                 self.agencyCardSerialLabel.stringValue = ac
@@ -107,13 +111,17 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             if let cccData = cardInfo.CCCData {
                 self.secureMessagingLabel.stringValue = String(cccData.secureMessaging)
                 self.biometricsLabel.stringValue = String(cccData.biometricSupport)
+            } else {
+                self.secureMessagingLabel.stringValue = "False"
+                self.biometricsLabel.stringValue = "False"
             }
             
             
+            
         }
-   
+        
     }
-
+    
     let cardImageView = NSImageView()
     
     let holderNameLabel = NSTextField()
@@ -122,7 +130,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     let holderExpLabel = NSTextField()
     let cardSerialLabel = NSTextField()
     let issuerIdentifierLabel = NSTextField()
-
+    
     
     let agencyCardSerialLabel = NSTextField()
     let organizationalCodeLabel = NSTextField()
@@ -135,9 +143,9 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     let organizationalCategoryLabel = NSTextField()
     let personAssociationCategoryLabel = NSTextField()
     let globalUniqueIdentifierLabel = NSTextField()
-
-
-
+    
+    
+    
     let biometricsLabel = NSTextField()
     let secureMessagingLabel = NSTextField()
     
@@ -147,7 +155,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         
         apduFunctions.delegate = self
         
-       
+        
         if let pin = pin, let passedSlot = passedSlot {
             Task {
                 await apduFunctions.initializeSmartCard(with: pin, with: passedSlot)
@@ -383,7 +391,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         organizationalCodeLabel.isEditable = false
         organizationalCodeLabel.drawsBackground = true
         organizationalCodeLabel.isSelectable = true
-
+        
         let globalUniqueIdentifier = NSTextField()
         globalUniqueIdentifier.frame = NSRect(x: 290, y: 95, width: 200, height: 25)
         globalUniqueIdentifier.isBezeled = false
@@ -471,16 +479,16 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     }
     
     override func viewWillAppear() {
-       
+        
     }
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
     }
-
+    
     override var representedObject: Any? {
         didSet {
-        // Update the view, if already loaded.
+            // Update the view, if already loaded.
         }
     }
 }
