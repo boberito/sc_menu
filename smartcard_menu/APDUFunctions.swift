@@ -69,8 +69,13 @@ class smartCardAPDU {
     )
     
     
-    func getBER_TLV(data: [UInt8], offset: Int = 0) -> (UInt8, [UInt8], Int) {
-        
+    func getBER_TLV(data: [UInt8], offset: Int = 0) -> (UInt8, [UInt8], Int)? {
+        print("BER_TLV - func")
+        print(data)
+        guard offset < data.count else {
+            print("Offset out of range")
+            return nil
+        }
         let tlvType = data[offset]
         
         var tlvLength: Int
@@ -100,13 +105,19 @@ class smartCardAPDU {
     }
     
     
-    func decodeBER_TLV(data: [UInt8]) -> [[UInt8]] {
+    func decodeBER_TLV(data: [UInt8]) -> [[UInt8]]? {
         var offset = 0
         var rtnList: [[UInt8]] = []
         
         while offset < data.count {
+            
+            guard offset < data.count else {
+                print("Insufficient data for tag")
+                break
+            }
+            
             // Get TLV data
-            let (tlvType, tlvValue, nextTlv) = getBER_TLV(data: data, offset: offset)
+            guard let (tlvType, tlvValue, nextTlv) = getBER_TLV(data: data, offset: offset) else { return nil}
             
             // Update the pointer in the buffer
             offset += nextTlv
@@ -117,9 +128,9 @@ class smartCardAPDU {
         
         // If it's tag type 0x53, return the data only
         let tlv = getBER_TLV(data: data)
-        
-        if tlv.0 == 0x53 {
-            let data = tlv.1
+        guard let tlv0 = tlv?.0 else { return nil }
+        if tlv0 == 0x53 {
+            guard let data = tlv?.1 else { return nil }
             return decodeBER_TLV(data: data)
         } else {
             return rtnList
@@ -249,9 +260,10 @@ class smartCardAPDU {
         
         sendAPDUCommand(apdu: GET_FACIAL_IMAGE) { data, sw1, sw2 in
             if sw1 == 0x90 && sw2 == 0x00 {
+                print("GET FACIAL IMAGE DATA: \(data)")
                 let tv_data = self.decodeBER_TLV(data: data)
                 
-                
+                guard let tv_data else { return }
                 for tv in tv_data {
                     
                     //                    if tv.count < 2 { return }
@@ -266,6 +278,7 @@ class smartCardAPDU {
                                 let tv_data = self.decodeBER_TLV(data: data)
                                 
                                 print("Card Holder Information:")
+                                guard let tv_data else { return }
                                 for tv in tv_data {
                                     
                                     //                                    if tv.count < 2 { return }
@@ -293,7 +306,7 @@ class smartCardAPDU {
             self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
                     let tv_data = self.decodeBER_TLV(data: data)
-                    
+                    guard let tv_data else { return }
                     if let ccc = self.parseCCCResponse(tv_data) {
                         print("Parsed CCC Data: \(ccc)")
                         //                                    self.CCCData = ccc
@@ -314,6 +327,7 @@ class smartCardAPDU {
                     print("---------------")
                     //                                print(tv_data)
                     //
+                    guard let tv_data else { return }
                     for tv in tv_data {
                         //
                         //                                    if tv.count < 2 { return }

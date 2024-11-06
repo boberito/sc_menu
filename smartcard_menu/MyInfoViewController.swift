@@ -144,8 +144,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     let personAssociationCategoryLabel = NSTextField()
     let globalUniqueIdentifierLabel = NSTextField()
     
-    
-    
     let biometricsLabel = NSTextField()
     let secureMessagingLabel = NSTextField()
     
