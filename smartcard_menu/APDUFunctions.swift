@@ -7,6 +7,7 @@
 
 import Cocoa
 import CryptoTokenKit
+import OSLog
 
 struct CardHolderInfo {
     var imagePath: String? = nil
@@ -39,6 +40,7 @@ protocol APDUDelgate {
 }
 
 class smartCardAPDU {
+    private let apduLog = OSLog(subsystem: subsystem, category: "APDUFunctions")
     var delegate: APDUDelgate?
     let SELECT_PIV_APPLICATION: [UInt8] = [0x00, 0xA4, 0x04, 0x00, 0x09, 0xA0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00]
     let GET_FACIAL_IMAGE: [UInt8] = [0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x08, 0x00]
@@ -48,9 +50,11 @@ class smartCardAPDU {
     var smartCard: TKSmartCard?
     let tempPath = NSTemporaryDirectory()
     
-    //    var cardInfoDict = Dictionary<String, String>()
+    let logPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first?.appendingPathComponent("Logs/smartcard_apdu.log")
+    let debugMode = UserDefaults.standard.bool(forKey: "debugMode")
     
-    //    var cardHolderInfo: cardHolderInfo = nil
+
+    
     var cardHolderInfo = CardHolderInfo(
         imagePath: nil,
         cardInfo: [nil],
@@ -70,10 +74,8 @@ class smartCardAPDU {
     
     
     func getBER_TLV(data: [UInt8], offset: Int = 0) -> (UInt8, [UInt8], Int)? {
-        print("BER_TLV - func")
-        print(data)
         guard offset < data.count else {
-            print("Offset out of range")
+            os_log("Offset out of range", log: self.apduLog, type: .error)
             return nil
         }
         let tlvType = data[offset]
@@ -112,7 +114,7 @@ class smartCardAPDU {
         while offset < data.count {
             
             guard offset < data.count else {
-                print("Insufficient data for tag")
+                os_log("Insufficient data for tag", log: apduLog, type: .debug)
                 break
             }
             
@@ -148,22 +150,16 @@ class smartCardAPDU {
             
             let fileURL = directoryURL.appendingPathComponent("facial_image.dat")
             try imageData.write(to: fileURL)
-            print("Facial image data saved to \(fileURL.path)")
+            os_log("Facial image data saved to %s", log: apduLog, type: .default, fileURL.path)
             
         } catch {
-            print("Failed to save image data: \(error.localizedDescription)")
+            os_log("Failed to save image data: %s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
-    func displayJP2Image() {
-        //        let jp2File = "/Users/boberito/image/facial_image.jp2"
-        //        let image = NSImage(contentsOfFile: jp2File)!
-        //        RunLoop.main.perform {
-        //            self.cardView.image = image
-        //        }
-    }
+ 
     func extractJP2FromDat() {
         // Attempt to read the binary data from the .dat file
-        print("Attempting to read facial image data from .dat file...")
+        os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
         let outputJP2File = "\(tempPath)image/facial_image.jp2"
         let datFile = "\(tempPath)image/facial_image.dat"
         do {
@@ -180,18 +176,19 @@ class smartCardAPDU {
                 
                 // Write the extracted JP2 data to an output file
                 try jp2Data.write(to: URL(fileURLWithPath: outputJP2File))
-                displayJP2Image()
-                print("JP2 image extracted and saved as '\(outputJP2File)'.")
+                
+                os_log("JP2 image extracted and saved as %s", log: apduLog, type: .default, outputJP2File)
                 //                imagePath = outputJP2File
                 //                cardInfoDict["image"] = outputJP2File
                 
                 cardHolderInfo.imagePath = outputJP2File
                 
             } else {
-                print("JP2 Codestream marker ('jp2c') not found in the file.")
+                os_log("JP2 Codestream marker ('jp2c') not found in the file.", log: apduLog, type: .error)
+                
             }
         } catch {
-            print("Error occurred: \(error.localizedDescription)")
+            os_log("Error occurred: %s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
     func hex_to_string(with hexData: Data) -> String{
@@ -208,9 +205,7 @@ class smartCardAPDU {
         var features = [String]()
         var biometricSupport = false
         var secureMessaging = false
-        //        print(response.count)
         for field in response {
-            //            print(field.count)
             guard let tag = field.first else { continue }
             
             switch tag {
@@ -228,7 +223,6 @@ class smartCardAPDU {
                 if field.count > 1 {
                     biometricSupport = field[1] == 1
                 } else {
-                    //                    print("Insufficient data for biometric support")
                     continue
                 }
                 
@@ -236,12 +230,10 @@ class smartCardAPDU {
                 if field.count > 1 {
                     secureMessaging = field[1] == 1
                 } else {
-                    //                    print("Insufficient data for secure messaging support")
                     continue
                 }
                 
             default:
-                //                print("Unknown tag \(tag)")
                 continue
             }
         }
@@ -254,13 +246,36 @@ class smartCardAPDU {
         )
     }
     
-    
+    private func writeLogs(log: String) {
+        if let fileHandle = try? FileHandle(forWritingTo: self.logPath!) {
+            // Move to the end of the file to append
+            fileHandle.seekToEndOfFile()
+            
+            // Convert your string to Data and write it to the file
+            if let dataToAppend = log.data(using: .utf8) {
+                fileHandle.write(dataToAppend)
+            }
+            
+            // Close the file handle when done
+            fileHandle.closeFile()
+        } else {
+            // If the file doesn't exist, create it and write the string to it
+            do {
+                try log.write(to: self.logPath!, atomically: true, encoding: .utf8)
+            } catch {
+                os_log("Failed to write log file: %s", log: self.apduLog, type: .error, error.localizedDescription)
+            }
+            
+        }
+    }
     func retrieveData() {
-        print("Retrieving facial image...")
+        os_log("Retrieving facial image...", log: apduLog, type: .default)
         
         sendAPDUCommand(apdu: GET_FACIAL_IMAGE) { data, sw1, sw2 in
             if sw1 == 0x90 && sw2 == 0x00 {
-                print("GET FACIAL IMAGE DATA: \(data)")
+                if self.debugMode {
+                    self.writeLogs(log: "facial image: \(data)")
+                }
                 let tv_data = self.decodeBER_TLV(data: data)
                 
                 guard let tv_data else { return }
@@ -270,23 +285,22 @@ class smartCardAPDU {
                     if tv.count < 2 { break }
                     let tlv_type = tv[0]
                     if tlv_type == 0xBC {
-                        print("Facial Image Length \(tv.count)")
+                        os_log("Facial Image Lenght %s", log: self.apduLog, type: .debug, String(tv.count))
                         self.saveFacialImage(Data(tv[1..<tv.count]))
                         self.extractJP2FromDat()
                         self.sendAPDUCommand(apdu: self.GET_CARDHOLDER_NAME) { data, sw1, sw2 in
                             if sw1 == 0x90 && sw2 == 0x00 {
                                 let tv_data = self.decodeBER_TLV(data: data)
                                 
-                                print("Card Holder Information:")
+                                
                                 guard let tv_data else { return }
                                 for tv in tv_data {
                                     
-                                    //                                    if tv.count < 2 { return }
+                                    if self.debugMode {
+                                        self.writeLogs(log: "Card Holder Name: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                        
+                                    }
                                     
-                                    print("\t \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                    //                                    self.cardHolderInfo = self.hex_to_string(with: Data(tv[1..<tv.count]))
-                                    
-                                    //                                    self.cardInfoDict["Card Holder Name"] = self.hex_to_string(with: Data(tv[1..<tv.count]))
                                     if self.hex_to_string(with: Data(tv[1..<tv.count])) == "" {
                                         continue
                                     }
@@ -301,19 +315,24 @@ class smartCardAPDU {
                 }
                 
             } else {
-                print("Failed to retrieve facial image: SW1=\(String(format: "%02X", sw1)), SW2=\(String(format: "%02X", sw2))")
+                os_log("Failed to retrieve facial image: SW1=%s, SW2=%s", log: self.apduLog, type: .error, String(format: "%02X", sw1), String(format: "%02X", sw2))
+                
             }
             self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
+                    if self.debugMode {
+                        self.writeLogs(log: "card capability container: \(data)")
+                    }
                     let tv_data = self.decodeBER_TLV(data: data)
                     guard let tv_data else { return }
                     if let ccc = self.parseCCCResponse(tv_data) {
-                        print("Parsed CCC Data: \(ccc)")
-                        //                                    self.CCCData = ccc
+                        if self.debugMode {
+                            self.writeLogs(log: "Parsed CCC Data: \(ccc)")
+                        }
                         self.cardHolderInfo.CCCData = ccc
                         
                     } else {
-                        print("Failed to parse CCC response.")
+                        os_log("Failed to parse CCC response", log: self.apduLog, type: .error)
                     }
                     
                 }
@@ -321,60 +340,50 @@ class smartCardAPDU {
             }
             self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
-                    
+                    if self.debugMode {
+                        self.writeLogs(log: "card holder unique identifier: \(data)")
+                    }
                     let tv_data = self.decodeBER_TLV(data: data)
                     
-                    print("---------------")
-                    //                                print(tv_data)
                     //
                     guard let tv_data else { return }
                     for tv in tv_data {
-                        //
-                        //                                    if tv.count < 2 { return }
                         let tlv_type = tv[0]
                         
-                        //                                    print(tlv_type)
                         if tlv_type == 0x30 {
-                            //                                        print(tv[1..<tv.count])
                             let fascNData = Data(tv[1..<tv.count])
                             
                             self.extractFascNFields(from: fascNData)
                         }
-                        if tlv_type == 0x32 {
-                            print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        }
-                        if tlv_type == 0x33 {
-                            print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        }
+//                        if tlv_type == 0x32 {
+//                            print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+//                        }
+//                        if tlv_type == 0x33 {
+//                            print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+//                        }
                         //                                    if tlv_type == 0x31 {
                         //                                        print("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                         //                                    }
                         if tlv_type == 0x34 {
-                            print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+//                            print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                             self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
                         }
-                        if tlv_type == 0x36 {
-                            print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        }
-                        if tlv_type == 0x35 {
-                            print("Expiration Data: \(self.getStr(inputList: tv))")
-                        }
-                        if tlv_type == 0x3E {
-                            print("Asymmetric Signature: \(tv.count - 1)")
-                        }
+//                        if tlv_type == 0x36 {
+//                            print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+//                        }
+//                        if tlv_type == 0x35 {
+//                            print("Expiration Date: \(self.getStr(inputList: tv))")
+//                        }
+//                        if tlv_type == 0x3E {
+//                            print("Asymmetric Signature: \(tv.count - 1)")
+//                        }
                         
                     }
                 }
                 
                 self.smartCard?.endSession()
-                
-                //                print(self.cardHolderInfo)
-                //
                 self.delegate?.didReceiveUpdate(cardInfo: self.cardHolderInfo)
-                //                            } else {
-                //                                print("I FAILED")
-                //                            }
-                print("ending session")
+                
                 
             }
             
@@ -439,6 +448,7 @@ class smartCardAPDU {
     }
     
     func convertFascNFields(from bcdValues: [String?]){
+        os_log("Attempting to convert FASC-N fields...", log: apduLog, type: .default)
         let agencyCode = bcdValues[1...4].compactMap { $0 }.joined()
         let systemCode = bcdValues[6...9].compactMap { $0 }.joined()
         let credentialNumber = bcdValues[11...16].compactMap { $0 }.joined()
@@ -450,21 +460,13 @@ class smartCardAPDU {
         let personAssociationCategory = bcdValues[37] ?? ""
         
         // Print extracted fields
-        print("Agency Code: \(agencyCode)")
         cardHolderInfo.ac = agencyCode
-        print("System Code: \(systemCode)")
         cardHolderInfo.sc = systemCode
-        print("Credential Number: \(credentialNumber)")
         
         cardHolderInfo.cn = credentialNumber
-        print("Credential Series: \(credentialSeries)")
         cardHolderInfo.cs = credentialSeries
         
-        print("Individual Credential Issue: \(individualCredentialIssue)")
-        //        individualCredentail = individualCredentialIssue
         cardHolderInfo.individualCredentail = individualCredentialIssue
-        print("Person Identifier: \(personIdentifier)")
-        //        personID = personIdentifier
         cardHolderInfo.personID = personIdentifier
         var orgCategory: String
         switch organizationalCategory
@@ -480,11 +482,7 @@ class smartCardAPDU {
         default:
             orgCategory = "Unknown"
         }
-        print("Organizational Category: \(orgCategory)")
-        //        orgCategory2 = orgCategory
         cardHolderInfo.orgCategory2 = orgCategory
-        print("Organizational Identifier: \(organizationalIdentifier)")
-        //        orgID = organizationalIdentifier
         cardHolderInfo.orgID = organizationalIdentifier
         var personCategory: String
         switch personAssociationCategory
@@ -506,23 +504,25 @@ class smartCardAPDU {
         default:
             personCategory = "Unknown"
         }
-        print("Person Association Category: \(personCategory)")
-        //        PersonCategory2 = personCategory
         cardHolderInfo.PersonCategory2 = personCategory
-    }
-    
-    
-    // Lookup functions (placeholders)
-    func lookupAgency(agencyCode: String) -> String {
-        return "Agency Lookup Result"
-    }
-    
-    func lookupOc(oc: String) -> String {
-        return "OC Lookup Result"
-    }
-    
-    func lookupPoa(poa: String) -> String {
-        return "POA Lookup Result"
+        
+        if self.debugMode {
+            
+            
+                let fascn = """
+Agency Code: \(agencyCode)
+System Code: \(systemCode)
+Credential Number: \(credentialNumber)
+Credential Series: \(credentialSeries)
+Individual Credential Issue: \(individualCredentialIssue)
+Person Identifier: \(personIdentifier)
+Organizational Category: \(orgCategory) \(organizationalCategory)
+Organizational Identifier: \(organizationalIdentifier)
+Person Association Category: \(personCategory)
+"""
+            writeLogs(log: fascn)
+ 
+        }
     }
     
     
@@ -539,11 +539,15 @@ class smartCardAPDU {
     }
     
     func initializeSmartCard(with pin: Data, with passedSlot: String) async {
+        if debugMode {
+            if let logPath = logPath {
+                os_log("MY LOG: %s", log: self.apduLog, type: .debug, logPath.absoluteString)
+            }
+        }
         let cardSlotManager = TKSmartCardSlotManager()
-        print("Passed slot: \(passedSlot)")
+        os_log("Passed slot: %s", log: self.apduLog, type: .debug, passedSlot)
         var slot: TKSmartCardSlot?
         for slotName in cardSlotManager.slotNames {
-            print(slotName)
             if passedSlot == slotName {
                 slot = cardSlotManager.slotNamed(slotName)
             }
@@ -558,9 +562,7 @@ class smartCardAPDU {
         return
     }
     func sendVerifyPINCommand(pin: Data, smartCardSlot: TKSmartCardSlot, completion: @escaping (Bool) -> Void) {
-        // Convert Data to [UInt8]
-        //        let pinstring = String(data: pin, encoding: .utf8)
-        //        print(pinstring)
+        
         var pinArray: [UInt8] = [UInt8](pin)
         
         // Ensure the pin is of correct length (e.g., 8 bytes)
@@ -581,17 +583,18 @@ class smartCardAPDU {
             0x08  // LC: Length of the PIN (8 bytes)
         ] + pinArray // Only the 8-byte PIN
         
-        // Print out APDU for debugging
-        //        print("APDU Command: \(verifyPINCommand)")
+        if self.debugMode {
+            writeLogs(log: "APDU Command: \(verifyPINCommand)")
+        }
         
         let verifyPinAPDUData = Data(verifyPINCommand)
         sendAPDUCommand(apdu: [UInt8](verifyPinAPDUData)) { data, sw1, sw2 in
             if sw1 == 0x90 && sw2 == 0x00 {
-                print("PIN verified successfully.")
+                os_log("PIN Verified Successfully", log: self.apduLog, type: .default)
                 
                 completion(true)
             } else {
-                print("PIN verification failed: SW1=\(sw1), SW2=\(sw2)")
+                os_log("PIN verifiation failed: SW1=%s, SW=%s", log: self.apduLog, type: .debug, sw1, sw2)
                 
                 completion(false)
             }
@@ -604,21 +607,19 @@ class smartCardAPDU {
         smartCard?.beginSession( reply: { success , error in
             if !success {
                 if let error = error {
-                    NSLog("Failed to start sessions: \(error.localizedDescription)")
+                    os_log("Failed to start sessions: %s", log: self.apduLog, type: .error, error.localizedDescription)
                 }
                 return
             }
             NSLog("Smartcard Session Started")
             self.sendAPDUCommand(apdu: self.SELECT_PIV_APPLICATION) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
-                    NSLog("PIV application selected successfully.")
+                    os_log("PIV application selected successfully.", log: self.apduLog, type: .default)
                     self.sendVerifyPINCommand(pin: pin, smartCardSlot: smartCardSlot) { isVerified in
                         if isVerified {
-                            NSLog("PIN verified successfully.")
                             self.retrieveData()
                             
                         } else {
-                            print("PIN verification failed.")
                             self.smartCard?.endSession()
                             self.delegate?.pinFailed()
                             
@@ -633,12 +634,14 @@ class smartCardAPDU {
         
         // Convert command array to Data
         let apduData = Data(apdu)
-        //        print("Sending APDU: \(apdu.map { String(format: "%02X", $0) }.joined())")
+        if debugMode {
+            writeLogs(log: "Sending APDU: \(apdu.map { String(format: "%02X", $0) }.joined())")
+        }
         
         if let smartCard = smartCard {
             smartCard.transmit(apduData) { response, error in
                 guard let responseData = response, error == nil else {
-                    print("Error transmitting APDU: \(error?.localizedDescription ?? "Unknown error")")
+                    os_log("Error transmitting APDU: %s", log: self.apduLog, type: .error, error?.localizedDescription ?? "Unknown error")
                     completion([], 0x00, 0x00)
                     return
                 }
@@ -646,8 +649,10 @@ class smartCardAPDU {
                 var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
                 let sw1 = responseData[responseData.count - 2]
                 let sw2 = responseData[responseData.count - 1]
+                if self.debugMode {
+                    self.writeLogs(log: "APDU Response: \(responseBytes.map { String(format: "%02X", $0) }.joined()), SW1: \(String(format: "%02X", sw1)), SW2: \(String(format: "%02X", sw2))")
+                }
                 
-                //                print("APDU Response: \(responseBytes.map { String(format: "%02X", $0) }.joined()), SW1: \(String(format: "%02X", sw1)), SW2: \(String(format: "%02X", sw2))")
                 
                 // Check if more data is available (SW1 == 0x61)
                 if sw1 == 0x61 {

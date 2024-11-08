@@ -8,7 +8,7 @@ import Cocoa
 import os
 
 class MyInfoViewController: NSViewController, APDUDelgate {
-    
+    private let infoViewLog = OSLog(subsystem: subsystem, category: "CardInfo")
     let apduFunctions = smartCardAPDU()
     
     var passedSlot: String? = nil
@@ -37,7 +37,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 }
                 
             } else {
-                os_log("Image file not found at path: %@", log: prefsLog, type: .error, imagePath)
+                os_log("Image file not found at path: %@", log: infoViewLog, type: .error, imagePath)
             }
         }
         
