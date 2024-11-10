@@ -356,7 +356,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 let certData = SecCertificateCopyData(publicCert!)
                 pem = PEMKeyFromDERKey(certData as Data, PEMType: "RSA")
             } else {
-                print("Error getting public certificate.")
+                os_log("Error getting public certificates", log: appLog, type: .default)
                 return
             }
             if let pem = pem {
@@ -613,9 +613,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         let response = alert.runModal()
         
         if response == .alertFirstButtonReturn {
-            //            let pin = secureTextInput.stringValue
             guard let pin = secureTextInput.stringValue.data(using: .utf8) else {
-                print("Invalid PIN format.")
+                os_log("Invalid PIN format.", log: appLog, type: .default)
                 return
             }
             let myInfoViewController = MyInfoViewController()
@@ -638,7 +637,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
             
         } else if response == .alertSecondButtonReturn {
-            print("Cancel button pressed")
+            os_log("Cancel button pressed", log: appLog, type: .default)
             return
         }
         
