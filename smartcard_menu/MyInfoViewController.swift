@@ -29,18 +29,21 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     }
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
         //      do things
-        
-        if let imagePath = cardInfo.imagePath {
-            if FileManager.default.fileExists(atPath: imagePath) {
-                DispatchQueue.main.async {
-                    self.cardImageView.image = NSImage(contentsOfFile: imagePath)
+        DispatchQueue.main.async {
+            if let imagePath = cardInfo.imagePath {
+                if FileManager.default.fileExists(atPath: imagePath) {
+                    DispatchQueue.main.async {
+                        self.cardImageView.image = NSImage(contentsOfFile: imagePath)
+                    }
+                    
+                } else {
+                    self.cardImageView.image = NSImage(named: "no-image-found")
+                    os_log("Image file not found at path: %@", log: self.infoViewLog, type: .error, imagePath)
                 }
-                
             } else {
-                os_log("Image file not found at path: %@", log: infoViewLog, type: .error, imagePath)
+                self.cardImageView.image = NSImage(named: "no-image-found")
             }
         }
-        
         DispatchQueue.main.async {
             if cardInfo.cardInfo.count > 1 {
                 
