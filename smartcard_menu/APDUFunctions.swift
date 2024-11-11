@@ -53,7 +53,7 @@ class smartCardAPDU {
     let logPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first?.appendingPathComponent("Logs/smartcard_apdu.log")
     let debugMode = UserDefaults.standard.bool(forKey: "debugMode")
     
-
+    
     
     var cardHolderInfo = CardHolderInfo(
         imagePath: nil,
@@ -156,7 +156,7 @@ class smartCardAPDU {
             os_log("Failed to save image data: %s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
- 
+    
     func extractJP2FromDat() {
         // Attempt to read the binary data from the .dat file
         os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
@@ -355,28 +355,28 @@ class smartCardAPDU {
                             
                             self.extractFascNFields(from: fascNData)
                         }
-//                        if tlv_type == 0x32 {
-//                            print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-//                        }
-//                        if tlv_type == 0x33 {
-//                            print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-//                        }
+                        //                        if tlv_type == 0x32 {
+                        //                            print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        //                        }
+                        //                        if tlv_type == 0x33 {
+                        //                            print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        //                        }
                         //                                    if tlv_type == 0x31 {
                         //                                        print("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                         //                                    }
                         if tlv_type == 0x34 {
-//                            print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                            //                            print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                             self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
                         }
-//                        if tlv_type == 0x36 {
-//                            print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-//                        }
-//                        if tlv_type == 0x35 {
-//                            print("Expiration Date: \(self.getStr(inputList: tv))")
-//                        }
-//                        if tlv_type == 0x3E {
-//                            print("Asymmetric Signature: \(tv.count - 1)")
-//                        }
+                        //                        if tlv_type == 0x36 {
+                        //                            print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                        //                        }
+                        //                        if tlv_type == 0x35 {
+                        //                            print("Expiration Date: \(self.getStr(inputList: tv))")
+                        //                        }
+                        //                        if tlv_type == 0x3E {
+                        //                            print("Asymmetric Signature: \(tv.count - 1)")
+                        //                        }
                         
                     }
                 }
@@ -509,7 +509,7 @@ class smartCardAPDU {
         if self.debugMode {
             
             
-                let fascn = """
+            let fascn = """
 Agency Code: \(agencyCode)
 System Code: \(systemCode)
 Credential Number: \(credentialNumber)
@@ -521,7 +521,7 @@ Organizational Identifier: \(organizationalIdentifier)
 Person Association Category: \(personCategory)
 """
             writeLogs(log: fascn)
- 
+            
         }
     }
     

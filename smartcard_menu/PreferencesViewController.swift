@@ -32,7 +32,7 @@ class PreferencesViewController: NSViewController {
         iconOneImageOut.image = NSImage(named: "smartcard_out")
         let iconOneImageIn = NSImageView(frame:NSRect(x: 55, y:130, width: 50, height: 40))
         iconOneImageIn.image = NSImage(named: "smartcard_in")
-
+        
         
         let iconTwoImageOut = NSImageView(frame:NSRect(x: 20, y:75, width: 50, height: 40))
         iconTwoImageOut.image = NSImage(named: "smartcard_out_bw")
@@ -57,35 +57,35 @@ class PreferencesViewController: NSViewController {
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
         startUpButton.frame = NSRect(x: 160, y: 90, width: 200, height: 25)
         switch SMAppService.mainApp.status {
-            case .enabled:
-                startUpButton.intValue = 1
+        case .enabled:
+            startUpButton.intValue = 1
             
-            case .notFound:
-                startUpButton.intValue = 0
+        case .notFound:
+            startUpButton.intValue = 0
             
-            case .notRegistered:
-                startUpButton.intValue = 0
+        case .notRegistered:
+            startUpButton.intValue = 0
             
-            case .requiresApproval:
-                startUpButton.intValue = 0
+        case .requiresApproval:
+            startUpButton.intValue = 0
             
-            default:
-                startUpButton.intValue = 0
+        default:
+            startUpButton.intValue = 0
         }
         
         let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
         updateButton.frame = NSRect(x: 155, y: 50, width: 150, height: 30)
         let infoTextView = NSTextView(frame: NSRect(x: 148, y: 110, width: 240, height: 25))
-//        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
+        //        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
         infoTextView.isEditable = false
         infoTextView.isSelectable = true
         infoTextView.drawsBackground = false
         guard let versionText = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String else {return}
-            let title = "SC Menu"
+        let title = "SC Menu"
         
         let version = "Version: \(versionText)"
-//        let versionTextView = NSTextField(frame: NSRect(x: 140, y: 140, width: 200, height: 40))
+        //        let versionTextView = NSTextField(frame: NSRect(x: 140, y: 140, width: 200, height: 40))
         let titleTextView = NSTextField(frame: NSRect(x: 160, y: 145, width: 100, height: 40))
         
         titleTextView.font = NSFont.boldSystemFont(ofSize: 16)
@@ -101,15 +101,15 @@ class PreferencesViewController: NSViewController {
         versionTextView.isEditable = false
         versionTextView.drawsBackground = false
         versionTextView.stringValue = version
-            let infoString = "https://github.com/boberito/sc_menu"
-            
-            let infoAttributedString = NSMutableAttributedString(string: infoString)
-            
-            let url = URL(string: "https://github.com/boberito/sc_menu")!
-            let linkRange = (infoString as NSString).range(of: url.absoluteString)
-            infoAttributedString.addAttribute(.link, value: url, range: linkRange)
-            infoTextView.textStorage?.setAttributedString(infoAttributedString)
-           
+        let infoString = "https://github.com/boberito/sc_menu"
+        
+        let infoAttributedString = NSMutableAttributedString(string: infoString)
+        
+        let url = URL(string: "https://github.com/boberito/sc_menu")!
+        let linkRange = (infoString as NSString).range(of: url.absoluteString)
+        infoAttributedString.addAttribute(.link, value: url, range: linkRange)
+        infoTextView.textStorage?.setAttributedString(infoAttributedString)
+        
         let appIcon = NSImageView(frame:NSRect(x: 255, y:145, width: 40, height: 40))
         appIcon.image = NSImage(named: "AppIcon")
         
@@ -131,10 +131,10 @@ class PreferencesViewController: NSViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
     }
-
+    
     override var representedObject: Any? {
         didSet {
-        // Update the view, if already loaded.
+            // Update the view, if already loaded.
         }
     }
     
@@ -197,6 +197,6 @@ class PreferencesViewController: NSViewController {
             }
         }
     }
-
-
+    
+    
 }
