@@ -31,7 +31,7 @@ class ViewCerts{
         var searchResults: AnyObject? = nil
         var myCert: SecCertificate? = nil
         var certDict = [String:SecIdentity]()
-
+        
         let getquery: [String: Any] = [ 
             kSecAttrAccessGroup as String:  kSecAttrAccessGroupToken,
             kSecClass as String: kSecClassIdentity,
@@ -64,7 +64,7 @@ class ViewCerts{
             }
             
             return certDict
-
+            
         }
         
         return nil
