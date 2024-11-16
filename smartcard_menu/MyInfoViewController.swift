@@ -29,53 +29,60 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     }
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
         //      do things
+        os_log("Updating Card Info Window", log: self.infoViewLog, type: .default)
         DispatchQueue.main.async {
             if let imagePath = cardInfo.imagePath {
                 if FileManager.default.fileExists(atPath: imagePath) {
-                    DispatchQueue.main.async {
-                        self.cardImageView.image = NSImage(contentsOfFile: imagePath)
-                    }
+                    
+                    os_log("Image file found at path: %{public}@", log: self.infoViewLog, type: .debug, imagePath)
+                    
+                    self.cardImageView.image = NSImage(contentsOfFile: imagePath)
                     
                 } else {
+                    os_log("Image file not found at path: %{public}@", log: self.infoViewLog, type: .error, imagePath)
                     self.cardImageView.image = NSImage(named: "no-image-found")
-                    os_log("Image file not found at path: %@", log: self.infoViewLog, type: .error, imagePath)
+                    
                 }
             } else {
+                os_log("Image file not found at all", log: self.infoViewLog, type: .error)
                 self.cardImageView.image = NSImage(named: "no-image-found")
             }
-        }
-        DispatchQueue.main.async {
-            if cardInfo.cardInfo.count > 1 {
-                
-                if let name = cardInfo.cardInfo[1], let affilation = cardInfo.cardInfo[2], let orgAffilation = cardInfo.cardInfo[3], let exp = cardInfo.cardInfo[4], let cardSerial = cardInfo.cardInfo[5], let issuerIdent = cardInfo.cardInfo[6] {
-                    self.holderNameLabel.stringValue = name
-                    self.holderAffiliationLabel.stringValue = affilation
-                    self.holderOrgLabel.stringValue = orgAffilation
-                    
-                    
-                    let startIndex = exp.startIndex
-                    let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2028"
-                    let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 7)  // "JUN"
-                    let dayRange = exp.index(startIndex, offsetBy: 7)..<exp.index(startIndex, offsetBy: 9)  // "09"
-                    
-                    // Extract components
-                    let year = String(exp[yearRange])
-                    let month = String(exp[monthRange])
-                    let day = String(exp[dayRange])
-                    
-                    // Combine into formatted string
-                    let formattedDate = "\(month)-\(day)-\(year)"
-                    
-                    // Assign to holderExpLabel
-                    self.holderExpLabel.stringValue = formattedDate
-                    
-                    self.cardSerialLabel.stringValue = cardSerial
-                    
-                    self.issuerIdentifierLabel.stringValue = issuerIdent
-                    
-                    
-                }
+            
+            if let name = cardInfo.name {
+                self.holderNameLabel.stringValue = name
             }
+            if let affilation = cardInfo.employeeAffiliation {
+                self.holderAffiliationLabel.stringValue = affilation
+            }
+            if let orgAffilation = cardInfo.organization {
+                self.holderOrgLabel.stringValue = orgAffilation
+            }
+            if let exp = cardInfo.expirationDate {
+                let startIndex = exp.startIndex
+                let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2028"
+                let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 7)  // "JUN"
+                let dayRange = exp.index(startIndex, offsetBy: 7)..<exp.index(startIndex, offsetBy: 9)  // "09"
+                
+                // Extract components
+                let year = String(exp[yearRange])
+                let month = String(exp[monthRange])
+                let day = String(exp[dayRange])
+                
+                // Combine into formatted string
+                let formattedDate = "\(month)-\(day)-\(year)"
+                
+                // Assign to holderExpLabel
+                self.holderExpLabel.stringValue = formattedDate
+            }
+            if let cardSerial = cardInfo.cardSerialNumber {
+                self.cardSerialLabel.stringValue = cardSerial
+            }
+            if let issuerIdent = cardInfo.issueIdentifier {
+                self.issuerIdentifierLabel.stringValue = issuerIdent
+            }
+            
+            //                }
+            //            }
             if let ac = cardInfo.ac {
                 self.agencyCardSerialLabel.stringValue = ac
             }

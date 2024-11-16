@@ -186,14 +186,14 @@ class PreferencesViewController: NSViewController {
                 try SMAppService.mainApp.register()
                 os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
             } catch {
-                os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
+                os_log("SMApp Service register error %{public}s", log: self.prefsLog, type: .error, error.localizedDescription)
             }
         } else {
             do {
                 try SMAppService.mainApp.unregister()
                 os_log("SC Menu removed from login items", log: self.prefsLog, type: .default)
             } catch {
-                os_log("SMApp Service unregister error %s", log: self.prefsLog, type: .default, error.localizedDescription)
+                os_log("SMApp Service unregister error %{public}s", log: self.prefsLog, type: .default, error.localizedDescription)
             }
         }
     }

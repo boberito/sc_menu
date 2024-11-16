@@ -81,7 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     
                     os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
                 } catch {
-                    os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
+                    os_log("SMApp Service register error %{public}s", log: self.prefsLog, type: .error, error.localizedDescription)
                     
                 }
             }
@@ -101,7 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-            NSApp.terminate(nil)
+//            NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -165,10 +165,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
                 
-                os_log("Notications allowed", log: self.appLog, type: .default)
+                os_log("Notifications allowed", log: self.appLog, type: .default)
             } else {
                 
-                os_log("Notications denied", log: self.appLog, type: .default)
+                os_log("Notifications denied", log: self.appLog, type: .default)
             }
         }
         
@@ -468,7 +468,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             window.orderFrontRegardless()
             NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             
-            os_log("Cert %s selected", log: appLog, type: .default, sender.title.description)
+            os_log("Cert %{public}s selected", log: appLog, type: .default, sender.title.description)
         }
     }
     
@@ -501,7 +501,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                         if dict[TkID] == true {
                             let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
                             subMenu.addItem(lockedMenuItem)
-                            os_log("%s is locked", log: appLog, type: .default, TkID.description)
+                            os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
                         }
                     }
                     var seperator = false
@@ -712,7 +712,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     @objc func update(CTKTokenID: String) {
         var isCardLocked = false
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            os_log("Smartcard Inserted %s", log: appLog, type: .default, CTKTokenID.description)
+            os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
             Task {
@@ -747,7 +747,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             
-            os_log("Smartcard Removed %s", log: self.appLog, type: .default, CTKTokenID.description)
+            os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 Task {
                     let settings = await self.nc.notificationSettings()
