@@ -167,37 +167,39 @@ class smartCardAPDU {
     func extractImageFromDat() {
         // Attempt to read the binary data from the .dat file
         os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
-        let outputJP2File = "\(tempPath)image/facial_image.jp2"
         let datFile = "\(tempPath)image/facial_image.dat"
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: datFile))
             
-            // Look for the 'jp2c' marker (Codestream Box for JP2 files)
+            // Look for JP2 (JPEG 2000) or JPEG markers
             let jp2cMarker = Data("jp2c".utf8)
+            let jpegStartMarker: [UInt8] = [0xFF, 0xD8]
+            
             if let startIndex = data.range(of: jp2cMarker)?.lowerBound {
-                // The Codestream Box marker starts at 'jp2c', so move past the marker (4 bytes)
+                // Handle JP2 extraction
                 let jp2DataStart = data.index(startIndex, offsetBy: jp2cMarker.count)
-                
-                // Extract the JP2 image data (from the Codestream marker to the end of the file)
                 let jp2Data = data[jp2DataStart...]
-                
-                // Write the extracted JP2 data to an output file
+                let outputJP2File = "\(tempPath)image/facial_image.jp2"
                 try jp2Data.write(to: URL(fileURLWithPath: outputJP2File))
-                
                 os_log("JP2 image extracted and saved as %s", log: apduLog, type: .default, outputJP2File)
-                //                imagePath = outputJP2File
-                //                cardInfoDict["image"] = outputJP2File
-                
                 cardHolderInfo.imagePath = outputJP2File
                 
-            } else {
-                os_log("JP2 Codestream marker ('jp2c') not found in the file.", log: apduLog, type: .error)
+            } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {
+                // Handle JPEG extraction
+                let jpegData = data[startIndex...]
+                let outputJPEGFile = "\(tempPath)image/facial_image.jpg"
+                try jpegData.write(to: URL(fileURLWithPath: outputJPEGFile))
+                os_log("JPEG image extracted and saved as %s", log: apduLog, type: .default, outputJPEGFile)
+                cardHolderInfo.imagePath = outputJPEGFile
                 
+            } else {
+                os_log("No valid JP2 or JPEG markers found in the file.", log: apduLog, type: .error)
             }
         } catch {
             os_log("Error occurred: %s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
+
     
     func hex_to_string(with hexData: Data) -> String{
         if let string = String(data: hexData, encoding: .utf8) {
