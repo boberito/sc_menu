@@ -81,8 +81,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 self.issuerIdentifierLabel.stringValue = issuerIdent
             }
             
-            //                }
-            //            }
             if let ac = cardInfo.ac {
                 self.agencyCardSerialLabel.stringValue = ac
             }

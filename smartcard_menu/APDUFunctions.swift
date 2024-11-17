@@ -181,7 +181,7 @@ class smartCardAPDU {
                 let jp2Data = data[jp2DataStart...]
                 let outputJP2File = "\(tempPath)image/facial_image.jp2"
                 try jp2Data.write(to: URL(fileURLWithPath: outputJP2File))
-                os_log("JP2 image extracted and saved as %s", log: apduLog, type: .default, outputJP2File)
+                os_log("JP2 image extracted and saved as %{public}s", log: apduLog, type: .default, outputJP2File)
                 cardHolderInfo.imagePath = outputJP2File
                 
             } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {
@@ -189,14 +189,14 @@ class smartCardAPDU {
                 let jpegData = data[startIndex...]
                 let outputJPEGFile = "\(tempPath)image/facial_image.jpg"
                 try jpegData.write(to: URL(fileURLWithPath: outputJPEGFile))
-                os_log("JPEG image extracted and saved as %s", log: apduLog, type: .default, outputJPEGFile)
+                os_log("JPEG image extracted and saved as %{public}s", log: apduLog, type: .default, outputJPEGFile)
                 cardHolderInfo.imagePath = outputJPEGFile
                 
             } else {
                 os_log("No valid JP2 or JPEG markers found in the file.", log: apduLog, type: .error)
             }
         } catch {
-            os_log("Error occurred: %s", log: apduLog, type: .error, error.localizedDescription)
+            os_log("Error occurred: %{public}s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
 
