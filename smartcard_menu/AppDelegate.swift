@@ -63,6 +63,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     let prefViewController = PreferencesViewController()
+    var screenUnlockVar = false
     
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -175,6 +176,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     }
     
     @objc func screenUnlocked() {
+        screenUnlockVar = true
         startup()
     }
     
@@ -221,7 +223,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         }
         
         myTKWatcher?.setInsertionHandler({ tokenID in
-            
             self.update(CTKTokenID: tokenID)
         })
         addQuit()
@@ -241,6 +242,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     statusItem.menu?.removeItem(item)
                 }
             }
+            screenUnlockVar = true
             startup()
         }
     }
@@ -709,26 +711,28 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
         }
     }
-    @objc func update(CTKTokenID: String) {
+    func update(CTKTokenID: String) {
         var isCardLocked = false
+        
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
             os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
-            Task {
-                let settings = await nc.notificationSettings()
-                guard (settings.authorizationStatus == .authorized) ||
-                        (settings.authorizationStatus == .provisional) else
-                { return }
-                let content = UNMutableNotificationContent()
-                content.title = "SC Menu"
-                content.body = "Smartcard Inserted"
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                
-                let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                try await nc.add(request)
+            if screenUnlockVar == false {
+                Task {
+                    let settings = await nc.notificationSettings()
+                    guard (settings.authorizationStatus == .authorized) ||
+                            (settings.authorizationStatus == .provisional) else
+                    { return }
+                    let content = UNMutableNotificationContent()
+                    content.title = "SC Menu"
+                    content.body = "Smartcard Inserted"
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                    
+                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                    try await nc.add(request)
+                }
             }
-            
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
@@ -746,7 +750,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
-            
+            self.screenUnlockVar = false
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 Task {
