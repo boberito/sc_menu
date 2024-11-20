@@ -54,6 +54,25 @@ class PreferencesViewController: NSViewController {
             iconTwoRadioButton.state = .off
         }
         
+        let notificationsButton = NSButton(checkboxWithTitle: "Show Notifications", target: Any?.self, action: #selector(notificationChange))
+        notificationsButton.frame = NSRect(x: 20, y: 20, width: 200, height: 25)
+        
+        let nc = UNUserNotificationCenter.current()
+        Task {
+            let settings = await nc.notificationSettings()
+            if settings.authorizationStatus == .authorized || settings.authorizationStatus != .provisional {
+                if UserDefaults.standard.bool(forKey: "show_notifications") {
+                    notificationsButton.state = .on
+                } else {
+                    notificationsButton.state = .off
+                }
+                
+            } else {
+                notificationsButton.state = .off
+                notificationsButton.isEnabled = false
+            }
+            
+        }
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
         startUpButton.frame = NSRect(x: 160, y: 90, width: 200, height: 25)
         switch SMAppService.mainApp.status {
@@ -125,6 +144,7 @@ class PreferencesViewController: NSViewController {
         view.addSubview(versionTextView)
         view.addSubview(infoTextView)
         view.addSubview(appIcon)
+        view.addSubview(notificationsButton)
         view.addSubview(updateButton)
     }
     override func viewDidLoad() {
@@ -136,6 +156,15 @@ class PreferencesViewController: NSViewController {
         didSet {
             // Update the view, if already loaded.
         }
+    }
+    
+    @objc func notificationChange(_ sender: NSButton){
+        if sender.intValue == 1 {
+            UserDefaults.standard.set(true, forKey: "show_notifications")
+        }else {
+            UserDefaults.standard.set(false, forKey: "show_notifications")
+        }
+        
     }
     
     @objc func changeIcon(_ sender: NSButton) {

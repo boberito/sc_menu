@@ -67,6 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
         UNUserNotificationCenter.current().delegate = self
         prefViewController.delegate = self
         os_log("SC Menu launched", log: appLog, type: .default)
@@ -102,7 +103,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-//            NSApp.terminate(nil)
+            //            NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -165,10 +166,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func notificationPermissions() {
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
-                
+                UserDefaults.standard.set(true, forKey: "show_notifications")
                 os_log("Notifications allowed", log: self.appLog, type: .default)
             } else {
-                
+                UserDefaults.standard.set(false, forKey: "show_notifications")
                 os_log("Notifications denied", log: self.appLog, type: .default)
             }
         }
@@ -718,19 +719,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
-            if screenUnlockVar == false {
-                Task {
-                    let settings = await nc.notificationSettings()
-                    guard (settings.authorizationStatus == .authorized) ||
-                            (settings.authorizationStatus == .provisional) else
-                    { return }
-                    let content = UNMutableNotificationContent()
-                    content.title = "SC Menu"
-                    content.body = "Smartcard Inserted"
-                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                    
-                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                    try await nc.add(request)
+            if UserDefaults.standard.bool(forKey: "show_notifications") {
+                if screenUnlockVar == false {
+                    Task {
+                        let settings = await nc.notificationSettings()
+                        guard (settings.authorizationStatus == .authorized) ||
+                                (settings.authorizationStatus == .provisional) else
+                        { return }
+                        let content = UNMutableNotificationContent()
+                        content.title = "SC Menu"
+                        content.body = "Smartcard Inserted"
+                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                        
+                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                        try await nc.add(request)
+                    }
                 }
             }
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
@@ -753,19 +756,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             self.screenUnlockVar = false
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
-                Task {
-                    let settings = await self.nc.notificationSettings()
-                    guard (settings.authorizationStatus == .authorized) ||
-                            (settings.authorizationStatus == .provisional) else
-                    { return }
-                    let content = UNMutableNotificationContent()
-                    content.title = "SC Menu"
-                    content.body = "Smartcard Removed"
-                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                    
-                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                    try await self.nc.add(request)
-                    
+                if UserDefaults.standard.bool(forKey: "show_notifications") {
+                    Task {
+                        let settings = await self.nc.notificationSettings()
+                        guard (settings.authorizationStatus == .authorized) ||
+                                (settings.authorizationStatus == .provisional) else
+                        { return }
+                        let content = UNMutableNotificationContent()
+                        content.title = "SC Menu"
+                        content.body = "Smartcard Removed"
+                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                        
+                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                        try await self.nc.add(request)
+                        
+                    }
                 }
                 self.lockedDictArray.remove(at: index)
                 if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
