@@ -65,7 +65,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     let prefViewController = PreferencesViewController()
     var screenUnlockVar = false
     
-    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         UNUserNotificationCenter.current().delegate = self
@@ -76,7 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
             let arguments = CommandLine.arguments
             let stringarguments = String(describing: arguments)
-            NSLog(stringarguments)
+            
             if arguments[1] == "--register" {
                 do {
                     try appService.register()
@@ -103,7 +102,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-            //            NSApp.terminate(nil)
+                        NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -120,16 +119,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 
                 do {
                     try appService.register()
-                    NSLog("registered service")
+                    os_log("registered service", log: self.appLog, type: .default)
                 } catch {
-                    NSLog("problem registering service")
+                    os_log("problem registering service", log: self.appLog, type: .default)
                 }
             }
             
         }
         UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
-        let updater = UpdateCheck()
-        _ = updater.check()
+        guard let appBundleID = Bundle.main.bundleIdentifier else { return }
+        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
+        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
+            os_log("Updates disabled", log: self.appLog, type: .default)
+        } else {
+            let updater = UpdateCheck()
+            _ = updater.check()
+        }
+        
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
@@ -166,7 +172,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func notificationPermissions() {
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
-                UserDefaults.standard.set(true, forKey: "show_notifications")
+                if UserDefaults.standard.value(forKey: "show_notifications") == nil {
+                    UserDefaults.standard.set(true, forKey: "show_notifications")
+                }
                 os_log("Notifications allowed", log: self.appLog, type: .default)
             } else {
                 UserDefaults.standard.set(false, forKey: "show_notifications")
@@ -719,6 +727,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
+            
             if UserDefaults.standard.bool(forKey: "show_notifications") {
                 if screenUnlockVar == false {
                     Task {
@@ -736,6 +745,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     }
                 }
             }
+            screenUnlockVar = false
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
@@ -753,7 +763,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
-            self.screenUnlockVar = false
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 if UserDefaults.standard.bool(forKey: "show_notifications") {

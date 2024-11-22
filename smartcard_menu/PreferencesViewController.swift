@@ -94,8 +94,12 @@ class PreferencesViewController: NSViewController {
         
         let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
         updateButton.frame = NSRect(x: 155, y: 50, width: 150, height: 30)
+        guard let appBundleID = Bundle.main.bundleIdentifier else { return }
+        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
+        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
+            updateButton.isEnabled = false
+        }
         let infoTextView = NSTextView(frame: NSRect(x: 148, y: 110, width: 240, height: 25))
-        //        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
         infoTextView.isEditable = false
         infoTextView.isSelectable = true
