@@ -28,7 +28,6 @@ class PIVCard {
         let sm = TKSmartCardSlotManager()
         sm.getSlot(withName: slotName, reply: { slot in
             if let atr = slot?.atr {
-                //                print(atr.bytes.hexEncodedString())
                 self.atrString = atr.bytes.hexEncodedString()
                 
             }

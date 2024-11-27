@@ -62,19 +62,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
-    let prefViewController = PreferencesViewController()
     var screenUnlockVar = false
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         UNUserNotificationCenter.current().delegate = self
-        prefViewController.delegate = self
         os_log("SC Menu launched", log: appLog, type: .default)
         let appService = SMAppService.mainApp
         if CommandLine.arguments.count > 1 {
             
             let arguments = CommandLine.arguments
-            let stringarguments = String(describing: arguments)
             
             if arguments[1] == "--register" {
                 do {
@@ -102,7 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 }
                 
             }
-                        NSApp.terminate(nil)
+            NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -280,10 +277,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
+        let freshPrefViewController = PreferencesViewController()
+        
+        window?.contentViewController = freshPrefViewController
+
+        freshPrefViewController.delegate = self
+        
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
-        window?.contentViewController = prefViewController
+        
         
     }
     @objc func ATRfunc(_ sender: NSMenuItem) {
@@ -438,6 +441,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         
     }
+    
     @objc func certSelected(_ sender: NSMenuItem) {
         let selectedCert = sender.representedObject as! SecIdentity
         

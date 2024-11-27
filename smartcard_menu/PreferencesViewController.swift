@@ -16,6 +16,7 @@ protocol PrefDataModelDelegate {
 class PreferencesViewController: NSViewController {
     var delegate: PrefDataModelDelegate?
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
+    
     override func loadView() {
         let rect = NSRect(x: 0, y: 0, width: 415, height: 200)
         view = NSView(frame: rect)
@@ -60,7 +61,7 @@ class PreferencesViewController: NSViewController {
         let nc = UNUserNotificationCenter.current()
         Task {
             let settings = await nc.notificationSettings()
-            if settings.authorizationStatus == .authorized || settings.authorizationStatus != .provisional {
+            if settings.authorizationStatus == .authorized {
                 if UserDefaults.standard.bool(forKey: "show_notifications") {
                     notificationsButton.state = .on
                 } else {
