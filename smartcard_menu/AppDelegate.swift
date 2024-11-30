@@ -62,7 +62,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
-    var screenUnlockVar = false
+    var showInsertAfterScreenUnlock = false
+    var screenLockedVar = false
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
@@ -137,6 +138,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenLocked), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
+        
         NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) {
             switch $0.modifierFlags.intersection(.deviceIndependentFlagsMask) {
             case [.option]:
@@ -182,8 +185,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     }
     
     @objc func screenUnlocked() {
-        screenUnlockVar = true
+        showInsertAfterScreenUnlock = true
+        screenLockedVar = false
         startup()
+    }
+    
+    @objc func screenLocked() {
+        screenLockedVar = true
     }
     
     func insertExistingTokens(){
@@ -248,7 +256,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     statusItem.menu?.removeItem(item)
                 }
             }
-            screenUnlockVar = true
+            showInsertAfterScreenUnlock = true
             startup()
         }
     }
@@ -733,7 +741,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             lockedDictArray.append([CTKTokenID:isCardLocked])
             
             if UserDefaults.standard.bool(forKey: "show_notifications") {
-                if screenUnlockVar == false {
+                if showInsertAfterScreenUnlock == false && screenLockedVar == false {
                     Task {
                         let settings = await nc.notificationSettings()
                         guard (settings.authorizationStatus == .authorized) ||
@@ -749,7 +757,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     }
                 }
             }
-            screenUnlockVar = false
+            showInsertAfterScreenUnlock = false
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
@@ -770,19 +778,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 if UserDefaults.standard.bool(forKey: "show_notifications") {
-                    Task {
-                        let settings = await self.nc.notificationSettings()
-                        guard (settings.authorizationStatus == .authorized) ||
-                                (settings.authorizationStatus == .provisional) else
-                        { return }
-                        let content = UNMutableNotificationContent()
-                        content.title = "SC Menu"
-                        content.body = "Smartcard Removed"
-                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                        
-                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                        try await self.nc.add(request)
-                        
+                    if !self.screenLockedVar {
+                        Task {
+                            let settings = await self.nc.notificationSettings()
+                            guard (settings.authorizationStatus == .authorized) ||
+                                    (settings.authorizationStatus == .provisional) else
+                            { return }
+                            let content = UNMutableNotificationContent()
+                            content.title = "SC Menu"
+                            content.body = "Smartcard Removed"
+                            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                            
+                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                            try await self.nc.add(request)
+                            
+                        }
                     }
                 }
                 self.lockedDictArray.remove(at: index)
