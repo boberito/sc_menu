@@ -232,5 +232,4 @@ class PreferencesViewController: NSViewController {
         }
     }
     
-    
 }

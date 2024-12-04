@@ -19,7 +19,74 @@ import Security
 let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
+    
+    func pinFailedandLocked(slotName: String) {
+        let isCardLocked = self.isLocked(slotName: slotName)
+        
+        if isCardLocked {
+            RunLoop.main.perform {
+                if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                    
+                    if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
+                        
+                        guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                        
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                button.image = NSImage(byReferencingFile: fileURLString)
+                                let circleSize = NSSize(width: 10, height: 10)
+                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                    buttonImage.draw(in: newImageRect)
+                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                    NSColor.red.setFill()
+                                    circlePath.fill()
+                                    return true
+                                }
+                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                    fatalError("Failed to create CGImage")
+                                }
+                                button.image = redCircleImage
+                            }
+                        }
+                    } else {
+                        guard let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") else { return }
+                        guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                button.image = NSImage(byReferencingFile: fileURLString)
+                                let circleSize = NSSize(width: 10, height: 10)
+                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                    buttonImage.draw(in: newImageRect)
+                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                    NSColor.red.setFill()
+                                    circlePath.fill()
+                                    
+                                    return true
+                                }
+                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                    fatalError("Failed to create CGImage")
+                                }
+                                button.image = redCircleImage
+                            }
+                        }
+                    }
+                }
+            }
+            guard let statusItemMenu = self.statusItem.menu else { return }
+            for menuItem in statusItemMenu.items {
+                if menuItem.title == slotName {
+                    let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                    menuItem.submenu?.insertItem(lockedMenuItem, at: 0)
+                    
+                }
+            }
+        }
+    }
     func didReceivePrefUpdate() {
         
         var cardStatus = "out"
@@ -288,7 +355,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         let freshPrefViewController = PreferencesViewController()
         
         window?.contentViewController = freshPrefViewController
-
+        
         freshPrefViewController.delegate = self
         
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
@@ -522,9 +589,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 if let certDict = certViewing.getIdentity(pivToken: pivToken){
                     for dict in self.lockedDictArray {
                         if dict[TkID] == true {
-                            let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                            subMenu.addItem(lockedMenuItem)
-                            os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                            if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                subMenu.addItem(lockedMenuItem)
+                                os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                            }
                         }
                     }
                     var seperator = false
@@ -641,7 +710,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 return
             }
             let myInfoViewController = MyInfoViewController()
-            
+            myInfoViewController.pinDelegate = self
             myInfoViewController.pin = pin
             myInfoViewController.passedSlot = cardReader
             os_log("SC Menu is opening my card info.", log: appLog, type: .default)

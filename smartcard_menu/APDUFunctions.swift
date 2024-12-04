@@ -41,10 +41,12 @@ struct CardholderCapabilityContainer {
 
 protocol APDUDelgate {
     func didReceiveUpdate(cardInfo: CardHolderInfo)
-    func pinFailed()
+    func pinFailed(slotName: String, attempts: Int)
 }
 
 class smartCardAPDU {
+    
+    var slotNameString = ""
     private let apduLog = OSLog(subsystem: subsystem, category: "APDUFunctions")
     var delegate: APDUDelgate?
     let SELECT_PIV_APPLICATION: [UInt8] = [0x00, 0xA4, 0x04, 0x00, 0x09, 0xA0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00]
@@ -199,7 +201,7 @@ class smartCardAPDU {
             os_log("Error occurred: %{public}s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
-
+    
     
     func hex_to_string(with hexData: Data) -> String{
         if let string = String(data: hexData, encoding: .utf8) {
@@ -585,6 +587,7 @@ Person Association Category: \(personCategory)
         var slot: TKSmartCardSlot?
         for slotName in cardSlotManager.slotNames {
             if passedSlot == slotName {
+                slotNameString = slotName
                 slot = cardSlotManager.slotNamed(slotName)
             }
             
@@ -630,7 +633,7 @@ Person Association Category: \(personCategory)
                 
                 completion(true)
             } else {
-                os_log("PIN verifiation failed: SW1=%{public}s, SW=%{public}s", log: self.apduLog, type: .debug, sw1, sw2)
+                os_log("PIN verifiation failed", log: self.apduLog, type: .debug)
                 
                 completion(false)
             }
@@ -656,8 +659,21 @@ Person Association Category: \(personCategory)
                             self.retrieveData()
                             
                         } else {
+                            var attemptsLeft = 0
+                            let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
+                            self.sendAPDUCommand(apdu: pinVerifyNull) { data, sw1, sw2 in
+                                if sw1 == 0x63 && (sw2 & 0xC0) == 0xC0 {
+                                    attemptsLeft = Int(sw2 & 0x0F)
+                                    
+                                    os_log("PIN Attempts Left: %{public}d", log: self.apduLog, type: .default, attemptsLeft)
+                                    self.delegate?.pinFailed(slotName: self.slotNameString, attempts: attemptsLeft)
+                                } else {
+                                    os_log("Attempts Left: 0", log: self.apduLog, type: .default)
+                                    self.delegate?.pinFailed(slotName: self.slotNameString, attempts: 0)
+                                }
+                            }
                             self.smartCard?.endSession()
-                            self.delegate?.pinFailed()
+                            
                             
                         }
                     }

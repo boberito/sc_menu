@@ -7,25 +7,45 @@
 import Cocoa
 import os
 
+protocol isLockedDelegate {
+    func pinFailedandLocked(slotName: String)
+}
+
 class MyInfoViewController: NSViewController, APDUDelgate {
+    
     private let infoViewLog = OSLog(subsystem: subsystem, category: "CardInfo")
     let apduFunctions = smartCardAPDU()
-    
+    var pinDelegate: isLockedDelegate?
     var passedSlot: String? = nil
     var pin: Data? = nil
-    func pinFailed() {
-        DispatchQueue.main.async {
-            NSApplication.shared.keyWindow?.close()
-            let alert = NSAlert()
-            alert.messageText = "PIN Failed"
-            alert.informativeText = """
+    func pinFailed(slotName: String, attempts: Int) {
+        if attempts == 0 {
+            DispatchQueue.main.async {
+                NSApplication.shared.keyWindow?.close()
+                let alert = NSAlert()
+                alert.messageText = "PIN Failed"
+                alert.informativeText = """
+        Smartcard Locked.
+        \(attempts) Left
+    """
+                
+                alert.runModal()
+                self.pinDelegate?.pinFailedandLocked(slotName: slotName)
+            }
+        } else {
+            DispatchQueue.main.async {
+                NSApplication.shared.keyWindow?.close()
+                let alert = NSAlert()
+                alert.messageText = "PIN Failed"
+                alert.informativeText = """
     Incorrect PIN attempt.
+    \(attempts) Left
 """
-            
-            alert.runModal()
-            
+                
+                alert.runModal()
+                self.pinDelegate?.pinFailedandLocked(slotName: slotName)
+            }
         }
-        
     }
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
         //      do things
