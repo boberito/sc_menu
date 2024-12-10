@@ -673,8 +673,7 @@ Person Association Category: \(personCategory)
                                 }
                             }
                             self.smartCard?.endSession()
-                            
-                            
+
                         }
                     }
                 }

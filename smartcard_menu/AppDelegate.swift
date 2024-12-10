@@ -651,8 +651,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 if let window = NSApp.windows.first(where: { $0.identifier?.rawValue ==  identifier }) {
                     window.makeKeyAndOrderFront(nil)
                 }
-                //                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                //                return
                 return
             }
         }
