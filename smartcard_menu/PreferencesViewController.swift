@@ -16,6 +16,7 @@ protocol PrefDataModelDelegate {
 class PreferencesViewController: NSViewController {
     var delegate: PrefDataModelDelegate?
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
+    
     override func loadView() {
         let rect = NSRect(x: 0, y: 0, width: 415, height: 200)
         view = NSView(frame: rect)
@@ -54,6 +55,25 @@ class PreferencesViewController: NSViewController {
             iconTwoRadioButton.state = .off
         }
         
+        let notificationsButton = NSButton(checkboxWithTitle: "Show Notifications", target: Any?.self, action: #selector(notificationChange))
+        notificationsButton.frame = NSRect(x: 20, y: 20, width: 200, height: 25)
+        
+        let nc = UNUserNotificationCenter.current()
+        Task {
+            let settings = await nc.notificationSettings()
+            if settings.authorizationStatus == .authorized {
+                if UserDefaults.standard.bool(forKey: "show_notifications") {
+                    notificationsButton.state = .on
+                } else {
+                    notificationsButton.state = .off
+                }
+                
+            } else {
+                notificationsButton.state = .off
+                notificationsButton.isEnabled = false
+            }
+            
+        }
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
         startUpButton.frame = NSRect(x: 160, y: 90, width: 200, height: 25)
         switch SMAppService.mainApp.status {
@@ -75,8 +95,12 @@ class PreferencesViewController: NSViewController {
         
         let updateButton = NSButton(title: "Check for Updates", target: Any?.self, action: #selector(updateCheck))
         updateButton.frame = NSRect(x: 155, y: 50, width: 150, height: 30)
+        guard let appBundleID = Bundle.main.bundleIdentifier else { return }
+        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
+        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
+            updateButton.isEnabled = false
+        }
         let infoTextView = NSTextView(frame: NSRect(x: 148, y: 110, width: 240, height: 25))
-        //        let infoTextView = NSTextView(frame: NSRect(x: 160, y: 95, width: 240, height: 100))
         infoTextView.textContainerInset = NSSize(width: 10, height: 10)
         infoTextView.isEditable = false
         infoTextView.isSelectable = true
@@ -125,6 +149,7 @@ class PreferencesViewController: NSViewController {
         view.addSubview(versionTextView)
         view.addSubview(infoTextView)
         view.addSubview(appIcon)
+        view.addSubview(notificationsButton)
         view.addSubview(updateButton)
     }
     override func viewDidLoad() {
@@ -136,6 +161,15 @@ class PreferencesViewController: NSViewController {
         didSet {
             // Update the view, if already loaded.
         }
+    }
+    
+    @objc func notificationChange(_ sender: NSButton){
+        if sender.intValue == 1 {
+            UserDefaults.standard.set(true, forKey: "show_notifications")
+        }else {
+            UserDefaults.standard.set(false, forKey: "show_notifications")
+        }
+        
     }
     
     @objc func changeIcon(_ sender: NSButton) {
@@ -186,17 +220,16 @@ class PreferencesViewController: NSViewController {
                 try SMAppService.mainApp.register()
                 os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
             } catch {
-                os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
+                os_log("SMApp Service register error %{public}s", log: self.prefsLog, type: .error, error.localizedDescription)
             }
         } else {
             do {
                 try SMAppService.mainApp.unregister()
                 os_log("SC Menu removed from login items", log: self.prefsLog, type: .default)
             } catch {
-                os_log("SMApp Service unregister error %s", log: self.prefsLog, type: .default, error.localizedDescription)
+                os_log("SMApp Service unregister error %{public}s", log: self.prefsLog, type: .default, error.localizedDescription)
             }
         }
     }
-    
     
 }

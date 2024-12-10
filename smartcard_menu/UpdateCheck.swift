@@ -27,7 +27,7 @@ class UpdateCheck {
             let httpResponse = response as? HTTPURLResponse
             let dataReturn = data
             if (error != nil) {
-                os_log("An Error Occured - offline or can't reach GitHub - %s", log: self.updateLog, type: .error, error?.localizedDescription ?? "Unknown Error")
+                os_log("An Error Occured - offline or can't reach GitHub - %{public}s", log: self.updateLog, type: .error, error?.localizedDescription ?? "Unknown Error")
                 updateNeeded = 2
                 dispatchGroup.leave()
             } else {
@@ -46,10 +46,10 @@ class UpdateCheck {
                                     DispatchQueue.main.async {
                                         self.alert(githubVersion: gitHubVersion, current: currentVersion)
                                     }
-                                    os_log("Current is %s, newest is %s", log: self.updateLog, type: .default, currentVersion.description, gitHubVersion.description)
+                                    os_log("Current is %{public}s, newest is %{public}s", log: self.updateLog, type: .default, currentVersion.description, gitHubVersion.description)
                                     updateNeeded = 1
                                 } else if versionCompare == .orderedDescending {
-                                    os_log("Current is %s, version on GitHub is %s", log: self.updateLog, type: .default, currentVersion.description, gitHubVersion.description)
+                                    os_log("Current is %{public}s, version on GitHub is %{public}s", log: self.updateLog, type: .default, currentVersion.description, gitHubVersion.description)
                                     updateNeeded = 0
                                 }
                             }

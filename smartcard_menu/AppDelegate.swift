@@ -19,7 +19,74 @@ import Security
 let subsystem = "com.ttinc.sc-menu"
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
+    
+    func pinFailedandLocked(slotName: String) {
+        let isCardLocked = self.isLocked(slotName: slotName)
+        
+        if isCardLocked {
+            RunLoop.main.perform {
+                if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                    
+                    if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
+                        
+                        guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                        
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                button.image = NSImage(byReferencingFile: fileURLString)
+                                let circleSize = NSSize(width: 10, height: 10)
+                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                    buttonImage.draw(in: newImageRect)
+                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                    NSColor.red.setFill()
+                                    circlePath.fill()
+                                    return true
+                                }
+                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                    fatalError("Failed to create CGImage")
+                                }
+                                button.image = redCircleImage
+                            }
+                        }
+                    } else {
+                        guard let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") else { return }
+                        guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                        if fileExists {
+                            if let button = self.statusItem.button {
+                                button.image = NSImage(byReferencingFile: fileURLString)
+                                let circleSize = NSSize(width: 10, height: 10)
+                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                                    buttonImage.draw(in: newImageRect)
+                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                                    NSColor.red.setFill()
+                                    circlePath.fill()
+                                    
+                                    return true
+                                }
+                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                                    fatalError("Failed to create CGImage")
+                                }
+                                button.image = redCircleImage
+                            }
+                        }
+                    }
+                }
+            }
+            guard let statusItemMenu = self.statusItem.menu else { return }
+            for menuItem in statusItemMenu.items {
+                if menuItem.title == slotName {
+                    let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                    menuItem.submenu?.insertItem(lockedMenuItem, at: 0)
+                    
+                }
+            }
+        }
+    }
     func didReceivePrefUpdate() {
         
         var cardStatus = "out"
@@ -62,26 +129,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     let nothingInsertedMenu = NSMenuItem(title: "No Smartcard Inserted", action: nil, keyEquivalent: "")
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
-    let prefViewController = PreferencesViewController()
-    
+    var showInsertAfterScreenUnlock = false
+    var screenLockedVar = false
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        
         UNUserNotificationCenter.current().delegate = self
-        prefViewController.delegate = self
         os_log("SC Menu launched", log: appLog, type: .default)
         let appService = SMAppService.mainApp
         if CommandLine.arguments.count > 1 {
             
             let arguments = CommandLine.arguments
-            let stringarguments = String(describing: arguments)
-            NSLog(stringarguments)
+            
             if arguments[1] == "--register" {
                 do {
                     try appService.register()
                     
                     os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
                 } catch {
-                    os_log("SMApp Service register error %s", log: self.prefsLog, type: .error, error.localizedDescription)
+                    os_log("SMApp Service register error %{public}s", log: self.prefsLog, type: .error, error.localizedDescription)
                     
                 }
             }
@@ -118,20 +184,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 
                 do {
                     try appService.register()
-                    NSLog("registered service")
+                    os_log("registered service", log: self.appLog, type: .default)
                 } catch {
-                    NSLog("problem registering service")
+                    os_log("problem registering service", log: self.appLog, type: .default)
                 }
             }
             
         }
         UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
-        let updater = UpdateCheck()
-        _ = updater.check()
+        guard let appBundleID = Bundle.main.bundleIdentifier else { return }
+        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
+        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
+            os_log("Updates disabled", log: self.appLog, type: .default)
+        } else {
+            let updater = UpdateCheck()
+            _ = updater.check()
+        }
+        
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
                                                           name: NSWorkspace.didWakeNotification, object: nil)
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenUnlocked), name: NSNotification.Name(rawValue: "com.apple.screenIsUnlocked"), object: nil)
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(screenLocked), name: NSNotification.Name(rawValue: "com.apple.screenIsLocked"), object: nil)
+        
         NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) {
             switch $0.modifierFlags.intersection(.deviceIndependentFlagsMask) {
             case [.option]:
@@ -164,18 +239,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
     func notificationPermissions() {
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
-                
-                os_log("Notications allowed", log: self.appLog, type: .default)
+                if UserDefaults.standard.value(forKey: "show_notifications") == nil {
+                    UserDefaults.standard.set(true, forKey: "show_notifications")
+                }
+                os_log("Notifications allowed", log: self.appLog, type: .default)
             } else {
-                
-                os_log("Notications denied", log: self.appLog, type: .default)
+                UserDefaults.standard.set(false, forKey: "show_notifications")
+                os_log("Notifications denied", log: self.appLog, type: .default)
             }
         }
         
     }
     
     @objc func screenUnlocked() {
+        showInsertAfterScreenUnlock = true
+        screenLockedVar = false
         startup()
+    }
+    
+    @objc func screenLocked() {
+        screenLockedVar = true
     }
     
     func insertExistingTokens(){
@@ -221,7 +304,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         }
         
         myTKWatcher?.setInsertionHandler({ tokenID in
-            
             self.update(CTKTokenID: tokenID)
         })
         addQuit()
@@ -241,6 +323,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                     statusItem.menu?.removeItem(item)
                 }
             }
+            showInsertAfterScreenUnlock = true
             startup()
         }
     }
@@ -269,10 +352,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
+        let freshPrefViewController = PreferencesViewController()
+        
+        window?.contentViewController = freshPrefViewController
+        
+        freshPrefViewController.delegate = self
+        
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
-        window?.contentViewController = prefViewController
+        
         
     }
     @objc func ATRfunc(_ sender: NSMenuItem) {
@@ -427,6 +516,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         
     }
+    
     @objc func certSelected(_ sender: NSMenuItem) {
         let selectedCert = sender.representedObject as! SecIdentity
         
@@ -468,7 +558,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             window.orderFrontRegardless()
             NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             
-            os_log("Cert %s selected", log: appLog, type: .default, sender.title.description)
+            os_log("Cert %{public}s selected", log: appLog, type: .default, sender.title.description)
         }
     }
     
@@ -499,9 +589,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 if let certDict = certViewing.getIdentity(pivToken: pivToken){
                     for dict in self.lockedDictArray {
                         if dict[TkID] == true {
-                            let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                            subMenu.addItem(lockedMenuItem)
-                            os_log("%s is locked", log: appLog, type: .default, TkID.description)
+                            if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                subMenu.addItem(lockedMenuItem)
+                                os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                            }
                         }
                     }
                     var seperator = false
@@ -559,8 +651,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 if let window = NSApp.windows.first(where: { $0.identifier?.rawValue ==  identifier }) {
                     window.makeKeyAndOrderFront(nil)
                 }
-                //                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-                //                return
                 return
             }
         }
@@ -618,7 +708,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
                 return
             }
             let myInfoViewController = MyInfoViewController()
-            
+            myInfoViewController.pinDelegate = self
             myInfoViewController.pin = pin
             myInfoViewController.passedSlot = cardReader
             os_log("SC Menu is opening my card info.", log: appLog, type: .default)
@@ -709,26 +799,32 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
             
         }
     }
-    @objc func update(CTKTokenID: String) {
+    func update(CTKTokenID: String) {
         var isCardLocked = false
+        
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            os_log("Smartcard Inserted %s", log: appLog, type: .default, CTKTokenID.description)
+            os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
             isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
-            Task {
-                let settings = await nc.notificationSettings()
-                guard (settings.authorizationStatus == .authorized) ||
-                        (settings.authorizationStatus == .provisional) else
-                { return }
-                let content = UNMutableNotificationContent()
-                content.title = "SC Menu"
-                content.body = "Smartcard Inserted"
-                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                
-                let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                try await nc.add(request)
-            }
             
+            if UserDefaults.standard.bool(forKey: "show_notifications") {
+                if showInsertAfterScreenUnlock == false && screenLockedVar == false {
+                    Task {
+                        let settings = await nc.notificationSettings()
+                        guard (settings.authorizationStatus == .authorized) ||
+                                (settings.authorizationStatus == .provisional) else
+                        { return }
+                        let content = UNMutableNotificationContent()
+                        content.title = "SC Menu"
+                        content.body = "Smartcard Inserted"
+                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                        
+                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                        try await nc.add(request)
+                    }
+                }
+            }
+            showInsertAfterScreenUnlock = false
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                     menuBarIcon(fileURLString: fileURLString)
@@ -746,22 +842,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate {
         
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
-            
-            os_log("Smartcard Removed %s", log: self.appLog, type: .default, CTKTokenID.description)
+            os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
-                Task {
-                    let settings = await self.nc.notificationSettings()
-                    guard (settings.authorizationStatus == .authorized) ||
-                            (settings.authorizationStatus == .provisional) else
-                    { return }
-                    let content = UNMutableNotificationContent()
-                    content.title = "SC Menu"
-                    content.body = "Smartcard Removed"
-                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                    
-                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                    try await self.nc.add(request)
-                    
+                if UserDefaults.standard.bool(forKey: "show_notifications") {
+                    if !self.screenLockedVar {
+                        Task {
+                            let settings = await self.nc.notificationSettings()
+                            guard (settings.authorizationStatus == .authorized) ||
+                                    (settings.authorizationStatus == .provisional) else
+                            { return }
+                            let content = UNMutableNotificationContent()
+                            content.title = "SC Menu"
+                            content.body = "Smartcard Removed"
+                            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                            
+                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                            try await self.nc.add(request)
+                            
+                        }
+                    }
                 }
                 self.lockedDictArray.remove(at: index)
                 if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
