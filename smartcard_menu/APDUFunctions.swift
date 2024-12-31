@@ -311,15 +311,16 @@ class smartCardAPDU {
                 os_log("Failed to retrieve facial image: SW1=%{public}s, SW2=%{public}s", log: self.apduLog, type: .error, String(format: "%02X", sw1), String(format: "%02X", sw2))
                 
             }
+            os_log("Retrieving Card Holder Name...", log: self.apduLog, type: .default)
             self.sendAPDUCommand(apdu: self.GET_CARDHOLDER_NAME) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
                     let tv_data = self.decodeBER_TLV(data: data)
                     
                     
                     guard let tv_data else { return }
-                    if self.debugMode {
-                        print(tv_data)
-                    }
+                    //                    if self.debugMode {
+                    //                        print(tv_data)
+                    //                    }
                     for tv in tv_data {
                         guard let tag = tv.first else { continue }
                         if self.debugMode {
@@ -345,83 +346,83 @@ class smartCardAPDU {
                             os_log("Unknown Tag %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
                         }
                         
-                        
-                        
                         //                        if self.hex_to_string(with: Data(tv[1..<tv.count])) == "" {
                         //                            continue
                         //                        }
                         //                        self.cardHolderInfo.cardInfo.append(self.hex_to_string(with: Data(tv[1..<tv.count])))
                     }
+                } else {
+                    os_log("Failed to retrieve Card Holder Information", log: self.apduLog, type: .error)
                 }
-                
-            }
-            
-            self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
-                if sw1 == 0x90 && sw2 == 0x00 {
-                    if self.debugMode {
-                        self.writeLogs(log: "card capability container: \(data)")
-                    }
-                    let tv_data = self.decodeBER_TLV(data: data)
-                    guard let tv_data else { return }
-                    if let ccc = self.parseCCCResponse(tv_data) {
+                os_log("Retrieving Card Capacity Container...", log: self.apduLog, type: .default)
+                self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
+                    if sw1 == 0x90 && sw2 == 0x00 {
                         if self.debugMode {
-                            self.writeLogs(log: "Parsed CCC Data: \(ccc)")
+                            self.writeLogs(log: "card capability container: \(data)")
                         }
-                        self.cardHolderInfo.CCCData = ccc
+                        let tv_data = self.decodeBER_TLV(data: data)
+                        guard let tv_data else { return }
+                        if let ccc = self.parseCCCResponse(tv_data) {
+                            if self.debugMode {
+                                self.writeLogs(log: "Parsed CCC Data: \(ccc)")
+                            }
+                            self.cardHolderInfo.CCCData = ccc
+                            
+                        } else {
+                            os_log("Failed to parse CCC response", log: self.apduLog, type: .error)
+                        }
                         
                     } else {
-                        os_log("Failed to parse CCC response", log: self.apduLog, type: .error)
+                        os_log("Failed to retrieve Card Capability Container", log: self.apduLog, type: .error)
+                    }
+                    os_log("Retrieving Card Unique Identifier...", log: self.apduLog, type: .default)
+                    self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
+                        NSLog("SW1: \(sw1), SW2: \(sw2)")
+                        if sw1 == 0x90 && sw2 == 0x00 {
+                            if self.debugMode {
+                                self.writeLogs(log: "card holder unique identifier: \(data)")
+                            }
+                            let tv_data = self.decodeBER_TLV(data: data)
+                            guard let tv_data else { return }
+                            for tv in tv_data {
+                                let tlv_type = tv[0]
+                                if tlv_type == 0x30 {
+                                    let fascNData = Data(tv[1..<tv.count])
+                                    self.extractFascNFields(from: fascNData)
+                                }
+                                                        if tlv_type == 0x32 {
+                                                            
+                                                            NSLog("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                                        }
+                                                        if tlv_type == 0x33 {
+                                                            NSLog("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                                        }
+                                                        if tlv_type == 0x31 {
+                                                            NSLog("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                                        }
+                                                        if tlv_type == 0x34 {
+                                                            NSLog("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                                            self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
+                                                        }
+                                                        if tlv_type == 0x36 {
+                                                            NSLog("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                                        }
+                                                        if tlv_type == 0x35 {
+                                                            NSLog("Expiration Date: \(self.getStr(inputList: tv))")
+                                                        }
+                                                        if tlv_type == 0x3E {
+                                                            NSLog("Asymmetric Signature: \(tv.count - 1)")
+                                                        }
+                            }
+                        } else {
+                            os_log("Failed to retrieve Card Unique Identifier", log: self.apduLog, type: .error)
+                        }
+                        os_log("Closing card session.", log: self.apduLog, type: .default)
+                        self.smartCard?.endSession()
+                        self.delegate?.didReceiveUpdate(cardInfo: self.cardHolderInfo)
                     }
                     
                 }
-                
-            }
-            self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
-                if sw1 == 0x90 && sw2 == 0x00 {
-                    if self.debugMode {
-                        self.writeLogs(log: "card holder unique identifier: \(data)")
-                    }
-                    let tv_data = self.decodeBER_TLV(data: data)
-                    
-                    //
-                    guard let tv_data else { return }
-                    for tv in tv_data {
-                        let tlv_type = tv[0]
-                        
-                        if tlv_type == 0x30 {
-                            let fascNData = Data(tv[1..<tv.count])
-                            
-                            self.extractFascNFields(from: fascNData)
-                        }
-                        //                        if tlv_type == 0x32 {
-                        //                            print("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        //                        }
-                        //                        if tlv_type == 0x33 {
-                        //                            print("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        //                        }
-                        //                                    if tlv_type == 0x31 {
-                        //                                        print("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        //                                    }
-                        if tlv_type == 0x34 {
-                            //                            print("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                            self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
-                        }
-                        //                        if tlv_type == 0x36 {
-                        //                            print("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                        //                        }
-                        //                        if tlv_type == 0x35 {
-                        //                            print("Expiration Date: \(self.getStr(inputList: tv))")
-                        //                        }
-                        //                        if tlv_type == 0x3E {
-                        //                            print("Asymmetric Signature: \(tv.count - 1)")
-                        //                        }
-                        
-                    }
-                }
-                
-                self.smartCard?.endSession()
-                self.delegate?.didReceiveUpdate(cardInfo: self.cardHolderInfo)
-                
                 
             }
             
@@ -583,22 +584,37 @@ Person Association Category: \(personCategory)
             }
         }
         let cardSlotManager = TKSmartCardSlotManager()
+        
         os_log("Passed slot: %{public}s", log: self.apduLog, type: .debug, passedSlot)
         var slot: TKSmartCardSlot?
         for slotName in cardSlotManager.slotNames {
             if passedSlot == slotName {
                 slotNameString = slotName
                 slot = cardSlotManager.slotNamed(slotName)
+                if debugMode {
+                    getATRLog(cardSlotName: slotNameString, cardSlotManager: cardSlotManager) { _ in }
+                }
             }
             
         }
         
         if let slot = slot {
-            NSLog("Using reader: \(slot.name)")
+            os_log("Using reader: %{public}s", log: self.apduLog, type: .debug, slot.name)
             
             startSession(pin: pin, smartCardSlot: slot)
         }
         return
+    }
+    func getATRLog(cardSlotName: String, cardSlotManager: TKSmartCardSlotManager, completion: @escaping (Data) -> Void){
+        cardSlotManager.getSlot(withName: slotNameString, reply: { slot in
+            if let atr = slot?.atr {
+                let atr = atr.bytes.hexEncodedString()
+                
+                os_log("ATR: %{public}s", log: self.apduLog, type: .debug, atr)
+                self.writeLogs(log: "ATR: \(atr)")
+                
+            }
+        })
     }
     func sendVerifyPINCommand(pin: Data, smartCardSlot: TKSmartCardSlot, completion: @escaping (Bool) -> Void) {
         
@@ -650,7 +666,7 @@ Person Association Category: \(personCategory)
                 }
                 return
             }
-            NSLog("Smartcard Session Started")
+            os_log("Smartcard Session Started", log: self.apduLog, type: .default)
             self.sendAPDUCommand(apdu: self.SELECT_PIV_APPLICATION) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
                     os_log("PIV application selected successfully.", log: self.apduLog, type: .default)
@@ -673,7 +689,7 @@ Person Association Category: \(personCategory)
                                 }
                             }
                             self.smartCard?.endSession()
-
+                            
                         }
                     }
                 }
@@ -686,7 +702,13 @@ Person Association Category: \(personCategory)
         // Convert command array to Data
         let apduData = Data(apdu)
         if debugMode {
-            writeLogs(log: "Sending APDU: \(apdu.map { String(format: "%02X", $0) }.joined())")
+            let apduString = apdu.map { String(format: "%02X", $0) }.joined()
+            if apduString.starts(with: "0020008008") {
+                writeLogs(log: "Sending APDU: 0020008008XXXXXXXXXXXX")
+            } else {
+                writeLogs(log: "Sending APDU: \(apduString)")
+            }
+            
         }
         
         if let smartCard = smartCard {
@@ -701,7 +723,7 @@ Person Association Category: \(personCategory)
                 let sw1 = responseData[responseData.count - 2]
                 let sw2 = responseData[responseData.count - 1]
                 if self.debugMode {
-                    self.writeLogs(log: "APDU Response: \(responseBytes.map { String(format: "%02X", $0) }.joined()), SW1: \(String(format: "%02X", sw1)), SW2: \(String(format: "%02X", sw2))")
+                    self.writeLogs(log: "APDU Response: \(responseBytes.map { String(format: "%02X", $0) }.joined()), SW1: \(String(format: "%02X", sw1)), SW2: \(String(format: "%02X", sw2))\n")
                 }
                 
                 
