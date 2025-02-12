@@ -165,42 +165,179 @@ class smartCardAPDU {
             os_log("Failed to save image data: %{public}s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
-    
     func extractImageFromDat() {
-        // Attempt to read the binary data from the .dat file
         os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
         let datFile = "\(tempPath)image/facial_image.dat"
+        
         do {
             let data = try Data(contentsOf: URL(fileURLWithPath: datFile))
             
-            // Look for JP2 (JPEG 2000) or JPEG markers
-            let jp2cMarker = Data("jp2c".utf8)
-            let jpegStartMarker: [UInt8] = [0xFF, 0xD8]
+            // Define markers
+            let jp2cMarker = Data("jp2c".utf8)  // JP2 marker
+            let jpegStartMarker: [UInt8] = [0xFF, 0xD8]  // JPEG marker
+            let jpcStartMarker: [UInt8] = [0xFF, 0x4F]  // JPC Code Stream marker
             
             if let startIndex = data.range(of: jp2cMarker)?.lowerBound {
-                // Handle JP2 extraction
+                // ✅ JP2 detected - Extract it
                 let jp2DataStart = data.index(startIndex, offsetBy: jp2cMarker.count)
+                
                 let jp2Data = data[jp2DataStart...]
+                
+                
                 let outputJP2File = "\(tempPath)image/facial_image.jp2"
                 try jp2Data.write(to: URL(fileURLWithPath: outputJP2File))
-                os_log("JP2 image extracted and saved as %{public}s", log: apduLog, type: .default, outputJP2File)
+                os_log("✅ JP2 image extracted and saved: %{public}s", log: apduLog, type: .default, outputJP2File)
                 cardHolderInfo.imagePath = outputJP2File
                 
+            } else if let jpcStartIndex = data.range(of: Data(jpcStartMarker))?.lowerBound {
+                // ✅ JPC detected - Extract and Convert
+                let jpcData = data[jpcStartIndex...]  // Extract only the JPC portion
+                let outputJPCFile = "\(tempPath)image/facial_image.jpc"
+                try jpcData.write(to: URL(fileURLWithPath: outputJPCFile))
+                os_log("✅ JPC code stream extracted and saved: %{public}s", log: apduLog, type: .default, outputJPCFile)
+                
+                // 🔄 Convert JPC → JP2
+                let openJPEG = ImageConversionService()
+                //                if let inputJPC = URL(fileURLWithPath: outputJPCFile),
+                //                   let outputURL = URL(fileURLWithPath: "\(tempPath)image/facial_image.jpg") {
+                let inputJPC = URL(fileURLWithPath: outputJPCFile)
+                let outputURL = URL(fileURLWithPath: "\(tempPath)image/facial_image.jpg")
+                print(inputJPC)
+                print(outputURL)
+                openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL) { success in
+                    if success {
+                        os_log("✅ JPC successfully converted to JPG: %{public}s", log: self.apduLog, type: .default, outputURL.path)
+                        self.cardHolderInfo.imagePath = outputURL.path
+                    } else {
+                        os_log("❌ Failed to convert JPC to JPG", log: self.apduLog, type: .error)
+                    }
+                }
+                //                }
+                
             } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {
-                // Handle JPEG extraction
+                // ✅ JPEG detected - Extract it
                 let jpegData = data[startIndex...]
                 let outputJPEGFile = "\(tempPath)image/facial_image.jpg"
                 try jpegData.write(to: URL(fileURLWithPath: outputJPEGFile))
-                os_log("JPEG image extracted and saved as %{public}s", log: apduLog, type: .default, outputJPEGFile)
+                os_log("✅ JPEG image extracted and saved: %{public}s", log: apduLog, type: .default, outputJPEGFile)
                 cardHolderInfo.imagePath = outputJPEGFile
-                
             } else {
-                os_log("No valid JP2 or JPEG markers found in the file.", log: apduLog, type: .error)
+                os_log("❌ No valid JP2, JPC, or JPEG markers found in the file.", log: apduLog, type: .error)
             }
+            
         } catch {
-            os_log("Error occurred: %{public}s", log: apduLog, type: .error, error.localizedDescription)
+            os_log("❌ Error occurred: %{public}s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
+    
+    //    func extractImageFromDat() {
+    //        // Attempt to read the binary data from the .dat file
+    //        os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
+    //        let datFile = "\(tempPath)image/facial_image.dat"
+    //        do {
+    //            let data = try Data(contentsOf: URL(fileURLWithPath: datFile))
+    //
+    //            // Define markers
+    //            let jp2cMarker = Data("jp2c".utf8)  // JP2 marker
+    //            let jpegStartMarker: [UInt8] = [0xFF, 0xD8]  // JPEG marker
+    //            let jpcStartMarker: [UInt8] = [0xFF, 0x4F]  // JPC Code Stream marker
+    //
+    //            if let startIndex = data.range(of: jp2cMarker)?.lowerBound {
+    //                // Handle JP2 extraction
+    //                let jp2DataStart = data.index(startIndex, offsetBy: jp2cMarker.count)
+    //                let jp2Data = data[jp2DataStart...]
+    //
+    //
+    //                let jp2Signature: [UInt8] = [0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20]
+    //                let jpcSignature: [UInt8] = [0xFF, 0x4F]  // JPC (JPEG 2000 Code Stream)
+    //
+    //                if jp2Data.starts(with: jp2Signature) {
+    //                    let outputJP2File = "\(tempPath)image/facial_image.jp2"
+    //                    try jp2Data.write(to: URL(fileURLWithPath: outputJP2File))
+    //                    os_log("JP2 image extracted and saved as %{public}s", log: apduLog, type: .default, outputJP2File)
+    //                    cardHolderInfo.imagePath = outputJP2File
+    //                } else if jp2Data.prefix(2) == Data(jpcSignature) {
+    ////
+    ////                    os_log("JPC image extracted and saved as %{public}s", log: apduLog, type: .default, outputJP2File)
+    //                    let outputJPCFile = "\(tempPath)image/facial_image.jpc"
+    //                    try jp2Data.write(to: URL(fileURLWithPath: outputJPCFile))
+    //                    os_log("JPC code stream extracted and saved as %{public}s", log: apduLog, type: .default, outputJPCFile)
+    //    //                cardHolderInfo.imagePath = outputJPCFile
+    //                    let openJPEG = ImageConversionService()
+    //                    if let inputJPC = URL(string: outputJPCFile), let outputURL = URL(string: "\(tempPath)image/facial_image.jp2") {
+    //                        openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL) { success in
+    //                            self.cardHolderInfo.imagePath = outputURL.path()
+    //                        }
+    //                    }
+    //
+    //                } else {
+    //                    os_log("Unknown jpeg2000 format", log: apduLog, type: .debug)
+    //                }
+    //
+    //
+    //            } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {
+    //                // Handle JPEG extraction
+    //                let jpegData = data[startIndex...]
+    //                let outputJPEGFile = "\(tempPath)image/facial_image.jpg"
+    //                try jpegData.write(to: URL(fileURLWithPath: outputJPEGFile))
+    //                os_log("JPEG image extracted and saved as %{public}s", log: apduLog, type: .default, outputJPEGFile)
+    //                cardHolderInfo.imagePath = outputJPEGFile
+    //
+    ////            } else if data.prefix(2) == Data(jpcStartMarker) {
+    ////                // Handle JPC (JPEG 2000 Code Stream) extraction
+    ////                let outputJPCFile = "\(tempPath)image/facial_image.jpc"
+    ////                try data.write(to: URL(fileURLWithPath: outputJPCFile))
+    ////                os_log("JPC code stream extracted and saved as %{public}s", log: apduLog, type: .default, outputJPCFile)
+    //////                cardHolderInfo.imagePath = outputJPCFile
+    ////                let openJPEG = ImageConversionService()
+    ////                if let inputJPC = URL(string: outputJPCFile), let outputURL = URL(string: "\(tempPath)image/facial_image.jp2") {
+    ////                    openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL) { success in
+    ////                        self.cardHolderInfo.imagePath = outputURL.path()
+    ////                    }
+    ////                }
+    //
+    //
+    //
+    //
+    //
+    //            } else {
+    //                os_log("No valid JP2, JPC, or JPEG markers found in the file.", log: apduLog, type: .error)
+    //            }
+    //        } catch {
+    //            os_log("Error occurred: %{public}s", log: apduLog, type: .error, error.localizedDescription)
+    //        }
+    //
+    ////        do {
+    ////            let data = try Data(contentsOf: URL(fileURLWithPath: datFile))
+    ////
+    ////            // Look for JP2 (JPEG 2000) or JPEG markers
+    ////            let jp2cMarker = Data("jp2c".utf8)
+    ////            let jpegStartMarker: [UInt8] = [0xFF, 0xD8]
+    ////
+    ////            if let startIndex = data.range(of: jp2cMarker)?.lowerBound {
+    ////                // Handle JP2 extraction
+    ////                let jp2DataStart = data.index(startIndex, offsetBy: jp2cMarker.count)
+    ////                let jp2Data = data[jp2DataStart...]
+    ////                let outputJP2File = "\(tempPath)image/facial_image.jp2"
+    ////                try jp2Data.write(to: URL(fileURLWithPath: outputJP2File))
+    ////                os_log("JP2 image extracted and saved as %{public}s", log: apduLog, type: .default, outputJP2File)
+    ////                cardHolderInfo.imagePath = outputJP2File
+    ////
+    ////            } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {
+    ////                // Handle JPEG extraction
+    ////                let jpegData = data[startIndex...]
+    ////                let outputJPEGFile = "\(tempPath)image/facial_image.jpg"
+    ////                try jpegData.write(to: URL(fileURLWithPath: outputJPEGFile))
+    ////                os_log("JPEG image extracted and saved as %{public}s", log: apduLog, type: .default, outputJPEGFile)
+    ////                cardHolderInfo.imagePath = outputJPEGFile
+    ////
+    ////            } else {
+    ////                os_log("No valid JP2 or JPEG markers found in the file.", log: apduLog, type: .error)
+    ////            }
+    ////        } catch {
+    ////            os_log("Error occurred: %{public}s", log: apduLog, type: .error, error.localizedDescription)
+    ////        }
+    //    }
     
     
     func hex_to_string(with hexData: Data) -> String{
@@ -390,29 +527,29 @@ class smartCardAPDU {
                                     let fascNData = Data(tv[1..<tv.count])
                                     self.extractFascNFields(from: fascNData)
                                 }
-                                                        if tlv_type == 0x32 {
-                                                            
-                                                            NSLog("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                                        }
-                                                        if tlv_type == 0x33 {
-                                                            NSLog("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                                        }
-                                                        if tlv_type == 0x31 {
-                                                            NSLog("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                                        }
-                                                        if tlv_type == 0x34 {
-                                                            NSLog("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                                            self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
-                                                        }
-                                                        if tlv_type == 0x36 {
-                                                            NSLog("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
-                                                        }
-                                                        if tlv_type == 0x35 {
-                                                            NSLog("Expiration Date: \(self.getStr(inputList: tv))")
-                                                        }
-                                                        if tlv_type == 0x3E {
-                                                            NSLog("Asymmetric Signature: \(tv.count - 1)")
-                                                        }
+                                if tlv_type == 0x32 {
+                                    
+                                    NSLog("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                }
+                                if tlv_type == 0x33 {
+                                    NSLog("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                }
+                                if tlv_type == 0x31 {
+                                    NSLog("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                }
+                                if tlv_type == 0x34 {
+                                    NSLog("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                    self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
+                                }
+                                if tlv_type == 0x36 {
+                                    NSLog("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                }
+                                if tlv_type == 0x35 {
+                                    NSLog("Expiration Date: \(self.getStr(inputList: tv))")
+                                }
+                                if tlv_type == 0x3E {
+                                    NSLog("Asymmetric Signature: \(tv.count - 1)")
+                                }
                             }
                         } else {
                             os_log("Failed to retrieve Card Unique Identifier", log: self.apduLog, type: .error)
