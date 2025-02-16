@@ -29,6 +29,7 @@ struct CardHolderInfo {
     var PersonCategory2: String? = nil
     var guid: String? = nil
     var expiryDate: String? = nil
+    var CHUIDExpirationDate: String? = nil
 }
 
 struct CardholderCapabilityContainer {
@@ -343,9 +344,6 @@ class smartCardAPDU {
                     
                     
                     guard let tv_data else { return }
-                    //                    if self.debugMode {
-                    //                        print(tv_data)
-                    //                    }
                     for tv in tv_data {
                         guard let tag = tv.first else { continue }
                         if self.debugMode {
@@ -402,7 +400,8 @@ class smartCardAPDU {
                     }
                     os_log("Retrieving Card Unique Identifier...", log: self.apduLog, type: .default)
                     self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
-                        NSLog("SW1: \(sw1), SW2: \(sw2)")
+//                        NSLog("SW1: \(sw1), SW2: \(sw2)")
+                        os_log("SW1: %{public}s, SW2: %{public}s", log: self.apduLog, type: .debug, String(format: "%02x", sw1), String(format: "%02x", sw2))
                         if sw1 == 0x90 && sw2 == 0x00 {
                             if self.debugMode {
                                 self.writeLogs(log: "card holder unique identifier: \(data)")
@@ -416,27 +415,34 @@ class smartCardAPDU {
                                     self.extractFascNFields(from: fascNData)
                                 }
                                 if tlv_type == 0x32 {
-                                    
-                                    NSLog("Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                    os_log("CHUID Organization Identifier: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
+//                                    NSLog("CHUID Organization Identifier: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                                 }
                                 if tlv_type == 0x33 {
-                                    NSLog("DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                    os_log("CHUID DUNS Number: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
+//                                    NSLog("CHUID DUNS Number: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                                 }
                                 if tlv_type == 0x31 {
-                                    NSLog("Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                    os_log("CHUID Agency Code: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
+//                                    NSLog("CHUID Agency Code: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
                                 }
                                 if tlv_type == 0x34 {
-                                    NSLog("GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+//                                    NSLog("CHUID GUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                    os_log("CHUID GUID: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
                                     self.cardHolderInfo.guid = self.hex_to_string(with: Data(tv[1..<tv.count]))
                                 }
                                 if tlv_type == 0x36 {
-                                    NSLog("Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+//                                    NSLog("CHUID Cardholder UUID: \(self.hex_to_string(with: Data(tv[1..<tv.count])))")
+                                    os_log("CHUID Cardholder UUID: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
                                 }
                                 if tlv_type == 0x35 {
-                                    NSLog("Expiration Date: \(self.getStr(inputList: tv))")
+//                                    NSLog("CHUID Expiration Date: \(self.getStr(inputList: tv))")
+                                    os_log("CHUID Expiration Date: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
+                                    self.cardHolderInfo.CHUIDExpirationDate = self.hex_to_string(with: Data(tv[1..<tv.count]))
                                 }
                                 if tlv_type == 0x3E {
-                                    NSLog("Asymmetric Signature: \(tv.count - 1)")
+//                                    NSLog("CHUID Asymmetric Signature: \(tv.count - 1)")
+                                    os_log("CHUID Asymmetric Signature: %{public}s", log: self.apduLog, type: .debug, self.hex_to_string(with: Data(tv[1..<tv.count])))
                                 }
                             }
                         } else {
