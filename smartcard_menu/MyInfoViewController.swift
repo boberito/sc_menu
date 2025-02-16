@@ -73,6 +73,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
             if let affilation = cardInfo.employeeAffiliation {
                 self.holderAffiliationLabel.stringValue = affilation
+            } else if let affilation = cardInfo.PersonCategory2 {
+                self.holderAffiliationLabel.stringValue = affilation
             }
             if let orgAffilation = cardInfo.organization {
                 self.holderOrgLabel.stringValue = orgAffilation
