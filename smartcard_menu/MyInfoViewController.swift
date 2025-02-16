@@ -93,6 +93,33 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 
                 // Assign to holderExpLabel
                 self.holderExpLabel.stringValue = formattedDate
+            } else if let exp = cardInfo.CHUIDExpirationDate {
+//                20231116
+                let startIndex = exp.startIndex
+                let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2023"
+                let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 6)  // "11"
+                let dayRange = exp.index(startIndex, offsetBy: 6)..<exp.index(startIndex, offsetBy: 8)  // "16"
+                // Extract components
+                let year = String(exp[yearRange])
+                let month = String(exp[monthRange])
+                let day = String(exp[dayRange])
+                
+                // Combine into formatted string
+                let formattedDate = "\(month)-\(day)-\(year)"
+                
+                // Assign to holderExpLabel
+                let inputFormatter = DateFormatter()
+                    inputFormatter.dateFormat = "yyyy-MM-dd"
+                    
+                    let outputFormatter = DateFormatter()
+                    outputFormatter.dateFormat = "MMM-dd-yyyy"
+                    
+                    if let date = inputFormatter.date(from: formattedDate) {
+                        self.holderExpLabel.stringValue = outputFormatter.string(from: date)
+                    } else {
+                        self.holderExpLabel.stringValue = exp
+                    }
+                
             }
             if let cardSerial = cardInfo.cardSerialNumber {
                 self.cardSerialLabel.stringValue = cardSerial
