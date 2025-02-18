@@ -111,16 +111,19 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 
                 // Assign to holderExpLabel
                 let inputFormatter = DateFormatter()
-                    inputFormatter.dateFormat = "yyyy-MM-dd"
+                inputFormatter.dateFormat = "MM-dd-yyyy"
+                
+                let inputFormatter2 = DateFormatter()
+                inputFormatter2.dateFormat = "yyyyMMdd"
+                
+                let outputFormatter = DateFormatter()
+                outputFormatter.dateFormat = "MMM-dd-yyyy"
                     
-                    let outputFormatter = DateFormatter()
-                    outputFormatter.dateFormat = "MMM-dd-yyyy"
-                    
-                    if let date = inputFormatter.date(from: formattedDate) {
-                        self.holderExpLabel.stringValue = outputFormatter.string(from: date)
-                    } else {
-                        self.holderExpLabel.stringValue = exp
-                    }
+                if let date = inputFormatter.date(from: formattedDate) {
+                    self.holderExpLabel.stringValue = outputFormatter.string(from: date)
+                } else {
+                    self.holderExpLabel.stringValue = exp
+                }
                 
             }
             if let cardSerial = cardInfo.cardSerialNumber {
