@@ -161,7 +161,11 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
             
             if let orgID = cardInfo.orgID {
-                self.organizationalCodeLabel.stringValue = orgID
+                let nistList = nist80087()
+//                self.organizationalCodeLabel.stringValue = orgID
+                self.organizationalCodeLabel.stringValue = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
+                self.organizationalCodeLabel.toolTip = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
+                
             }
             
             if let guid = cardInfo.guid {
