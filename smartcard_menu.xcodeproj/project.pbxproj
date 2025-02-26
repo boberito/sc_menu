@@ -14,6 +14,9 @@
 		734F914E2B95719F005C24ED /* smartcard_in_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914C2B95719F005C24ED /* smartcard_in_bw.png */; };
 		734F914F2B95719F005C24ED /* smartcard_out_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914D2B95719F005C24ED /* smartcard_out_bw.png */; };
 		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
+		73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C7726E2D5C33BA00D4031A /* libopenjp2.a */; };
+		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
+		73DE8C342D67925800458A21 /* nist80087.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DE8C332D67925800458A21 /* nist80087.swift */; };
 		73EA88CB2CE0594F003CF6C2 /* no-image-found.png in Resources */ = {isa = PBXBuildFile; fileRef = 73EA88CA2CE0594F003CF6C2 /* no-image-found.png */; };
 		860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860203512B84F2DE00E84186 /* ViewCerts.swift */; };
 		862CDBB62B911BD000E75D2D /* ATR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862CDBB52B911BD000E75D2D /* ATR.swift */; };
@@ -37,6 +40,12 @@
 		734F914C2B95719F005C24ED /* smartcard_in_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_in_bw.png; sourceTree = "<group>"; };
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
+		73C7726E2D5C33BA00D4031A /* libopenjp2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libopenjp2.a; sourceTree = "<group>"; };
+		73C7726F2D5C33BA00D4031A /* openjpeg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = openjpeg.h; sourceTree = "<group>"; };
+		73C772702D5C33BA00D4031A /* opj_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = opj_config.h; sourceTree = "<group>"; };
+		73C772722D5C33D300D4031A /* smartcard_menu-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "smartcard_menu-Bridging-Header.h"; sourceTree = "<group>"; };
+		73C772732D5C345100D4031A /* ImageConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageConversion.swift; sourceTree = "<group>"; };
+		73DE8C332D67925800458A21 /* nist80087.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = nist80087.swift; sourceTree = "<group>"; };
 		73EA88CA2CE0594F003CF6C2 /* no-image-found.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "no-image-found.png"; sourceTree = "<group>"; };
 		766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "SC-Menu-Shared.xcconfig"; sourceTree = "<group>"; };
 		860203512B84F2DE00E84186 /* ViewCerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCerts.swift; sourceTree = "<group>"; };
@@ -60,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,11 +96,17 @@
 		86FF1DC22B7FA45A007F3959 /* smartcard_menu */ = {
 			isa = PBXGroup;
 			children = (
+				73C7726E2D5C33BA00D4031A /* libopenjp2.a */,
+				73C7726F2D5C33BA00D4031A /* openjpeg.h */,
+				73C772702D5C33BA00D4031A /* opj_config.h */,
+				73C772722D5C33D300D4031A /* smartcard_menu-Bridging-Header.h */,
 				86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */,
+				73DE8C332D67925800458A21 /* nist80087.swift */,
 				731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */,
 				86F7327C2B92D317007DFED7 /* PrefView.swift */,
 				7338D88F2BB1E9590003D385 /* UpdateCheck.swift */,
 				862CDBB52B911BD000E75D2D /* ATR.swift */,
+				73C772732D5C345100D4031A /* ImageConversion.swift */,
 				868A89112B87BB0800328DDE /* CertWindow.swift */,
 				862CDBB72B91209A00E75D2D /* WebWindow.swift */,
 				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
@@ -189,6 +205,7 @@
 				86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */,
 				86FF1DC42B7FA45A007F3959 /* AppDelegate.swift in Sources */,
 				860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */,
+				73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */,
 				731A33C62CD5B47400EE6778 /* MyInfoWindow.swift in Sources */,
 				862CDBB62B911BD000E75D2D /* ATR.swift in Sources */,
 				86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */,
@@ -197,6 +214,7 @@
 				862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */,
 				7338D8902BB1E9590003D385 /* UpdateCheck.swift in Sources */,
 				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,
+				73DE8C342D67925800458A21 /* nist80087.swift in Sources */,
 				731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */,
 				86F7327D2B92D317007DFED7 /* PrefView.swift in Sources */,
 			);
@@ -365,12 +383,17 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/smartcard_menu",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/smartcard_menu/smartcard_menu-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -402,12 +425,17 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/smartcard_menu",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/smartcard_menu/smartcard_menu-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

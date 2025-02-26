@@ -73,6 +73,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
             if let affilation = cardInfo.employeeAffiliation {
                 self.holderAffiliationLabel.stringValue = affilation
+            } else if let affilation = cardInfo.PersonCategory2 {
+                self.holderAffiliationLabel.stringValue = affilation
             }
             if let orgAffilation = cardInfo.organization {
                 self.holderOrgLabel.stringValue = orgAffilation
@@ -93,6 +95,36 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 
                 // Assign to holderExpLabel
                 self.holderExpLabel.stringValue = formattedDate
+            } else if let exp = cardInfo.CHUIDExpirationDate {
+//                20231116
+                let startIndex = exp.startIndex
+                let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2023"
+                let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 6)  // "11"
+                let dayRange = exp.index(startIndex, offsetBy: 6)..<exp.index(startIndex, offsetBy: 8)  // "16"
+                // Extract components
+                let year = String(exp[yearRange])
+                let month = String(exp[monthRange])
+                let day = String(exp[dayRange])
+                
+                // Combine into formatted string
+                let formattedDate = "\(month)-\(day)-\(year)"
+                
+                // Assign to holderExpLabel
+                let inputFormatter = DateFormatter()
+                inputFormatter.dateFormat = "MM-dd-yyyy"
+                
+                let inputFormatter2 = DateFormatter()
+                inputFormatter2.dateFormat = "yyyyMMdd"
+                
+                let outputFormatter = DateFormatter()
+                outputFormatter.dateFormat = "MMM-dd-yyyy"
+                    
+                if let date = inputFormatter.date(from: formattedDate) {
+                    self.holderExpLabel.stringValue = outputFormatter.string(from: date)
+                } else {
+                    self.holderExpLabel.stringValue = exp
+                }
+                
             }
             if let cardSerial = cardInfo.cardSerialNumber {
                 self.cardSerialLabel.stringValue = cardSerial
@@ -129,7 +161,11 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
             
             if let orgID = cardInfo.orgID {
-                self.organizationalCodeLabel.stringValue = orgID
+                let nistList = nist80087()
+//                self.organizationalCodeLabel.stringValue = orgID
+                self.organizationalCodeLabel.stringValue = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
+                self.organizationalCodeLabel.toolTip = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
+                
             }
             
             if let guid = cardInfo.guid {
