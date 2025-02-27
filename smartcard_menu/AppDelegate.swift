@@ -167,7 +167,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
             }
-//            NSApp.terminate(nil)c
+            NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
