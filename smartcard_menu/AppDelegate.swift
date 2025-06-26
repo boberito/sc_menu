@@ -483,33 +483,57 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         accessoryView.addSubview(formatPopup)
         accessoryView.addSubview(certsPopUpLabel)
         savePanel.accessoryView = accessoryView
-        
-        savePanel.begin(completionHandler: { response in
-            
-            
-            if response.rawValue != 0 {
-                
+        Task {
+            let response = await savePanel.begin()
+            if response == .OK {
                 do {
-                    guard let selectedCert = certsPopup.selectedItem?.title else { return }
-                    
-                    if formatPopup.selectedItem?.title == "DER" {
+                    guard let selectedCert = await certsPopup.selectedItem?.title else { return }
+
+                    if await formatPopup.selectedItem?.title == "DER" {
                         var publicCert: SecCertificate? = nil
                         let err = SecIdentityCopyCertificate(certDict[selectedCert]!, &publicCert)
                         if err == 0 {
                             let certData = SecCertificateCopyData(publicCert!) as Data
-                            try certData.write(to: savePanel.url!)
+                            try await certData.write(to: savePanel.url!)
                         }
-                        
+
                     } else {
                         guard let pemcert = pemcerts[selectedCert] else { return }
-                        try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
+                        try await pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
                     }
                 } catch {
-                    
+
                     return
                 }
             }
-        })
+        }
+        
+//        savePanel.begin(completionHandler: { response in
+//            
+//            
+//            if response.rawValue != 0 {
+//                
+//                do {
+//                    guard let selectedCert = certsPopup.selectedItem?.title else { return }
+//                    
+//                    if formatPopup.selectedItem?.title == "DER" {
+//                        var publicCert: SecCertificate? = nil
+//                        let err = SecIdentityCopyCertificate(certDict[selectedCert]!, &publicCert)
+//                        if err == 0 {
+//                            let certData = SecCertificateCopyData(publicCert!) as Data
+//                            try certData.write(to: savePanel.url!)
+//                        }
+//                        
+//                    } else {
+//                        guard let pemcert = pemcerts[selectedCert] else { return }
+//                        try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
+//                    }
+//                } catch {
+//                    
+//                    return
+//                }
+//            }
+//        })
         savePanel.makeKeyAndOrderFront(nil)
         savePanel.orderFrontRegardless()
         

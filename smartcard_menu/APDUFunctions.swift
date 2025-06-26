@@ -166,7 +166,7 @@ class smartCardAPDU {
             os_log("Failed to save image data: %{public}s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
-    func extractImageFromDat() {
+    func extractImageFromDat() async {
         os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
         let datFile = "\(tempPath)image/facial_image.dat"
         
@@ -202,17 +202,23 @@ class smartCardAPDU {
                 //                   let outputURL = URL(fileURLWithPath: "\(tempPath)image/facial_image.jpg") {
                 let inputJPC = URL(fileURLWithPath: outputJPCFile)
                 let outputURL = URL(fileURLWithPath: "\(tempPath)image/facial_image.jpg")
-                print(inputJPC)
-                print(outputURL)
-                openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL) { success in
-                    if success {
-                        os_log("JPC successfully converted to JPG: %{public}s", log: self.apduLog, type: .default, outputURL.path)
-                        self.cardHolderInfo.imagePath = outputURL.path
-                    } else {
-                        os_log("Failed to convert JPC to JPG", log: self.apduLog, type: .error)
-                    }
+                
+                do {
+                    try await openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL)
+                    os_log("JPC successfully converted to JPG: %{public}s", log: self.apduLog, type: .default, outputURL.path)
+                    self.cardHolderInfo.imagePath = outputURL.path
+                } catch {
+                    os_log("Failed to convert JPC to JPG", log: self.apduLog, type: .error)
                 }
-                //                }
+//                openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL) { success in
+//                    if success {
+//                        os_log("JPC successfully converted to JPG: %{public}s", log: self.apduLog, type: .default, outputURL.path)
+//                        self.cardHolderInfo.imagePath = outputURL.path
+//                    } else {
+//                        os_log("Failed to convert JPC to JPG", log: self.apduLog, type: .error)
+//                    }
+//                }
+                
                 
             } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {
                 let jpegData = data[startIndex...]
@@ -326,7 +332,9 @@ class smartCardAPDU {
                     if tlv_type == 0xBC {
                         os_log("Facial Image Length: %{public}s", log: self.apduLog, type: .debug, String(tv.count))
                         self.saveFacialImage(Data(tv[1..<tv.count]))
-                        self.extractImageFromDat()
+                        Task {
+                            await self.extractImageFromDat()
+                        }
                         
                         
                     }
