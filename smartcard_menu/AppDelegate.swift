@@ -459,81 +459,55 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         savePanel.message = "Choose where to save your certificate file:"
         savePanel.prompt = "Save Certificate"
         savePanel.canCreateDirectories = true
-        //        savePanel.allowedFileTypes = [ "cer" ]
         savePanel.allowedContentTypes = [.x509Certificate]
         savePanel.allowsOtherFileTypes = true
-        let certsPopup = NSPopUpButton(frame: NSRect(x: 55, y: 30, width: 400, height: 25), pullsDown: false)
+        let certsPopup = NSPopUpButton(frame: NSRect(x: 135, y: 30, width: 350, height: 25), pullsDown: false)
         let sortedDictKeys = pemcerts.sorted(by: { $0.key < $1.key }).map(\.key)
         certsPopup.addItems(withTitles: sortedDictKeys)
-        let formatPopup = NSPopUpButton(frame: NSRect(x: 55, y: 0, width: 100, height: 25), pullsDown: false)
+        let formatPopup = NSPopUpButton(frame: NSRect(x: 135, y: 0, width: 100, height: 25), pullsDown: false)
         formatPopup.addItems(withTitles: ["PEM", "DER"])
-        let formatPopupLabel = NSTextField(frame: NSRect(x: -40, y: 0, width: 100, height: 25))
+        let formatPopupLabel = NSTextField(frame: NSRect(x: 10, y: 0, width: 100, height: 25))
         formatPopupLabel.stringValue = "Select Format: "
         formatPopupLabel.isBordered = false
         formatPopupLabel.isBezeled = false
-        let certsPopUpLabel = NSTextField(frame: NSRect(x: -70, y: 30, width: 125, height:25))
+        let certsPopUpLabel = NSTextField(frame: NSRect(x: 10, y: 28, width: 125, height:25))
         certsPopUpLabel.stringValue = "Select a Certificate: "
         certsPopUpLabel.isBordered = false
         certsPopUpLabel.isBezeled = false
         let accessoryView = NSView()
-        accessoryView.frame = NSRect(x:0, y:0, width: 300, height: 75)
+        accessoryView.frame = NSRect(x:0, y:0, width: 500, height: 75)
         accessoryView.translatesAutoresizingMaskIntoConstraints = true
         accessoryView.addSubview(formatPopupLabel)
         accessoryView.addSubview(certsPopup)
         accessoryView.addSubview(formatPopup)
         accessoryView.addSubview(certsPopUpLabel)
         savePanel.accessoryView = accessoryView
-        Task {
-            let response = await savePanel.begin()
-            if response == .OK {
+        savePanel.begin(completionHandler: { response in
+            
+            
+            if response.rawValue != 0 {
+                
                 do {
-                    guard let selectedCert = await certsPopup.selectedItem?.title else { return }
-
-                    if await formatPopup.selectedItem?.title == "DER" {
+                    guard let selectedCert = certsPopup.selectedItem?.title else { return }
+                    
+                    if formatPopup.selectedItem?.title == "DER" {
                         var publicCert: SecCertificate? = nil
                         let err = SecIdentityCopyCertificate(certDict[selectedCert]!, &publicCert)
                         if err == 0 {
                             let certData = SecCertificateCopyData(publicCert!) as Data
-                            try await certData.write(to: savePanel.url!)
+                            try certData.write(to: savePanel.url!)
                         }
-
+                        
                     } else {
                         guard let pemcert = pemcerts[selectedCert] else { return }
-                        try await pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
+                        try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
                     }
                 } catch {
-
+                    
                     return
                 }
             }
-        }
-        
-//        savePanel.begin(completionHandler: { response in
-//            
-//            
-//            if response.rawValue != 0 {
-//                
-//                do {
-//                    guard let selectedCert = certsPopup.selectedItem?.title else { return }
-//                    
-//                    if formatPopup.selectedItem?.title == "DER" {
-//                        var publicCert: SecCertificate? = nil
-//                        let err = SecIdentityCopyCertificate(certDict[selectedCert]!, &publicCert)
-//                        if err == 0 {
-//                            let certData = SecCertificateCopyData(publicCert!) as Data
-//                            try certData.write(to: savePanel.url!)
-//                        }
-//                        
-//                    } else {
-//                        guard let pemcert = pemcerts[selectedCert] else { return }
-//                        try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
-//                    }
-//                } catch {
-//                    
-//                    return
-//                }
-//            }
-//        })
+        })
         savePanel.makeKeyAndOrderFront(nil)
         savePanel.orderFrontRegardless()
         
