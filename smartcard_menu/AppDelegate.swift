@@ -388,8 +388,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
     }
     func PEMKeyFromDERKey(_ data: Data, PEMType: String) -> String {
-        let kCryptoExportImportManagerPublicKeyInitialTag = "-----BEGIN RSA PUBLIC KEY-----\n"
-        let kCryptoExportImportManagerPublicKeyFinalTag = "-----END RSA PUBLIC KEY-----\n"
+        let kCryptoExportImportManagerPublicKeyInitialTag = "-----BEGIN CERTIFICATE-----\n"
+        let kCryptoExportImportManagerPublicKeyFinalTag = "-----END CERTIFICATE-----\n"
         
         let kCryptoExportImportManagerRequestInitialTag = "-----BEGIN CERTIFICATE REQUEST-----\n"
         let kCryptoExportImportManagerRequestFinalTag = "-----END CERTIFICATE REQUEST-----\n"
