@@ -198,7 +198,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             os_log("Updates disabled", log: self.appLog, type: .default)
         } else {
             let updater = UpdateCheck()
-            _ = updater.check()
+            Task {
+                await updater.check()
+            }
         }
         
         NSApplication.shared.setActivationPolicy(.accessory)
