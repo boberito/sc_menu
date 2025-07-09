@@ -197,9 +197,7 @@ class smartCardAPDU {
                 os_log("JPC code stream extracted and saved: %{public}s", log: apduLog, type: .default, outputJPCFile)
                 
                 // 🔄 Convert JPC → JP2
-                let openJPEG = ImageConversionService()
-                //                if let inputJPC = URL(fileURLWithPath: outputJPCFile),
-                //                   let outputURL = URL(fileURLWithPath: "\(tempPath)image/facial_image.jpg") {
+                let openJPEG = ImageConversionService()                
                 let inputJPC = URL(fileURLWithPath: outputJPCFile)
                 let outputURL = URL(fileURLWithPath: "\(tempPath)image/facial_image.jpg")
                 
@@ -210,14 +208,6 @@ class smartCardAPDU {
                 } catch {
                     os_log("Failed to convert JPC to JPG", log: self.apduLog, type: .error)
                 }
-//                openJPEG.convertJ2KToJPEG(inputURL: inputJPC, outputURL: outputURL) { success in
-//                    if success {
-//                        os_log("JPC successfully converted to JPG: %{public}s", log: self.apduLog, type: .default, outputURL.path)
-//                        self.cardHolderInfo.imagePath = outputURL.path
-//                    } else {
-//                        os_log("Failed to convert JPC to JPG", log: self.apduLog, type: .error)
-//                    }
-//                }
                 
                 
             } else if let startIndex = data.range(of: Data(jpegStartMarker))?.lowerBound {

@@ -163,7 +163,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     }
                     
                 } catch {
-                    os_log("Problem unregistering service", log: self.prefsLog, type: .default)
+                    os_log("Problem unregistering service - error %{public}s", log: self.prefsLog, type: .default, error.localizedDescription)
                 }
                 
             }
@@ -186,7 +186,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     try appService.register()
                     os_log("registered service", log: self.appLog, type: .default)
                 } catch {
-                    os_log("problem registering service", log: self.appLog, type: .default)
+                    os_log("problem registering service - error {public}s", log: self.appLog, type: .default, error.localizedDescription)
                 }
             }
             
@@ -505,7 +505,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         try pemcert.write(to: savePanel.url!, atomically: true, encoding: String.Encoding.utf8)
                     }
                 } catch {
-                    
+                    os_log("{public}s", log: self.appLog, type: .error, error.localizedDescription)
                     return
                 }
             }
