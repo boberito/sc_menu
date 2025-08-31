@@ -579,9 +579,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     if TkID.contains("apple")==true {
                         return;
                     }
-                    let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
-                    statusItem.menu?.insertItem(keychainLockedItem, at: 0)
-                    addQuit()
+                    if statusItem.menu?.item(withTitle: "Keychain Locked Error Reading Smartcards") == nil {
+                        let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
+                        statusItem.menu?.insertItem(keychainLockedItem, at: 0)
+                        addQuit()
+                    }
                     return
                 }
                 statusItem.menu?.insertItem(readerMenuItem, at: 0)
