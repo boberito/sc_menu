@@ -32,7 +32,7 @@ class ViewCerts{
         var myCert: SecCertificate? = nil
         var certDict = [String:SecIdentity]()
         
-        let getquery: [String: Any] = [ 
+        let getquery: [String: Any] = [
             kSecAttrAccessGroup as String:  kSecAttrAccessGroupToken,
             kSecClass as String: kSecClassIdentity,
             kSecReturnAttributes as String: true as AnyObject,
@@ -51,7 +51,6 @@ class ViewCerts{
             let existingCerts = searchResults as! CFArray as Array
             
             for cert in existingCerts{
-                
                 
                 certErr = SecIdentityCopyCertificate(cert["v_Ref"] as! SecIdentity, &myCert)
                 
