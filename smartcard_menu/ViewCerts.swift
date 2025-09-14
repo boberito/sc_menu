@@ -27,10 +27,24 @@ class ViewCerts{
         certErr = 0
     }
     func getIdentity(pivToken: String) -> Dictionary<String,SecIdentity>? {
+        print(pivToken)
         var myCN: CFString? = nil
         var searchResults: AnyObject? = nil
         var myCert: SecCertificate? = nil
         var certDict = [String:SecIdentity]()
+        
+        let checkQuery: [String: Any] = [
+               kSecAttrAccessGroup as String: kSecAttrAccessGroupToken,
+               kSecClass as String: kSecClassCertificate,
+               kSecAttrTokenID as String: pivToken,
+               kSecMatchLimit as String: kSecMatchLimitOne as AnyObject
+           ]
+           
+           var result: AnyObject?
+           let statuscount = SecItemCopyMatching(checkQuery as CFDictionary, &result)
+           
+           print("Has certs: \(statuscount == errSecSuccess)")
+        
         
         let getquery: [String: Any] = [
             kSecAttrAccessGroup as String:  kSecAttrAccessGroupToken,
@@ -40,10 +54,18 @@ class ViewCerts{
             kSecReturnRef as String: true as AnyObject,
             kSecMatchLimit as String : kSecMatchLimitAll as AnyObject
         ]
-        
+        print(getquery.count)
+        let status = SecItemCopyMatching(getquery as CFDictionary, &searchResults)
+        print("Status for \(pivToken): \(status)")
+//        
+//        if status == errSecSuccess {
+//            print("Found items: \(String(describing: searchResults))")
+//        } else {
+//            print("No items or error: \(SecCopyErrorMessageString(status, nil) ?? "Unknown" as CFString)")
+//        }
         if getquery.count > 0 {
             
-            let status = SecItemCopyMatching(getquery as CFDictionary, &searchResults)
+            
             if status != 0 {
                 
                 return nil
