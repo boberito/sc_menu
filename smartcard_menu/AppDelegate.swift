@@ -28,10 +28,10 @@ struct CardStatus {
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
     
     func pinFailedandLocked(slotName: String) {
-//        let isCardLocked = self.isLocked(slotName: slotName)
+        //        let isCardLocked = self.isLocked(slotName: slotName)
         guard let checkCardstatus = checkCard(slotName: slotName) else { return }
         
-//            if checkCardstatus.0 == "locked" && checkCardstatus.1 {
+        //            if checkCardstatus.0 == "locked" && checkCardstatus.1 {
         if checkCardstatus.isLocked {
             RunLoop.main.perform {
                 if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
@@ -122,7 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }
     }
-    
+    private let apduLog = OSLog(subsystem: subsystem, category: "APDUFunctions")
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     let appLog = OSLog(subsystem: subsystem, category: "General")
     let nc = UNUserNotificationCenter.current()
@@ -139,7 +139,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     var showInsertAfterScreenUnlock = false
     var screenLockedVar = false
-//    var hasCerts = true
+    //    var hasCerts = true
     var checkCardStatus: CardStatus?
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -177,7 +177,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
             }
-//            NSApp.terminate(nil)
+            //            NSApp.terminate(nil)
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -379,7 +379,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     @objc func ATRfunc(_ sender: NSMenuItem) {
         os_log("Debug selected. Thanks Ludovic https://smartcard-atr.apdu.fr", log: appLog, type: .default)
         let token = sender.representedObject as! String
-        if let slotName = myTKWatcher?.tokenInfo(forTokenID: token)?.slotName, let driverName = myTKWatcher?.tokenInfo(forTokenID: token)?.driverName {            
+        if let slotName = myTKWatcher?.tokenInfo(forTokenID: token)?.slotName, let driverName = myTKWatcher?.tokenInfo(forTokenID: token)?.driverName {
             let pivCard = PIVCard(token: token, slotName: slotName, driverName: driverName)
             var window: WebWindow!
             let _wndW : CGFloat = 800
@@ -571,103 +571,124 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             os_log("Cert %{public}s selected", log: appLog, type: .default, sender.title.description)
         }
     }
-    
     func showReader(TkID: String) {
         
         let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
-//        var hasCerts = true
-//        print(hasCerts)
-//        let checkCardStatus = checkCard(slotName: readerName)
-//        if checkCardStatus.0 == "certs" && checkCardStatus.1 == false {
-//            hasCerts = false
-//        }
-        print(checkCardStatus)
         if TkID.contains("com.apple.setoken") { return }
         if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
             let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
             readerMenuItem.representedObject = TkID
             let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
-                if readerMenuItemExists == nil {
-                    let subMenu = NSMenu()
-                    if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
-                        UserDefaults.standard.setValue(true, forKey: "inserted")
-                        statusItem.menu?.removeItem(nothingInsertedMenu)
-                    }
-                    if certViewing.getIdentity(pivToken: pivToken) == nil{
-                        guard let checkCardStatus = checkCardStatus else { return }
-                        if checkCardStatus.hasCerts == false {
-                            print("HELLO?")
-                            statusItem.menu?.insertItem(readerMenuItem, at: 0)
-                            statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                            if subMenu.item(withTitle: "No Certificates Found on Smartcard") == nil {
-                                let lockedMenuItem = NSMenuItem(title: "No Certificates Found on Smartcard", action: nil, keyEquivalent: "")
-                                subMenu.addItem(lockedMenuItem)
-                            }
-                        }
-                        
-                        if statusItem.menu?.item(withTitle: "Keychain Locked Error Reading Smartcards") == nil && checkCardStatus.hasCerts{
-                            let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
-                            statusItem.menu?.insertItem(keychainLockedItem, at: 0)
-                            addQuit()
-                        }
-                        
+            if readerMenuItemExists == nil {
+                let subMenu = NSMenu()
+                if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
+                    UserDefaults.standard.setValue(true, forKey: "inserted")
+                    statusItem.menu?.removeItem(nothingInsertedMenu)
+                }
+                
+                if certViewing.getIdentity(pivToken: pivToken) == nil{
+                    guard let checkCardStatus = checkCardStatus else {                    
                         return
+                        
                     }
-                    statusItem.menu?.insertItem(readerMenuItem, at: 0)
-                    statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                    if let certDict = certViewing.getIdentity(pivToken: pivToken){
-                        for dict in self.lockedDictArray {
-                            if dict[TkID] == true {
-                                if subMenu.item(withTitle: "Smartcard Locked") == nil {
-                                    let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                                    subMenu.addItem(lockedMenuItem)
-                                    os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                    if checkCardStatus.hasCerts {
+                        statusItem.menu?.insertItem(readerMenuItem, at: 0)
+                        statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
+                        if statusItem.menu?.item(withTitle: "Keychain Locked Error Reading Smartcards") == nil {
+                            let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
+                            for dict in self.lockedDictArray {
+                                if dict[TkID] == true {
+                                    if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                        let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                        subMenu.addItem(lockedMenuItem)
+                                        os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                                    }
                                 }
                             }
+                            subMenu.addItem(keychainLockedItem)
+                            addQuit()
                         }
-                        var seperator = false
-                        let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
-                        for key in sortedDictKeys {
-                            if key.contains("Retired") && !seperator {
-                                subMenu.addItem(NSMenuItem.separator())
-                                seperator = true
+                        return
+                        
+                        
+                    } else {
+                        statusItem.menu?.insertItem(readerMenuItem, at: 0)
+                        statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
+                        if subMenu.item(withTitle: "No Certificates Found on Smartcard") == nil {
+                            let noCertMenuItem = NSMenuItem(title: "No Certificates Found on Smartcard", action: nil, keyEquivalent: "")
+                            for dict in self.lockedDictArray {
+                                if dict[TkID] == true {
+                                    if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                        let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                        subMenu.addItem(lockedMenuItem)
+                                        os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                                    }
+                                }
                             }
-                            
-                            let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
-                            label.representedObject = certDict[key]
-                            subMenu.addItem(label)
-                            
+                            subMenu.addItem(noCertMenuItem)
+                            addQuit()
                             
                         }
-                        
-                        let seperatorLine = NSMenuItem.separator()
-                        let myCardInfo = NSMenuItem(title: "Additional Card Info", action: #selector(cardInfo), keyEquivalent: "")
-                        myCardInfo.representedObject = readerName
-                        subMenu.addItem(seperatorLine)
-                        subMenu.addItem(myCardInfo)
-                        
-                        let hiddenSeperatorLine = NSMenuItem.separator()
-                        hiddenSeperatorLine.isHidden = true
-                        seperatorLines.append(hiddenSeperatorLine)
-                        subMenu.addItem(hiddenSeperatorLine)
-                        let exportMenuItem = NSMenuItem(title: "Export Certificates", action: #selector(exportCerts), keyEquivalent: "")
-                        exportMenuItem.representedObject = TkID
-                        exportMenuItem.isHidden = true
-                        exportMenuItems.append(exportMenuItem)
-                        subMenu.addItem(exportMenuItem)
-                        let debugItem = NSMenuItem(title: "Debug Info", action: #selector(ATRfunc), keyEquivalent: "")
-                        debugItem.representedObject = TkID
-                        debugItem.isHidden = true
-                        debugMenuItems.append(debugItem)
-                        subMenu.addItem(debugItem)
+                        return
                     }
-                    addQuit()
-                } else {
-                    return;
+                    
                 }
-           
-        }
+                
+                statusItem.menu?.insertItem(readerMenuItem, at: 0)
+                statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
+                if let certDict = certViewing.getIdentity(pivToken: pivToken){
+                    for dict in self.lockedDictArray {
+                        if dict[TkID] == true {
+                            if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                subMenu.addItem(lockedMenuItem)
+                                os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                            }
+                        }
+                    }
+                    var seperator = false
+                    let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
+                    for key in sortedDictKeys {
+                        if key.contains("Retired") && !seperator {
+                            subMenu.addItem(NSMenuItem.separator())
+                            seperator = true
+                        }
+                        
+                        let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
+                        label.representedObject = certDict[key]
+                        subMenu.addItem(label)
+                        
+                        
+                    }
+                    
+                    let seperatorLine = NSMenuItem.separator()
+                    let myCardInfo = NSMenuItem(title: "Additional Card Info", action: #selector(cardInfo), keyEquivalent: "")
+                    myCardInfo.representedObject = readerName
+                    subMenu.addItem(seperatorLine)
+                    subMenu.addItem(myCardInfo)
+                    
+                    let hiddenSeperatorLine = NSMenuItem.separator()
+                    hiddenSeperatorLine.isHidden = true
+                    seperatorLines.append(hiddenSeperatorLine)
+                    subMenu.addItem(hiddenSeperatorLine)
+                    let exportMenuItem = NSMenuItem(title: "Export Certificates", action: #selector(exportCerts), keyEquivalent: "")
+                    exportMenuItem.representedObject = TkID
+                    exportMenuItem.isHidden = true
+                    exportMenuItems.append(exportMenuItem)
+                    subMenu.addItem(exportMenuItem)
+                    let debugItem = NSMenuItem(title: "Debug Info", action: #selector(ATRfunc), keyEquivalent: "")
+                    debugItem.representedObject = TkID
+                    debugItem.isHidden = true
+                    debugMenuItems.append(debugItem)
+                    subMenu.addItem(debugItem)
+                }
+                addQuit()
+            } else {
+                return;
+            }
             
+        }
+        
     }
     @objc func cardInfo(_ sender: NSMenuItem) {
         
@@ -834,7 +855,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             checkCardStatus = checkCard(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             
             guard let isCardLocked = checkCardStatus?.isLocked else { return }
-//            isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
+            //            isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
             
             if UserDefaults.standard.bool(forKey: "show_notifications") {
@@ -873,6 +894,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
+            self.checkCardStatus = nil
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 if UserDefaults.standard.bool(forKey: "show_notifications") {
                     if !self.screenLockedVar {
@@ -950,7 +972,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }, forTokenID: CTKTokenID)
     }
     func checkCard(slotName: String?) -> (CardStatus?) {
-//    func isLocked(slotName: String?) -> Bool {
+        //    func isLocked(slotName: String?) -> Bool {
         
         let sm = TKSmartCardSlotManager()
         var card : TKSmartCard? = nil
@@ -977,11 +999,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         card?.beginSession(reply: { something, error in
             let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
             let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
-//            let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05 ]
+            //            let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05 ]
             let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05, 0x00 ]
             let getCert9C: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0A, 0x00 ]
             let getCert9D: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0B, 0x00 ]
-            let getCert9E: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0C, 0x00 ]
+            let getCert9E: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x01, 0x00 ]
             let apidRequest = Data(apid)
             let request2 = Data(pinVerifyNull)
             
@@ -1001,7 +1023,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
                         let sw1 = responseData[responseData.count - 2]
                         let sw2 = responseData[responseData.count - 1]
-                        
                         
                         // Check if more data is available (SW1 == 0x61)
                         if sw1 == 0x61 {
@@ -1045,7 +1066,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                                 if attempts == 0 {
                                     
                                     locked = true
-//                                    card?.endSession()
+                                    //                                    card?.endSession()
                                 } else {
                                     locked = false
                                     
@@ -1055,44 +1076,43 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                             locked = false
                         } else {
                             locked = true
-//                            card?.endSession()
+                            //                            card?.endSession()
                         }
                         
-//                        sema.signal()
+                        //                        sema.signal()
                     })
-                    
                     sendMoreAPDUCommands(apdu: getCert9A) { data, sw1, sw2 in
                         if sw1 == 0x90 && sw2 == 0x00 {
-                            print("9A bytes received: \(data.count)")
-                            if data.count < 2 {
+                            os_log("9A bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
+                            if data.count > 2 {
                                 hasCerts = true
                             }
                         }
-//                        card?.endSession()
+                        //                        card?.endSession()
                         sendMoreAPDUCommands(apdu: getCert9C) { data, sw1, sw2 in
                             if sw1 == 0x90 && sw2 == 0x00 {
-                                print("9C bytes received: \(data.count)")
-                                if data.count < 2 {
+                                os_log("9C bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
+                                if data.count > 2 {
                                     hasCerts = true
                                 }
                             }
                             sendMoreAPDUCommands(apdu: getCert9D) { data, sw1, sw2 in
                                 if sw1 == 0x90 && sw2 == 0x00 {
-                                    print("9D bytes received: \(data.count)")
-                                    if data.count < 2 {
+                                    os_log("9D bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
+                                    if data.count > 2 {
                                         hasCerts = true
                                     }
                                 }
                                 sendMoreAPDUCommands(apdu: getCert9E) { data, sw1, sw2 in
                                     if sw1 == 0x90 && sw2 == 0x00 {
-                                        print("9E bytes received: \(data.count)")
-                                        if data.count < 2 {
+                                        os_log("9E bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
+                                        if data.count > 2 {
                                             hasCerts = true
                                         }
                                     }
                                     card?.endSession()
                                     sema.signal()
-                         
+                                    
                                 }
                             }
                         }
@@ -1109,11 +1129,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         })
         sema.wait()
         
-        // be nice and end the session
-        
         let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)
-//        card?.endSession()
-     
         
         return cardStatus
         
