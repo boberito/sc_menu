@@ -142,6 +142,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     //    var hasCerts = true
     var checkCardStatus: CardStatus?
     
+    var runOnMenuItem = [NSMenuItem]()
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         UNUserNotificationCenter.current().delegate = self
@@ -225,6 +227,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 for seperatorLine in self.seperatorLines {
                     seperatorLine.isHidden = false
                 }
+                for runOnMenuItem in self.runOnMenuItem {
+                    runOnMenuItem.isHidden = false
+                }
                 for debugMenuItem in self.debugMenuItems {
                     debugMenuItem.isHidden = false
                 }
@@ -241,6 +246,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 for seperatorLine in self.seperatorLines {
                     seperatorLine.isHidden = true
                 }
+                for runOnMenuItem in self.runOnMenuItem {
+                    runOnMenuItem.isHidden = true
+                }
+                
             }
         }
         
@@ -548,7 +557,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             var window: CertWindow!
             let _wndW : CGFloat = 500
             let _wndH : CGFloat = 500
-            window = CertWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable], backing:.buffered, defer:false)
+            window = CertWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable, .resizable], backing:.buffered, defer:false)
             let scrollView = NSScrollView()
             scrollView.borderType = .lineBorder
             scrollView.hasHorizontalScroller = true
@@ -789,7 +798,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     }
     
     func addQuit() {
-        
         
         if statusItem.menu?.indexOfItem(withTitle: "Quit") == -1 {
             statusItem.menu?.addItem(NSMenuItem.separator())
