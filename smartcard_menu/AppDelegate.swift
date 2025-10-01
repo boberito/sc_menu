@@ -15,6 +15,8 @@ import UserNotifications
 import os
 import ServiceManagement
 import Security
+import Subprocess
+import System
 
 let subsystem = "com.ttinc.sc-menu"
 
@@ -28,10 +30,9 @@ struct CardStatus {
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
     
     func pinFailedandLocked(slotName: String) {
-        //        let isCardLocked = self.isLocked(slotName: slotName)
+        
         guard let checkCardstatus = checkCard(slotName: slotName) else { return }
         
-        //            if checkCardstatus.0 == "locked" && checkCardstatus.1 {
         if checkCardstatus.isLocked {
             RunLoop.main.perform {
                 if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
@@ -596,7 +597,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
                 if certViewing.getIdentity(pivToken: pivToken) == nil{
-                    guard let checkCardStatus = checkCardStatus else {                    
+                    guard let checkCardStatus = checkCardStatus else {
                         return
                         
                     }
@@ -861,9 +862,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
             os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
             checkCardStatus = checkCard(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
-            
+            if UserDefaults.standard.bool(forKey: "run_on_insert") {
+                if let scriptPath = UserDefaults.standard.string(forKey: "run_on_insert_script_path") {
+                    Task {
+                        do {
+                            
+                            let result = try await run(
+                                .path(FilePath(scriptPath)),
+                                output: .string(limit: 4096, encoding: UTF8.self),
+                                error: .string(limit: 4096, encoding: UTF8.self)
+                            )
+                            os_log("Insert Script Exit Code %{public}s", log: appLog, type: .default, String(describing: result.terminationStatus))
+                            os_log("Insert Script Output %{public}s", log: appLog, type: .debug, result.standardOutput ?? "")
+                            os_log("Insert Script Stderr %{public}s", log: appLog, type: .debug, result.standardError ?? "")
+                        } catch {
+                            os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
+                        }
+                    }
+                }
+            }
             guard let isCardLocked = checkCardStatus?.isLocked else { return }
-            //            isCardLocked = self.isLocked(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
             lockedDictArray.append([CTKTokenID:isCardLocked])
             
             if UserDefaults.standard.bool(forKey: "show_notifications") {
@@ -902,6 +920,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
+            if UserDefaults.standard.bool(forKey: "run_on_removal") {
+                if let scriptPath = UserDefaults.standard.string(forKey: "run_on_removal_script_path") {
+                    Task {
+                        do {
+                            let result = try await run(
+                                .path(FilePath(scriptPath)),
+                                output: .string(limit: 4096, encoding: UTF8.self),
+                                error: .string(limit: 4096, encoding: UTF8.self)
+                            )
+                            os_log("Insert Script Exit Code %{public}s", log: self.appLog, type: .default, String(describing: result.terminationStatus))
+                            os_log("Insert Script Output %{public}s", log: self.appLog, type: .debug, result.standardOutput ?? "")
+                            os_log("Insert Script Stderr %{public}s", log: self.appLog, type: .debug, result.standardError ?? "")
+                        } catch {
+                            os_log("%{public}s", log: self.appLog, type: .error, error.localizedDescription)
+                        }
+                    }
+                }
+            }
             self.checkCardStatus = nil
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
                 if UserDefaults.standard.bool(forKey: "show_notifications") {
@@ -1132,8 +1168,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
             })
             
-            
-            
         })
         sema.wait()
         
@@ -1159,3 +1193,4 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     }
     
 }
+

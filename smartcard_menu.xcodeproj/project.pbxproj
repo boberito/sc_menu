@@ -14,6 +14,7 @@
 		734F914E2B95719F005C24ED /* smartcard_in_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914C2B95719F005C24ED /* smartcard_in_bw.png */; };
 		734F914F2B95719F005C24ED /* smartcard_out_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914D2B95719F005C24ED /* smartcard_out_bw.png */; };
 		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
+		736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 736E51C62E8D37B200F07D9F /* Subprocess */; };
 		73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C7726E2D5C33BA00D4031A /* libopenjp2.a */; };
 		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
 		73DE8C342D67925800458A21 /* nist80087.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DE8C332D67925800458A21 /* nist80087.swift */; };
@@ -70,6 +71,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */,
+				736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,6 +173,9 @@
 				Base,
 			);
 			mainGroup = 86FF1DB72B7FA45A007F3959;
+			packageReferences = (
+				736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */,
+			);
 			productRefGroup = 86FF1DC12B7FA45A007F3959 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -295,7 +300,7 @@
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -352,7 +357,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -371,6 +376,7 @@
 				CURRENT_PROJECT_VERSION = 789;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2WUMX954UB;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
@@ -413,6 +419,7 @@
 				CURRENT_PROJECT_VERSION = 789;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 2WUMX954UB;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
@@ -462,6 +469,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		736E51C62E8D37B200F07D9F /* Subprocess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */;
+			productName = Subprocess;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 86FF1DB82B7FA45A007F3959 /* Project object */;
 }
