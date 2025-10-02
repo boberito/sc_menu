@@ -140,7 +140,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     let iconPref = UserDefaults.standard.string(forKey: "icon_mode") ?? "light"
     var showInsertAfterScreenUnlock = false
     var screenLockedVar = false
-    //    var hasCerts = true
     var checkCardStatus: CardStatus?
     
     var runOnMenuItem = [NSMenuItem]()
@@ -290,8 +289,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
         for token in tokenIDs {
             self.showReader(TkID: token)
-            
-            
         }
         
     }
@@ -506,7 +503,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         savePanel.accessoryView = accessoryView
         savePanel.begin(completionHandler: { response in
             
-            
             if response.rawValue != 0 {
                 
                 do {
@@ -582,7 +578,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
     }
     func showReader(TkID: String) {
-        
         let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
         if TkID.contains("com.apple.setoken") { return }
         if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
@@ -667,8 +662,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
                         label.representedObject = certDict[key]
                         subMenu.addItem(label)
-                        
-                        
                     }
                     
                     let seperatorLine = NSMenuItem.separator()
@@ -822,6 +815,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
             if fileExists {
                 if let button = self.statusItem.button {
+                  
                     for dict in self.lockedDictArray {
                         
                         if dict.values.contains(true) {
@@ -901,6 +895,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     }
                 }
             }
+            if let pivToken = myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.tokenID {
+                Task {
+                    await certViewing.readExpiration(pivToken: pivToken)
+                }
+                
+            }
             showInsertAfterScreenUnlock = false
             if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
                 if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
@@ -929,7 +929,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                                 output: .string(limit: 4096, encoding: UTF8.self),
                                 error: .string(limit: 4096, encoding: UTF8.self)
                             )
-                            os_log("Insert Script Exit Code %{public}s", log: self.appLog, type: .default, String(describing: result.terminationStatus))
+                            os_log("Insert Script Exit Code %{public}s", log: self.appLog, type: .debug, String(describing: result.terminationStatus))
                             os_log("Insert Script Output %{public}s", log: self.appLog, type: .debug, result.standardOutput ?? "")
                             os_log("Insert Script Stderr %{public}s", log: self.appLog, type: .debug, result.standardError ?? "")
                         } catch {
@@ -1016,7 +1016,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }, forTokenID: CTKTokenID)
     }
     func checkCard(slotName: String?) -> (CardStatus?) {
-        //    func isLocked(slotName: String?) -> Bool {
         
         let sm = TKSmartCardSlotManager()
         var card : TKSmartCard? = nil
@@ -1043,7 +1042,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         card?.beginSession(reply: { something, error in
             let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
             let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
-            //            let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05 ]
             let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05, 0x00 ]
             let getCert9C: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0A, 0x00 ]
             let getCert9D: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0B, 0x00 ]
@@ -1108,22 +1106,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         if result.starts(with: "63c") {
                             if let attempts = Int(String(result.last!), radix: 16) {
                                 if attempts == 0 {
-                                    
                                     locked = true
-                                    //                                    card?.endSession()
                                 } else {
                                     locked = false
-                                    
                                 }
                             }
                         } else if result == "9000" {
                             locked = false
                         } else {
                             locked = true
-                            //                            card?.endSession()
                         }
                         
-                        //                        sema.signal()
                     })
                     sendMoreAPDUCommands(apdu: getCert9A) { data, sw1, sw2 in
                         if sw1 == 0x90 && sw2 == 0x00 {
@@ -1132,7 +1125,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                                 hasCerts = true
                             }
                         }
-                        //                        card?.endSession()
                         sendMoreAPDUCommands(apdu: getCert9C) { data, sw1, sw2 in
                             if sw1 == 0x90 && sw2 == 0x00 {
                                 os_log("9C bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
