@@ -1,0 +1,55 @@
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.20392,0.78039,0.34902,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "cert.png",
+          "name" : "cert",
+          "position" : {
+            "scale" : 1.5,
+            "translation-in-points" : [
+              -260.3203125,
+              -104.171875
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "fill" : {
+            "linear-gradient" : [
+              "extended-gray:1.00000,1.00000",
+              "extended-gray:0.75000,1.00000"
+            ]
+          },
+          "image-name" : "bluecard 2.png",
+          "name" : "bluecard 2",
+          "position" : {
+            "scale" : 0.75,
+            "translation-in-points" : [
+              1.2890625,
+              -8.34375
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}
