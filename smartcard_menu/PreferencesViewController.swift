@@ -10,10 +10,20 @@ import Cocoa
 import os
 import UniformTypeIdentifiers
 
+/// Notifies listeners (like `AppDelegate`) when a preference that affects UI or behavior changes,
+/// so they can refresh state (e.g., update status bar icon).
 protocol PrefDataModelDelegate {
     func didReceivePrefUpdate()
 }
 
+/// Handles the SC Menu Preferences window. Builds controls programmatically, reads/writes
+/// UserDefaults, and triggers app-level updates via `PrefDataModelDelegate`.
+///
+/// Key preferences:
+/// - Icon appearance (color vs. black & white)
+/// - Notifications enabled
+/// - Launch at login
+/// - Run scripts on insert/removal (with chosen script paths)
 class PreferencesViewController: NSViewController {
     // MARK: - Script Path UI & Storage
     private var runAtInsertPathField: NSTextField!
@@ -36,6 +46,8 @@ class PreferencesViewController: NSViewController {
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     
     override func loadView() {
+        // Build the entire preferences UI in code (no XIB/Storyboard). Also initializes
+        // controls with current values from UserDefaults and system state (e.g., login item).
         guard let appBundleID = Bundle.main.bundleIdentifier else { return }
         let rect = NSRect(x: 0, y: 0, width: 415, height: 225)
         view = NSView(frame: rect)
@@ -246,6 +258,8 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    /// Toggle whether SC Menu should show local user notifications.
+    /// Persisted via `UserDefaults` under `show_notifications`.
     @objc func notificationChange(_ sender: NSButton){
         if sender.intValue == 1 {
             UserDefaults.standard.set(true, forKey: "show_notifications")
@@ -255,6 +269,8 @@ class PreferencesViewController: NSViewController {
         
     }
     
+    /// Switch between colorful and black & white status bar icons.
+    /// Writes `icon_mode` in `UserDefaults` and informs the delegate to refresh the icon.
     @objc func changeIcon(_ sender: NSButton) {
         //use UserDefaults
         
@@ -272,6 +288,8 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    /// Enable/disable running a custom script when a smartcard is removed.
+    /// Stores a boolean flag in `UserDefaults` under `run_on_removal`.
     @objc func runOnRemovalChange(_ sender: NSButton) {
         if sender.intValue == 1 {
             
@@ -281,6 +299,8 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    /// Enable/disable running a custom script when a smartcard is inserted.
+    /// Stores a boolean flag in `UserDefaults` under `run_on_insert`.
     @objc func runOnInsertChange(_ sender: NSButton) {
         if sender.intValue == 1 {
             UserDefaults.standard.set(true, forKey: "run_on_insert")
@@ -289,6 +309,7 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    /// Manually trigger an update check against GitHub Releases and present the result.
     @objc func updateCheck(_ sender: NSButton) {
         os_log("Update button pressed", log: prefsLog, type: .default)
         let updater = UpdateCheck()
@@ -316,6 +337,8 @@ class PreferencesViewController: NSViewController {
     }
     
     
+    /// Add or remove SC Menu as a login item using `SMAppService.mainApp`.
+    /// Logs success/failure to the preferences log.
     @objc func loginItemChange(_ sender: NSButton) {
         if sender.intValue == 1 {
             do {
@@ -334,6 +357,8 @@ class PreferencesViewController: NSViewController {
         }
     }
     
+    /// Present an open panel to select a script to run on insert. Stores the full path
+    /// in `UserDefaults` under `run_on_insert_script_path` and updates the label.
     @objc private func chooseInsertScript(_ sender: Any) {
         let panel = NSOpenPanel()
         panel.title = "Choose a Script to Run on Insert"
@@ -350,6 +375,8 @@ class PreferencesViewController: NSViewController {
         }
     }
 
+    /// Present an open panel to select a script to run on removal. Stores the full path
+    /// in `UserDefaults` under `run_on_removal_script_path` and updates the label.
     @objc private func chooseRemovalScript(_ sender: Any) {
         let panel = NSOpenPanel()
         panel.title = "Choose a Script to Run on Removal"

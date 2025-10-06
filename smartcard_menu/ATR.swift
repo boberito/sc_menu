@@ -8,6 +8,8 @@
 import Foundation
 import CryptoTokenKit
 
+/// Convenience wrapper to fetch the ATR string for a token/slot using CryptoTokenKit.
+/// The ATR is presented in hex for external debugging sites.
 class PIVCard {
     let token: String
     let slotName: String?
@@ -22,6 +24,7 @@ class PIVCard {
         getATR()
     }
     
+    /// Resolve the slot by name and capture its ATR bytes as a hex string.
     func getATR() {
         
         guard let slotName = slotName else { return }
@@ -35,6 +38,7 @@ class PIVCard {
     }
 }
 
+/// MARK: - Utilities
 extension Data {
     func hexEncodedString() -> String {
         return map { String(format: "%02hhx", $0) }.joined()

@@ -7,12 +7,24 @@
 import Cocoa
 import os
 
+/// Minimal subset of the GitHub Releases JSON payload we care about.
+/// `tag_name` is compared numerically to the app's `CFBundleShortVersionString`.
 struct githubData: Decodable {
     let tag_name: String
 }
 
+/// Performs a lightweight update check against GitHub Releases and optionally presents
+/// a prompt to download the latest version.
+///
+/// Returns:
+/// - 0: Up-to-date or newer than GitHub
+/// - 1: Update available
+/// - 2: Network/offline error
 class UpdateCheck {
     private let updateLog = OSLog(subsystem: subsystem, category: "Updater")
+    
+    /// Fetch latest release version from GitHub and compare with the current app version.
+    /// Uses a short timeout to avoid blocking app startup.
     func check() async -> Int{
         
         let sc_menuURL = "https://api.github.com/repos/boberito/sc_menu/releases/latest"
@@ -57,6 +69,7 @@ class UpdateCheck {
 
     }
     
+    /// Present a modal alert offering to open the Releases page when a newer version is detected.
     func alert(githubVersion: String, current: String) {
         DispatchQueue.main.async {
             let alert = NSAlert()

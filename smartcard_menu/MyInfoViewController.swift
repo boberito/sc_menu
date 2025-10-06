@@ -7,10 +7,15 @@
 import Cocoa
 import os
 
+/// Notifies when a PIN verification attempt failed and the card is locked (0 attempts remaining).
+/// Implemented by `AppDelegate` to update menu/icon state.
 protocol isLockedDelegate {
     func pinFailedandLocked(slotName: String)
 }
 
+/// A window controller that initializes a PIV smartcard session, verifies PIN, and displays
+/// cardholder information (image, CHUID fields, affiliations, etc.) retrieved via APDUs.
+/// Uses `smartCardAPDU` to perform the reads and receives updates through `APDUDelgate`.
 class MyInfoViewController: NSViewController, APDUDelgate {
     
     private let infoViewLog = OSLog(subsystem: subsystem, category: "CardInfo")
@@ -18,6 +23,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     var pinDelegate: isLockedDelegate?
     var passedSlot: String? = nil
     var pin: Data? = nil
+    /// APDU delegate callback when PIN verification fails. Presents an alert and informs
+    /// the `pinDelegate` (e.g., AppDelegate) so the UI can reflect a locked card.
     func pinFailed(slotName: String, attempts: Int) {
         if attempts == 0 {
             DispatchQueue.main.async {
@@ -47,6 +54,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
         }
     }
+    /// APDU delegate callback with parsed cardholder info. Updates UI elements on the main thread.
+    /// Handles both image loading and textual metadata rendering.
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
         //      do things
         os_log("Updating Card Info Window", log: self.infoViewLog, type: .default)
@@ -96,7 +105,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 // Assign to holderExpLabel
                 self.holderExpLabel.stringValue = formattedDate
             } else if let exp = cardInfo.CHUIDExpirationDate {
-//                20231116
                 let startIndex = exp.startIndex
                 let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2023"
                 let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 6)  // "11"
@@ -179,9 +187,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 self.secureMessagingLabel.stringValue = "False"
                 self.biometricsLabel.stringValue = "False"
             }
-            
-            
-            
+   
         }
         
     }
@@ -213,7 +219,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     
     private let prefsLog = OSLog(subsystem: subsystem, category: "My Card Info")
     override func loadView() {
-        
+        // Build the layout programmatically and immediately kick off APDU reads once `pin`
+        // and `passedSlot` are provided. If either is missing, the window closes.
         
         apduFunctions.delegate = self
         
@@ -554,3 +561,4 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         }
     }
 }
+

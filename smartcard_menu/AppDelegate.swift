@@ -20,12 +20,25 @@ import System
 
 let subsystem = "com.ttinc.sc-menu"
 
+/// Summary of a smartcard's state discovered via APDUs:
+/// - `readerName`: Human-readable slot/reader name
+/// - `isLocked`: Whether the PIN is locked or requires PIN entry
+/// - `hasCerts`: Whether cert objects were found on the card
 struct CardStatus {
     var readerName: String = ""
     var isLocked: Bool
     var hasCerts: Bool
 }
 
+/// Main application delegate. Manages the menubar item/menu, watches smartcard
+/// insertions/removals, posts notifications, and opens auxiliary windows.
+///
+/// Responsibilities:
+/// - Configure login item & first-launch onboarding
+/// - Observe screen lock/unlock and sleep/wake to refresh UI
+/// - Track token insertion/removal via `TKTokenWatcher`
+/// - Build dynamic menus per reader with certificates and debug items
+/// - Drive APDU checks to determine lock status and cert presence
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
     
@@ -145,7 +158,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     var runOnMenuItem = [NSMenuItem]()
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        
+        // App startup: request notifications, optionally register/unregister as login item,
+        // configure observers, and initialize the status item & token watcher.
         UNUserNotificationCenter.current().delegate = self
         os_log("SC Menu launched", log: appLog, type: .default)
         let appService = SMAppService.mainApp
@@ -257,6 +271,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         startup()
     }
     
+    /// Request local notification permissions and seed the `show_notifications` default
+    /// if the user didn't previously choose.
     func notificationPermissions() {
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
@@ -272,6 +288,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
     }
     
+    /// When the screen unlocks, refresh menu state and optionally show the insert notification once.
     @objc func screenUnlocked() {
         showInsertAfterScreenUnlock = true
         screenLockedVar = false
@@ -292,6 +309,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
         
     }
+    /// Reset the status bar menu/icon to the default (no card), create the token watcher,
+    /// and set up insertion handling. Also adds the Quit/Preferences items.
     func startup() {
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
@@ -327,6 +346,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         })
         addQuit()
     }
+    /// On wake, close stray windows, rebuild the menu, and re-run startup to refresh state.
     @objc private func sleepListener(_ aNotification: Notification) {
         
         if aNotification.name == NSWorkspace.didWakeNotification {
@@ -357,6 +377,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
+    /// Open the Preferences window (or focus it if already open) and assign the delegate
+    /// so icon changes or other prefs propagate to the status bar.
     @objc func preferencesWindow(_ sender: NSMenuItem) {
         
         for currentWindow in NSApplication.shared.windows {
@@ -383,6 +405,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         
     }
+    /// Open a web window to smartcard-atr.apdu.fr with the card's ATR for debugging purposes.
     @objc func ATRfunc(_ sender: NSMenuItem) {
         os_log("Debug selected. Thanks Ludovic https://smartcard-atr.apdu.fr", log: appLog, type: .default)
         let token = sender.representedObject as! String
@@ -406,6 +429,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
         
     }
+    /// Convert DER-encoded data to PEM string with appropriate BEGIN/END headers.
+    /// `PEMType` controls whether CERTIFICATE or CERTIFICATE REQUEST headers are used.
     func PEMKeyFromDERKey(_ data: Data, PEMType: String) -> String {
         let kCryptoExportImportManagerPublicKeyInitialTag = "-----BEGIN CERTIFICATE-----\n"
         let kCryptoExportImportManagerPublicKeyFinalTag = "-----END CERTIFICATE-----\n"
@@ -448,6 +473,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         return resultString
     }
     
+    /// Present a save panel to export a selected identity's certificate as PEM or DER.
+    /// Uses Security framework APIs to extract the public certificate from a `SecIdentity`.
     @objc func exportCerts(_ sender: NSMenuItem) {
         os_log("Export certificates selected", log: appLog, type: .default)
         let pivToken = sender.representedObject as! String
@@ -533,6 +560,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
     }
     
+    /// Open a certificate details window (SFCertificateView) for the selected identity.
+    /// If a window for that cert is already open, bring it to front instead.
     @objc func certSelected(_ sender: NSMenuItem) {
         let selectedCert = sender.representedObject as! SecIdentity
         
@@ -577,6 +606,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             os_log("Cert %{public}s selected", log: appLog, type: .default, sender.title.description)
         }
     }
+    /// Ensure a reader submenu exists for the provided token ID, populate it with
+    /// certificates (if available), and add debug/export items. Also reflects lock state.
     func showReader(TkID: String) {
         let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
         if TkID.contains("com.apple.setoken") { return }
@@ -693,6 +724,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
         
     }
+    /// Prompt for PIN and open the "Additional Card Information" window which performs
+    /// APDU reads (via `MyInfoViewController`) to display PIV data and CHUID fields.
     @objc func cardInfo(_ sender: NSMenuItem) {
         
         let cardReader = sender.representedObject as! String
@@ -791,6 +824,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         exit(0)
     }
     
+    /// Append Preferences and Quit items to the bottom of the status menu (if not present),
+    /// and restore a placeholder when no card is inserted.
     func addQuit() {
         
         if statusItem.menu?.indexOfItem(withTitle: "Quit") == -1 {
@@ -810,6 +845,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
     }
     
+    /// Update the status bar icon to the provided asset, overlaying a red dot if any
+    /// currently tracked token is locked.
     func menuBarIcon(fileURLString: String) {
         RunLoop.main.perform {
             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
@@ -852,6 +889,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             
         }
     }
+    /// Handle a token insertion: optional script execution, lock/cert checks, notification,
+    /// expiration scan, and UI/menu updates. Also registers a paired removal handler.
     func update(CTKTokenID: String) {
         if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
             os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
@@ -1015,10 +1054,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }, forTokenID: CTKTokenID)
     }
+    /// Perform low-level APDU exchanges against the card in the provided slot to determine
+    /// lock status and whether certificate objects exist. Returns a `CardStatus` snapshot.
+    ///
+    /// Note: Uses a semaphore to serialize the async TKSmartCard calls for a synchronous return.
     func checkCard(slotName: String?) -> (CardStatus?) {
+        // This routine synchronously probes the card using APDUs to determine two things:
+        // 1) Is the PIN currently locked (or requires PIN)?
+        // 2) Do PIV certificate data objects (9A/9C/9D/9E) exist on the card?
+        //
+        // It uses a semaphore to block until all asynchronous CryptoTokenKit calls complete.
         
         let sm = TKSmartCardSlotManager()
         var card : TKSmartCard? = nil
+        // Use a semaphore to convert the async TKSmartCard flow into a synchronous return value.
         let sema = DispatchSemaphore.init(value: 0)
         
         guard let slotName = slotName else { return nil }
@@ -1040,6 +1089,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         
         card?.beginSession(reply: { something, error in
+            // APDUs used in this check:
+            // - SELECT (AID) to select the PIV application
+            // - VERIFY PIN with LC=0 ("null verify") to read remaining attempts (and infer locked state)
+            // - GET DATA for PIV cert containers 9A/9C/9D/9E to infer if certs exist
+            
             let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
             let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
             let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05, 0x00 ]
@@ -1050,6 +1104,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             let request2 = Data(pinVerifyNull)
             
             
+            // Helper that sends an APDU and follows up with GET RESPONSE (00 C0 00 00 Le) if SW1==0x61
+            // to retrieve remaining bytes, concatenating all chunks before calling completion.
             func sendMoreAPDUCommands(apdu: [UInt8], completion: @escaping ([UInt8], UInt8, UInt8) -> Void) {
                 
                 // Convert command array to Data
@@ -1063,11 +1119,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         }
                         
                         var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
+                        // SW1/SW2 are the last two bytes of the response (status words). Drop them from the payload.
                         let sw1 = responseData[responseData.count - 2]
                         let sw2 = responseData[responseData.count - 1]
                         
                         // Check if more data is available (SW1 == 0x61)
                         if sw1 == 0x61 {
+                            // 0x61 indicates more data is available; issue GET RESPONSE for the indicated length (SW2)
                             let getResponseCommand: [UInt8] = [
                                 0x00, 0xC0, 0x00, 0x00, sw2
                             ]
@@ -1099,10 +1157,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             card?.transmit(apidRequest, reply: { data, error in
                 if error == nil {
                     
+                    // Null VERIFY (LC=0) doesn't change PIN state but returns remaining attempts in SW1/SW2.
+                    // We use it to infer `locked` without requiring the user's PIN.
                     card?.transmit(request2, reply: { data, error in
                         guard let data = data else { return }
                         let result = data.hexEncodedString()
                         
+                        // SW1/SW2 as hex string. "63Cx" means verify failed with x attempts remaining.
+                        // "9000" means success; any other code is treated as locked for safety.
                         if result.starts(with: "63c") {
                             if let attempts = Int(String(result.last!), radix: 16) {
                                 if attempts == 0 {
@@ -1118,7 +1180,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         }
                         
                     })
+                    // Probe for presence of PIV certificate data objects. If any container returns payload
+                    // (bytes > 2), assume certs are present on the card.
                     sendMoreAPDUCommands(apdu: getCert9A) { data, sw1, sw2 in
+                        // 9A: PIV Authentication cert
                         if sw1 == 0x90 && sw2 == 0x00 {
                             os_log("9A bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
                             if data.count > 2 {
@@ -1126,6 +1191,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                             }
                         }
                         sendMoreAPDUCommands(apdu: getCert9C) { data, sw1, sw2 in
+                            // 9C: Digital Signature cert
                             if sw1 == 0x90 && sw2 == 0x00 {
                                 os_log("9C bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
                                 if data.count > 2 {
@@ -1133,6 +1199,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                                 }
                             }
                             sendMoreAPDUCommands(apdu: getCert9D) { data, sw1, sw2 in
+                                // 9D: Key Management cert
                                 if sw1 == 0x90 && sw2 == 0x00 {
                                     os_log("9D bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
                                     if data.count > 2 {
@@ -1140,12 +1207,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                                     }
                                 }
                                 sendMoreAPDUCommands(apdu: getCert9E) { data, sw1, sw2 in
+                                    // 9E: Card Authentication cert
                                     if sw1 == 0x90 && sw2 == 0x00 {
                                         os_log("9E bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
                                         if data.count > 2 {
                                             hasCerts = true
                                         }
                                     }
+                                    // Done probing; end the smartcard session and unblock the semaphore.
                                     card?.endSession()
                                     sema.signal()
                                     
@@ -1163,6 +1232,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         })
         sema.wait()
         
+        // Build a snapshot of the findings for the caller.
         let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)
         
         return cardStatus
@@ -1170,11 +1240,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     }
     
 }
+
+/// MARK: - Delegates
 extension AppDelegate: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         insertExistingTokens()
     }
 }
+/// Present banner notifications while app is in the foreground.
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(_ center: UNUserNotificationCenter,

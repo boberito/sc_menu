@@ -8,6 +8,8 @@ import Foundation
 import UserNotifications
 import os
 
+/// A model describing a certificate/identity found in the keychain/token. Not all fields
+/// are used by the UI today; kept for potential future enhancements.
 struct identityList {
     var cn: String
     var pubKeyHash: String
@@ -22,12 +24,16 @@ struct identityList {
     var caOrg: String?
 }
 
+/// Helper for discovering identities on a PIV token and reading certificate metadata such as
+/// expiration. Provides a dictionary of `SecIdentity` objects keyed by their label.
 class ViewCerts{
     var certErr: OSStatus
     
     init() {
         certErr = 0
     }
+    /// Query the keychain for identities that belong to the specified token ID and return them as
+    /// a label -> SecIdentity dictionary. Returns nil if none found or query fails.
     func getIdentity(pivToken: String) -> Dictionary<String,SecIdentity>? {
         var myCN: CFString? = nil
         var searchResults: AnyObject? = nil
@@ -73,7 +79,9 @@ class ViewCerts{
         
     }
     
-    func readExpiration(pivToken: String) async -> Bool?{
+    /// Iterate identities on the token and post a local notification if any certificate is
+    /// expired or expiring within 30 days.
+    func readExpiration(pivToken: String) async {
         let certLog = OSLog(subsystem: subsystem, category: "Certificate")
         let appLog = OSLog(subsystem: subsystem, category: "General")
         
@@ -138,7 +146,6 @@ class ViewCerts{
                             }
                         }
                         
-//                        return true
                     } else if expirationDate < Date.now {
                         let settings = await nc.notificationSettings()
                         if (settings.authorizationStatus == .authorized) ||
@@ -156,7 +163,6 @@ class ViewCerts{
                                 os_log("Notification error {public}s", log: appLog, type: .default, error.localizedDescription)
                             }
                         }
-//                        return nil
                     }
                 }
                 
@@ -165,6 +171,6 @@ class ViewCerts{
             
             
         }
-//     return nil
     }
 }
+
