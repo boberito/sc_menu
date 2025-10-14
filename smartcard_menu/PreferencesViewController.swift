@@ -232,7 +232,6 @@ class PreferencesViewController: NSViewController {
         view.addSubview(appIcon)
         view.addSubview(notificationsButton)
         view.addSubview(updateButton)
-        
         view.addSubview(runAtInsertPathField)
         view.addSubview(runAtInsertButton)
         view.addSubview(runAtRemovalPathField)

@@ -200,8 +200,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     let holderExpLabel = NSTextField()
     let cardSerialLabel = NSTextField()
     let issuerIdentifierLabel = NSTextField()
-    
-    
     let agencyCardSerialLabel = NSTextField()
     let organizationalCodeLabel = NSTextField()
     let agencyCodeLabel = NSTextField()
