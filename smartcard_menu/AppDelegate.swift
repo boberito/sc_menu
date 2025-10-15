@@ -157,6 +157,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     
     var runOnMenuItem = [NSMenuItem]()
     
+    var menuIsOpen = false
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App startup: request notifications, optionally register/unregister as login item,
         // configure observers, and initialize the status item & token watcher.
@@ -609,119 +611,133 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     /// Ensure a reader submenu exists for the provided token ID, populate it with
     /// certificates (if available), and add debug/export items. Also reflects lock state.
     func showReader(TkID: String) {
-        let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
-        if TkID.contains("com.apple.setoken") { return }
-        if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
-            let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
-            readerMenuItem.representedObject = TkID
-            let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
-            if readerMenuItemExists == nil {
-                let subMenu = NSMenu()
-                if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
-                    UserDefaults.standard.setValue(true, forKey: "inserted")
-                    statusItem.menu?.removeItem(nothingInsertedMenu)
-                }
-                
-                if certViewing.getIdentity(pivToken: pivToken) == nil{
-                    guard let checkCardStatus = checkCardStatus else {
-                        return
-                        
+        
+        func insert() {
+            let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
+            if TkID.contains("com.apple.setoken") { return }
+            if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
+                let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
+                readerMenuItem.representedObject = TkID
+                let readerMenuItemExists = statusItem.menu?.item(withTitle: readerName)
+                if readerMenuItemExists == nil {
+                    let subMenu = NSMenu()
+                    if statusItem.menu?.index(of: nothingInsertedMenu) != -1 {
+                        UserDefaults.standard.setValue(true, forKey: "inserted")
+                        statusItem.menu?.removeItem(nothingInsertedMenu)
                     }
-                    if checkCardStatus.hasCerts {
-                        statusItem.menu?.insertItem(readerMenuItem, at: 0)
-                        statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                        if statusItem.menu?.item(withTitle: "Keychain Locked Error Reading Smartcards") == nil {
-                            let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
-                            for dict in self.lockedDictArray {
-                                if dict[TkID] == true {
-                                    if subMenu.item(withTitle: "Smartcard Locked") == nil {
-                                        let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                                        subMenu.addItem(lockedMenuItem)
-                                        os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
-                                    }
-                                }
-                            }
-                            subMenu.addItem(keychainLockedItem)
-                            addQuit()
-                        }
-                        return
-                        
-                        
-                    } else {
-                        statusItem.menu?.insertItem(readerMenuItem, at: 0)
-                        statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                        if subMenu.item(withTitle: "No Certificates Found on Smartcard") == nil {
-                            let noCertMenuItem = NSMenuItem(title: "No Certificates Found on Smartcard", action: nil, keyEquivalent: "")
-                            for dict in self.lockedDictArray {
-                                if dict[TkID] == true {
-                                    if subMenu.item(withTitle: "Smartcard Locked") == nil {
-                                        let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                                        subMenu.addItem(lockedMenuItem)
-                                        os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
-                                    }
-                                }
-                            }
-                            subMenu.addItem(noCertMenuItem)
-                            addQuit()
+                    
+                    if certViewing.getIdentity(pivToken: pivToken) == nil{
+                        guard let checkCardStatus = checkCardStatus else {
+                            return
                             
                         }
-                        return
-                    }
-                    
-                }
-                
-                statusItem.menu?.insertItem(readerMenuItem, at: 0)
-                statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
-                if let certDict = certViewing.getIdentity(pivToken: pivToken){
-                    for dict in self.lockedDictArray {
-                        if dict[TkID] == true {
-                            if subMenu.item(withTitle: "Smartcard Locked") == nil {
-                                let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                                subMenu.addItem(lockedMenuItem)
-                                os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                        if checkCardStatus.hasCerts {
+                            statusItem.menu?.insertItem(readerMenuItem, at: 0)
+                            statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
+                            if statusItem.menu?.item(withTitle: "Keychain Locked Error Reading Smartcards") == nil {
+                                let keychainLockedItem = NSMenuItem(title: "Keychain Locked Error Reading Smartcards", action: nil, keyEquivalent: "")
+                                for dict in self.lockedDictArray {
+                                    if dict[TkID] == true {
+                                        if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                            let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                            subMenu.addItem(lockedMenuItem)
+                                            os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                                        }
+                                    }
+                                }
+                                subMenu.addItem(keychainLockedItem)
+                                addQuit()
                             }
-                        }
-                    }
-                    var seperator = false
-                    let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
-                    for key in sortedDictKeys {
-                        if key.contains("Retired") && !seperator {
-                            subMenu.addItem(NSMenuItem.separator())
-                            seperator = true
+                            return
+                            
+                            
+                        } else {
+                            statusItem.menu?.insertItem(readerMenuItem, at: 0)
+                            statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
+                            if subMenu.item(withTitle: "No Certificates Found on Smartcard") == nil {
+                                let noCertMenuItem = NSMenuItem(title: "No Certificates Found on Smartcard", action: nil, keyEquivalent: "")
+                                for dict in self.lockedDictArray {
+                                    if dict[TkID] == true {
+                                        if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                            let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                            subMenu.addItem(lockedMenuItem)
+                                            os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                                        }
+                                    }
+                                }
+                                subMenu.addItem(noCertMenuItem)
+                                addQuit()
+                                
+                            }
+                            return
                         }
                         
-                        let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
-                        label.representedObject = certDict[key]
-                        subMenu.addItem(label)
                     }
                     
-                    let seperatorLine = NSMenuItem.separator()
-                    let myCardInfo = NSMenuItem(title: "Additional Card Info", action: #selector(cardInfo), keyEquivalent: "")
-                    myCardInfo.representedObject = readerName
-                    subMenu.addItem(seperatorLine)
-                    subMenu.addItem(myCardInfo)
-                    
-                    let hiddenSeperatorLine = NSMenuItem.separator()
-                    hiddenSeperatorLine.isHidden = true
-                    seperatorLines.append(hiddenSeperatorLine)
-                    subMenu.addItem(hiddenSeperatorLine)
-                    let exportMenuItem = NSMenuItem(title: "Export Certificates", action: #selector(exportCerts), keyEquivalent: "")
-                    exportMenuItem.representedObject = TkID
-                    exportMenuItem.isHidden = true
-                    exportMenuItems.append(exportMenuItem)
-                    subMenu.addItem(exportMenuItem)
-                    let debugItem = NSMenuItem(title: "Debug Info", action: #selector(ATRfunc), keyEquivalent: "")
-                    debugItem.representedObject = TkID
-                    debugItem.isHidden = true
-                    debugMenuItems.append(debugItem)
-                    subMenu.addItem(debugItem)
+                    statusItem.menu?.insertItem(readerMenuItem, at: 0)
+                    statusItem.menu?.setSubmenu(subMenu, for:  readerMenuItem)
+                    if let certDict = certViewing.getIdentity(pivToken: pivToken){
+                        for dict in self.lockedDictArray {
+                            if dict[TkID] == true {
+                                if subMenu.item(withTitle: "Smartcard Locked") == nil {
+                                    let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                                    subMenu.addItem(lockedMenuItem)
+                                    os_log("%{public}s is locked", log: appLog, type: .default, TkID.description)
+                                }
+                            }
+                        }
+                        var seperator = false
+                        let sortedDictKeys = certDict.sorted(by: { $0.key < $1.key }).map(\.key)
+                        for key in sortedDictKeys {
+                            if key.contains("Retired") && !seperator {
+                                subMenu.addItem(NSMenuItem.separator())
+                                seperator = true
+                            }
+                            
+                            let label = NSMenuItem(title: key, action: #selector(certSelected), keyEquivalent: "")
+                            label.representedObject = certDict[key]
+                            subMenu.addItem(label)
+                        }
+                        
+                        let seperatorLine = NSMenuItem.separator()
+                        let myCardInfo = NSMenuItem(title: "Additional Card Info", action: #selector(cardInfo), keyEquivalent: "")
+                        myCardInfo.representedObject = readerName
+                        subMenu.addItem(seperatorLine)
+                        subMenu.addItem(myCardInfo)
+                        
+                        let hiddenSeperatorLine = NSMenuItem.separator()
+                        hiddenSeperatorLine.isHidden = true
+                        seperatorLines.append(hiddenSeperatorLine)
+                        subMenu.addItem(hiddenSeperatorLine)
+                        let exportMenuItem = NSMenuItem(title: "Export Certificates", action: #selector(exportCerts), keyEquivalent: "")
+                        exportMenuItem.representedObject = TkID
+                        exportMenuItem.isHidden = true
+                        exportMenuItems.append(exportMenuItem)
+                        subMenu.addItem(exportMenuItem)
+                        let debugItem = NSMenuItem(title: "Debug Info", action: #selector(ATRfunc), keyEquivalent: "")
+                        debugItem.representedObject = TkID
+                        debugItem.isHidden = true
+                        debugMenuItems.append(debugItem)
+                        subMenu.addItem(debugItem)
+                    }
+                    addQuit()
+                } else {
+                    return;
                 }
-                addQuit()
-            } else {
-                return;
+                
             }
-            
         }
+        //if menu is NOT open, insert the things
+        //if menu is open, dispatch queue it and insert
+        if !menuIsOpen {
+            insert()
+        } else {
+            DispatchQueue.main.async {
+                insert()
+            }
+        }
+        
+        
         
     }
     /// Prompt for PIN and open the "Additional Card Information" window which performs
@@ -908,10 +924,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         //if it's a text file check to see if it has a shebang
         //if no shebang, determine script type        
         if typeOfFile == "text" {
-            print("Am I not even here?")
             print(pathURL)
-            if let scriptContents = try? String(contentsOf: pathURL) {
-                print(scriptContents.components(separatedBy: "\n"))
+            if let scriptContents = try? String(contentsOf: pathURL) {                
                 if !"#!/".contains(scriptContents.components(separatedBy: "\n")[0]) {
                     if "py".contains(ext) {
                         typeOfScript = "python"
@@ -1023,6 +1037,47 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         
         myTKWatcher?.addRemovalHandler({ CTKTokenID in
+            func remove() {
+                    for scMenuItem in self.statusItem.menu!.items {
+                        if scMenuItem.title == "Keychain Locked Error Reading Smartcards" {
+                            self.statusItem.menu?.removeItem(scMenuItem)
+                        }
+                        if let scMenuItemRepresentedObj = scMenuItem.representedObject as? String {
+                            if scMenuItemRepresentedObj == CTKTokenID {
+                                self.statusItem.menu?.removeItem(scMenuItem)
+                            }
+                        }
+                        self.addQuit()
+                    }
+                    
+                    if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
+                        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                            
+                            if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
+                                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                                if fileExists {
+                                    if let button = self.statusItem.button {
+                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                    }
+                                } else {
+                                    self.statusItem.button?.title = "NOT Inserted"
+                                }
+                            }
+                        } else {
+                            if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
+                                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                                if fileExists {
+                                    if let button = self.statusItem.button {
+                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                    }
+                                } else {
+                                    self.statusItem.button?.title = "NOT Inserted"
+                                }
+                            }
+                        }
+                    }
+            }
+            
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if UserDefaults.standard.bool(forKey: "run_on_removal") {
                 if let scriptPath = UserDefaults.standard.string(forKey: "run_on_removal_script_path") {
@@ -1067,47 +1122,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
             }
-            RunLoop.main.perform {
-                
-                for scMenuItem in self.statusItem.menu!.items {
-                    if scMenuItem.title == "Keychain Locked Error Reading Smartcards" {
-                        self.statusItem.menu?.removeItem(scMenuItem)
-                    }
-                    if let scMenuItemRepresentedObj = scMenuItem.representedObject as? String {
-                        if scMenuItemRepresentedObj == CTKTokenID {
-                            self.statusItem.menu?.removeItem(scMenuItem)
-                        }
-                    }
-                    self.addQuit()
+            //if menu is NOT open, remove the things
+            //if menu is open, dispatch queue it and remove
+            if !self.menuIsOpen {
+                remove()
+            } else {
+                DispatchQueue.main.async {
+                    remove()
                 }
-                
-                if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
-                    if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
-                        
-                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
-                            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                            if fileExists {
-                                if let button = self.statusItem.button {
-                                    button.image = NSImage(byReferencingFile: fileURLString)
-                                }
-                            } else {
-                                self.statusItem.button?.title = "NOT Inserted"
-                            }
-                        }
-                    } else {
-                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
-                            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                            if fileExists {
-                                if let button = self.statusItem.button {
-                                    button.image = NSImage(byReferencingFile: fileURLString)
-                                }
-                            } else {
-                                self.statusItem.button?.title = "NOT Inserted"
-                            }
-                        }
-                    }
-                }
-                
             }
         }, forTokenID: CTKTokenID)
     }
@@ -1301,7 +1323,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
 /// MARK: - Delegates
 extension AppDelegate: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
+        menuIsOpen = true
         insertExistingTokens()
+    }
+    
+    func menuDidClose(_ menu: NSMenu) {
+        menuIsOpen = false
     }
 }
 /// Present banner notifications while app is in the foreground.
