@@ -852,7 +852,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
             if fileExists {
                 if let button = self.statusItem.button {
-                  
+                    
                     for dict in self.lockedDictArray {
                         
                         if dict.values.contains(true) {
@@ -889,6 +889,83 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             
         }
     }
+    //script to run script on insert or removal
+    func run_on(action: String, path: String) async {
+        let pathURL = URL(fileURLWithPath: path)
+        let ext = pathURL.pathExtension
+        var typeOfScript: String?
+        var typeOfFile: String?
+        //check file type using subprocess to run the file command
+        
+        let typeCheck = try? await run(
+            .path("/bin/bash"),
+            arguments: ["-c", "/usr/bin/file -b --mime-type \(path) | /usr/bin/head -1 | /usr/bin/cut -d/ -f1"],
+            output: .string(limit: 4096, encoding: UTF8.self)
+        )
+        typeOfFile = String(describing: typeCheck?.standardOutput ?? "")
+        typeOfFile = typeOfFile?.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        //if it's a text file check to see if it has a shebang
+        //if no shebang, determine script type        
+        if typeOfFile == "text" {
+            print("Am I not even here?")
+            print(pathURL)
+            if let scriptContents = try? String(contentsOf: pathURL) {
+                print(scriptContents.components(separatedBy: "\n"))
+                if !"#!/".contains(scriptContents.components(separatedBy: "\n")[0]) {
+                    if "py".contains(ext) {
+                        typeOfScript = "python"
+                    }
+                    if ["sh","zsh","bash"].contains(ext) {
+                        typeOfScript = "shell"
+                    }
+                }
+            }
+        }
+        //if binary or has a shebang, just run it
+        if typeOfScript == nil {
+            do {
+                let result = try await run(
+                    .path(FilePath(path)),
+                    output: .string(limit: 4096, encoding: UTF8.self),
+                    error: .string(limit: 4096, encoding: UTF8.self)
+                )
+                
+                os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
+                os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
+                os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError ?? "")
+            } catch {
+                os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
+            }
+            //if text and has no shebang
+            //find environment python3 if python
+            //find the default user shell and run with that otherwise
+        } else {
+            var shell: String?
+            if typeOfScript == "python" {
+                shell = "/usr/bin/env python3"
+            } else if typeOfScript == "shell" {
+                shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
+            }
+            do {
+                guard let shell else { return }
+                
+                let result = try await run(
+                    .path(FilePath(shell)),
+                    arguments: [path],
+                    output: .string(limit: 4096, encoding: UTF8.self),
+                    error: .string(limit: 4096, encoding: UTF8.self)
+                )
+                
+                os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
+                os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
+                os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError ?? "")
+            } catch {
+                os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
+            }
+            
+        }
+    }
     /// Handle a token insertion: optional script execution, lock/cert checks, notification,
     /// expiration scan, and UI/menu updates. Also registers a paired removal handler.
     func update(CTKTokenID: String) {
@@ -898,19 +975,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             if UserDefaults.standard.bool(forKey: "run_on_insert") {
                 if let scriptPath = UserDefaults.standard.string(forKey: "run_on_insert_script_path") {
                     Task {
-                        do {
-                            
-                            let result = try await run(
-                                .path(FilePath(scriptPath)),
-                                output: .string(limit: 4096, encoding: UTF8.self),
-                                error: .string(limit: 4096, encoding: UTF8.self)
-                            )
-                            os_log("Insert Script Exit Code %{public}s", log: appLog, type: .default, String(describing: result.terminationStatus))
-                            os_log("Insert Script Output %{public}s", log: appLog, type: .debug, result.standardOutput ?? "")
-                            os_log("Insert Script Stderr %{public}s", log: appLog, type: .debug, result.standardError ?? "")
-                        } catch {
-                            os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
-                        }
+                        await run_on(action: "Insert", path: scriptPath)
                     }
                 }
             }
@@ -961,21 +1026,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if UserDefaults.standard.bool(forKey: "run_on_removal") {
                 if let scriptPath = UserDefaults.standard.string(forKey: "run_on_removal_script_path") {
+                    
                     Task {
-                        do {
-                            let result = try await run(
-                                .path(FilePath(scriptPath)),
-                                output: .string(limit: 4096, encoding: UTF8.self),
-                                error: .string(limit: 4096, encoding: UTF8.self)
-                            )
-                            os_log("Insert Script Exit Code %{public}s", log: self.appLog, type: .debug, String(describing: result.terminationStatus))
-                            os_log("Insert Script Output %{public}s", log: self.appLog, type: .debug, result.standardOutput ?? "")
-                            os_log("Insert Script Stderr %{public}s", log: self.appLog, type: .debug, result.standardError ?? "")
-                        } catch {
-                            os_log("%{public}s", log: self.appLog, type: .error, error.localizedDescription)
-                        }
+                        await self.run_on(action: "Removal", path: scriptPath)
                     }
                 }
+                
+                
             }
             self.checkCardStatus = nil
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
