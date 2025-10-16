@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 
 /// Notifies listeners (like `AppDelegate`) when a preference that affects UI or behavior changes,
 /// so they can refresh state (e.g., update status bar icon).
-protocol PrefDataModelDelegate {
+protocol PrefDataModelDelegate: AnyObject {
     func didReceivePrefUpdate()
 }
 
@@ -42,7 +42,7 @@ class PreferencesViewController: NSViewController {
         }
     }
     
-    var delegate: PrefDataModelDelegate?
+    weak var delegate: PrefDataModelDelegate?
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     
     override func loadView() {
