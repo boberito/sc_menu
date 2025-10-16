@@ -45,7 +45,7 @@ struct CardholderCapabilityContainer {
 }
 
 /// Callbacks from `smartCardAPDU` for UI updates and PIN failure handling.
-protocol APDUDelgate {
+protocol APDUDelgate: AnyObject {
     func didReceiveUpdate(cardInfo: CardHolderInfo)
     func pinFailed(slotName: String, attempts: Int)
 }
@@ -57,7 +57,7 @@ class smartCardAPDU {
     
     var slotNameString = ""
     private let apduLog = OSLog(subsystem: subsystem, category: "APDUFunctions")
-    var delegate: APDUDelgate?
+    weak var delegate: APDUDelgate?
     let SELECT_PIV_APPLICATION: [UInt8] = [0x00, 0xA4, 0x04, 0x00, 0x09, 0xA0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00]
     let GET_FACIAL_IMAGE: [UInt8] = [0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x08, 0x00]
     let GET_CARDHOLDER_NAME: [UInt8] = [0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x09, 0x00]
