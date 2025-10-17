@@ -9,7 +9,7 @@ import os
 
 /// Notifies when a PIN verification attempt failed and the card is locked (0 attempts remaining).
 /// Implemented by `AppDelegate` to update menu/icon state.
-protocol isLockedDelegate {
+protocol isLockedDelegate: AnyObject {
     func pinFailedandLocked(slotName: String)
 }
 
@@ -20,14 +20,15 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     
     private let infoViewLog = OSLog(subsystem: subsystem, category: "CardInfo")
     let apduFunctions = smartCardAPDU()
-    var pinDelegate: isLockedDelegate?
+    weak var pinDelegate: isLockedDelegate?
     var passedSlot: String? = nil
     var pin: Data? = nil
     /// APDU delegate callback when PIN verification fails. Presents an alert and informs
     /// the `pinDelegate` (e.g., AppDelegate) so the UI can reflect a locked card.
     func pinFailed(slotName: String, attempts: Int) {
         if attempts == 0 {
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 NSApplication.shared.keyWindow?.close()
                 let alert = NSAlert()
                 alert.messageText = "PIN Failed"
@@ -40,7 +41,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 self.pinDelegate?.pinFailedandLocked(slotName: slotName)
             }
         } else {
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 NSApplication.shared.keyWindow?.close()
                 let alert = NSAlert()
                 alert.messageText = "PIN Failed"
@@ -59,7 +61,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
         //      do things
         os_log("Updating Card Info Window", log: self.infoViewLog, type: .default)
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             if let imagePath = cardInfo.imagePath {
                 if FileManager.default.fileExists(atPath: imagePath) {
                     

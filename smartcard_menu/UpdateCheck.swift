@@ -71,7 +71,8 @@ class UpdateCheck {
     
     /// Present a modal alert offering to open the Releases page when a newer version is detected.
     func alert(githubVersion: String, current: String) {
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [ weak self ] in
+            guard let self else { return }
             let alert = NSAlert()
             alert.messageText = "Update Available"
             alert.informativeText = """

@@ -1,0 +1,62 @@
+//
+//  ViewCertsViewController.swift
+//  SC Menu
+//
+//  Created by Bob Gendler on 10/16/25.
+//
+
+import Cocoa
+import Security
+import CryptoTokenKit
+import os
+import SecurityInterface
+
+class ViewCertsViewController: NSViewController {
+    var selectedCert: SecIdentity? = nil
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+//         Do any additional setup after loading the view.
+        let rect = NSRect(x: 0, y: 0, width: 500, height: 500)
+        self.view = NSView(frame: rect)
+        self.view.wantsLayer = true
+        
+        var secRef: SecCertificate? = nil
+        
+        guard let selectedCert else { return }
+        let certRefErr = SecIdentityCopyCertificate(selectedCert, &secRef)
+        if certRefErr != errSecSuccess {
+            os_log("Error getting certificate from identity: %{public}@", log: OSLog.default, type: .error, String(describing: certRefErr))
+            return
+        }
+        let scrollView = NSScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.borderType = .lineBorder
+        scrollView.hasHorizontalScroller = true
+        scrollView.hasVerticalScroller = true
+
+        let certView = SFCertificateView()
+        guard let secRef = secRef else { return }
+
+        certView.setCertificate(secRef)
+        certView.setDetailsDisclosed(true)
+        certView.translatesAutoresizingMaskIntoConstraints = false
+
+        scrollView.documentView = certView
+        view.addSubview(scrollView)
+
+        // Layout constraints
+        NSLayoutConstraint.activate([
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // Provide certificate view a width and height constraint
+            certView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            certView.heightAnchor.constraint(greaterThanOrEqualToConstant: 500) // Or whatever minimum you prefer
+        ])
+    }
+
+}
+    

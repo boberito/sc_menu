@@ -11,6 +11,7 @@
 		731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */; };
 		731A33CA2CD5B80F00EE6778 /* APDUFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */; };
 		7338D8902BB1E9590003D385 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7338D88F2BB1E9590003D385 /* UpdateCheck.swift */; };
+		734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */; };
 		734F914E2B95719F005C24ED /* smartcard_in_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914C2B95719F005C24ED /* smartcard_in_bw.png */; };
 		734F914F2B95719F005C24ED /* smartcard_out_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914D2B95719F005C24ED /* smartcard_out_bw.png */; };
 		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
@@ -39,6 +40,7 @@
 		731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyInfoViewController.swift; sourceTree = "<group>"; };
 		731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APDUFunctions.swift; sourceTree = "<group>"; };
 		7338D88F2BB1E9590003D385 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
+		734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCertsViewController.swift; sourceTree = "<group>"; };
 		734F914C2B95719F005C24ED /* smartcard_in_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_in_bw.png; sourceTree = "<group>"; };
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
 				86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */,
 				860203512B84F2DE00E84186 /* ViewCerts.swift */,
+				734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */,
 				86FF1DC52B7FA45A007F3959 /* ViewController.swift */,
 				731A33C52CD5B47400EE6778 /* MyInfoWindow.swift */,
 				731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */,
@@ -226,6 +229,7 @@
 				73DE8C342D67925800458A21 /* nist80087.swift in Sources */,
 				731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */,
 				86F7327D2B92D317007DFED7 /* PrefView.swift in Sources */,
+				734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
