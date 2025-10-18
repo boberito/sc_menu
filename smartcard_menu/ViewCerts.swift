@@ -106,7 +106,11 @@ class ViewCerts{
 
             for certAny in existingCerts {
                 let identity = certAny["v_Ref"] as! SecIdentity
+                let label = certAny["labl"] as? String ?? "no label"
 
+                if label.contains("Retired") {
+                    continue
+                }
                 var certRef: SecCertificate?
                 certErr = SecIdentityCopyCertificate(identity, &certRef)
                 guard certErr == errSecSuccess, let cert = certRef else { continue }
