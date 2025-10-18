@@ -54,7 +54,7 @@ class ViewCertsViewController: NSViewController {
 
             // Provide certificate view a width and height constraint
             certView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-            certView.heightAnchor.constraint(greaterThanOrEqualToConstant: 500) // Or whatever minimum you prefer
+            certView.heightAnchor.constraint(greaterThanOrEqualToConstant: 500) 
         ])
     }
 

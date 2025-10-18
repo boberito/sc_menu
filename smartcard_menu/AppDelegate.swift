@@ -568,6 +568,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     /// If a window for that cert is already open, bring it to front instead.
     @objc func certSelected(_ sender: NSMenuItem) {
         
+//        let identity = sender.representedObject as! SecIdentity
+//
+//        var cert: SecCertificate?
+//        guard SecIdentityCopyCertificate(identity, &cert) == errSecSuccess, let cert else { return }
+//        
+//        var trust: SecTrust?
+//        let status = SecTrustCreateWithCertificates(cert, SecPolicyCreateBasicX509(), &trust)
+//        guard status == errSecSuccess, let trust else {
+//            return
+//        }
+//        
+//        let _ = SecTrustEvaluateWithError(trust, nil) // optional, pre-populates validity text
+//        
+//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//
+//        SFCertificatePanel.shared()?.runModal(for: trust, showGroup: true)
+        
         
         for currentWindow in NSApplication.shared.windows {
             if currentWindow.title.contains(sender.title) {
@@ -585,7 +602,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         window?.center()
         let viewCertsViewController = ViewCertsViewController()
         viewCertsViewController.selectedCert = (sender.representedObject as! SecIdentity)
-//        _ = viewCertsViewController.view
         window?.contentViewController = viewCertsViewController
                 
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
@@ -1045,8 +1061,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                             if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
                                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                                 if fileExists {
+                                    
                                     if let button = self.statusItem.button {
-                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                        DispatchQueue.main.async {
+                                            button.image = NSImage(byReferencingFile: fileURLString)
+                                        }
+                                        
                                     }
                                 } else {
                                     self.statusItem.button?.title = "NOT Inserted"
@@ -1057,7 +1077,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                                 if fileExists {
                                     if let button = self.statusItem.button {
-                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                        DispatchQueue.main.async {
+                                            button.image = NSImage(byReferencingFile: fileURLString)
+                                        }
                                     }
                                 } else {
                                     self.statusItem.button?.title = "NOT Inserted"
