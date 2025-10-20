@@ -3,4 +3,29 @@
    uuid = "4490F4B3-C019-481C-8D7B-0E128F78D353"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.SymbolicBreakpoint">
+         <BreakpointContent
+            uuid = "5AA34709-DA81-41AC-A9EA-7442D37828CB"
+            shouldBeEnabled = "No"
+            nameForDebugger = "SecurityWindow"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            symbolName = "[SFCertificateView _createDetailsView:]"
+            moduleName = "">
+            <Locations>
+               <Location
+                  uuid = "5AA34709-DA81-41AC-A9EA-7442D37828CB - ff26e460a85811c8"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[SFCertificateView _createDetailsView:]"
+                  moduleName = "SecurityInterface"
+                  usesParentBreakpointCondition = "Yes">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

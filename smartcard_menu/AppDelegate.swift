@@ -1166,12 +1166,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         guard let slotName = slotName else { return nil }
         sm.getSlot(withName: slotName, reply: { currentslot in
             card = currentslot?.makeSmartCard()
+            guard card != nil else {
+                card?.endSession()
+                sema.signal()
+                return
+            }
             sema.signal()
         })
         sema.wait()
         
         var hasCerts = false
         var locked = false
+        
         
         func sendAPDU(apdu: [UInt8], completion: (Data, Error)) {
             let apduData = Data(apdu)
@@ -1210,6 +1216,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                             completion([], 0x00, 0x00)
                             return
                         }
+                        if error != nil {
+                            card?.endSession()
+                            sema.signal()
+                            return
+                        }
+                        
                         
                         var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
                         // SW1/SW2 are the last two bytes of the response (status words). Drop them from the payload.
