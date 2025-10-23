@@ -6,8 +6,6 @@
 //
 
 import Cocoa
-import Security
-import CryptoTokenKit
 import os
 import SecurityInterface
 
@@ -16,9 +14,6 @@ class ViewCertsViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//         Do any additional setup after loading the view.
-//        let rect = NSRect(x: 0, y: 0, width: 500, height: 500)
-//        self.view = NSView(frame: rect)
         self.view = NSView(frame: NSRect(x: 0, y: 0, width: 500, height: 500))
         self.view.wantsLayer = true
         
