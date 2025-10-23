@@ -196,7 +196,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
             }
-            //            NSApp.terminate(nil)
+            #if !DEBUG
+                    NSApp.terminate(nil)
+            #endif
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -567,24 +569,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     /// Open a certificate details window (SFCertificateView) for the selected identity.
     /// If a window for that cert is already open, bring it to front instead.
     @objc func certSelected(_ sender: NSMenuItem) {
-        
-//        let identity = sender.representedObject as! SecIdentity
-//
-//        var cert: SecCertificate?
-//        guard SecIdentityCopyCertificate(identity, &cert) == errSecSuccess, let cert else { return }
-//        
-//        var trust: SecTrust?
-//        let status = SecTrustCreateWithCertificates(cert, SecPolicyCreateBasicX509(), &trust)
-//        guard status == errSecSuccess, let trust else {
-//            return
-//        }
-//        
-//        let _ = SecTrustEvaluateWithError(trust, nil) // optional, pre-populates validity text
-//        
-//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-//
-//        SFCertificatePanel.shared()?.runModal(for: trust, showGroup: true)
-        
         
         for currentWindow in NSApplication.shared.windows {
             if currentWindow.title.contains(sender.title) {
