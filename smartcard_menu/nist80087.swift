@@ -1221,5 +1221,4 @@ struct nist80087 {
         "97JC": "Missile Defense Agency",
         "97NH": "United States Naval Home"
     ]
-
 }

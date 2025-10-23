@@ -196,9 +196,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
             }
-            #if !DEBUG
-                    NSApp.terminate(nil)
-            #endif
+#if !DEBUG
+            NSApp.terminate(nil)
+#endif
         }
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
@@ -581,20 +581,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         let _wndH: CGFloat = 500
         
         window = CertWindow(contentRect:NSMakeRect(0,0,_wndW,_wndH),styleMask:[.titled, .closable, .resizable], backing:.buffered, defer:false)
-
+        
         window?.title = sender.title
         window?.center()
         let viewCertsViewController = ViewCertsViewController()
         viewCertsViewController.selectedCert = (sender.representedObject as! SecIdentity)
         window?.contentViewController = viewCertsViewController
-                
+        
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
- 
+        
     }
-
-
+    
+    
     /// Ensure a reader submenu exists for the provided token ID, populate it with
     /// certificates (if available), and add debug/export items. Also reflects lock state.
     func showReader(TkID: String) {
@@ -910,9 +910,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         typeOfFile = typeOfFile?.trimmingCharacters(in: .whitespacesAndNewlines)
         
         //if it's a text file check to see if it has a shebang
-        //if no shebang, determine script type        
-        if typeOfFile == "text" {            
-            if let scriptContents = try? String(contentsOf: pathURL) {                
+        //if no shebang, determine script type
+        if typeOfFile == "text" {
+            if let scriptContents = try? String(contentsOf: pathURL) {
                 if !"#!/".contains(scriptContents.components(separatedBy: "\n")[0]) {
                     if "py".contains(ext) {
                         typeOfScript = "python"
@@ -1022,55 +1022,53 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }
         
-        
-        
         myTKWatcher?.addRemovalHandler({ [weak self] CTKTokenID in
             guard let self = self else { return }
             func remove() {
-                    for scMenuItem in self.statusItem.menu!.items {
-                        if scMenuItem.title == "Keychain Locked Error Reading Smartcards" {
+                for scMenuItem in self.statusItem.menu!.items {
+                    if scMenuItem.title == "Keychain Locked Error Reading Smartcards" {
+                        self.statusItem.menu?.removeItem(scMenuItem)
+                    }
+                    if let scMenuItemRepresentedObj = scMenuItem.representedObject as? String {
+                        if scMenuItemRepresentedObj == CTKTokenID {
                             self.statusItem.menu?.removeItem(scMenuItem)
                         }
-                        if let scMenuItemRepresentedObj = scMenuItem.representedObject as? String {
-                            if scMenuItemRepresentedObj == CTKTokenID {
-                                self.statusItem.menu?.removeItem(scMenuItem)
-                            }
-                        }
-                        self.addQuit()
                     }
-                    
-                    if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
-                        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
-                            
-                            if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
-                                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                                if fileExists {
+                    self.addQuit()
+                }
+                
+                if self.statusItem.menu?.item(withTitle: "No Smartcard Inserted") != nil {
+                    if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+                        
+                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out_bw", ofType: "png") {
+                            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                            if fileExists {
+                                
+                                if let button = self.statusItem.button {
+                                    DispatchQueue.main.async {
+                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                    }
                                     
-                                    if let button = self.statusItem.button {
-                                        DispatchQueue.main.async {
-                                            button.image = NSImage(byReferencingFile: fileURLString)
-                                        }
-                                        
-                                    }
-                                } else {
-                                    self.statusItem.button?.title = "NOT Inserted"
                                 }
+                            } else {
+                                self.statusItem.button?.title = "NOT Inserted"
                             }
-                        } else {
-                            if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
-                                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                                if fileExists {
-                                    if let button = self.statusItem.button {
-                                        DispatchQueue.main.async {
-                                            button.image = NSImage(byReferencingFile: fileURLString)
-                                        }
+                        }
+                    } else {
+                        if let fileURLString = Bundle.main.path(forResource: "smartcard_out", ofType: "png") {
+                            let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                            if fileExists {
+                                if let button = self.statusItem.button {
+                                    DispatchQueue.main.async {
+                                        button.image = NSImage(byReferencingFile: fileURLString)
                                     }
-                                } else {
-                                    self.statusItem.button?.title = "NOT Inserted"
                                 }
+                            } else {
+                                self.statusItem.button?.title = "NOT Inserted"
                             }
                         }
                     }
+                }
                 self.debugMenuItems.removeAll(where: { $0.menu == nil })
                 self.exportMenuItems.removeAll(where: { $0.menu == nil })
                 self.seperatorLines.removeAll(where: { $0.menu == nil })
@@ -1352,4 +1350,3 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     }
     
 }
-

@@ -129,7 +129,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 
                 let outputFormatter = DateFormatter()
                 outputFormatter.dateFormat = "MMM-dd-yyyy"
-                    
+                
                 if let date = inputFormatter.date(from: formattedDate) {
                     self.holderExpLabel.stringValue = outputFormatter.string(from: date)
                 } else {
@@ -173,7 +173,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             
             if let orgID = cardInfo.orgID {
                 let nistList = nist80087()
-//                self.organizationalCodeLabel.stringValue = orgID
+                //                self.organizationalCodeLabel.stringValue = orgID
                 self.organizationalCodeLabel.stringValue = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
                 self.organizationalCodeLabel.toolTip = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
                 
@@ -190,7 +190,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 self.secureMessagingLabel.stringValue = "False"
                 self.biometricsLabel.stringValue = "False"
             }
-   
+            
         }
         
     }

@@ -30,7 +30,7 @@ class ViewCertsViewController: NSViewController {
         scrollView.borderType = .lineBorder
         scrollView.hasHorizontalScroller = true
         scrollView.hasVerticalScroller = true
-
+        
         let certView = SFCertificateView()
         guard let secRef = secRef else { return }
         
@@ -41,22 +41,22 @@ class ViewCertsViewController: NSViewController {
         certView.setDisplayDetails(true)
         certView.setPolicies(SecPolicyCreateBasicX509())
         certView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         scrollView.documentView = certView
         view.addSubview(scrollView)
-
+        
         // Layout constraints
         NSLayoutConstraint.activate([
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
+            
             // Provide certificate view a width and height constraint
             certView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             certView.heightAnchor.constraint(greaterThanOrEqualToConstant: 500) 
         ])
     }
-
-}
     
+}
+

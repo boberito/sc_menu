@@ -28,7 +28,7 @@ class PreferencesViewController: NSViewController {
     // MARK: - Script Path UI & Storage
     private var runAtInsertPathField: NSTextField!
     private var runAtRemovalPathField: NSTextField!
-
+    
     private var runAtInsertScriptPath: String? {
         didSet {
             let name = runAtInsertScriptPath.flatMap { URL(fileURLWithPath: $0).lastPathComponent } ?? ""
@@ -106,7 +106,7 @@ class PreferencesViewController: NSViewController {
             
         }
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
-
+        
         startUpButton.frame = NSRect(x: 20, y: 15, width: 200, height: 25)
         switch SMAppService.mainApp.status {
         case .enabled:
@@ -365,7 +365,7 @@ class PreferencesViewController: NSViewController {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowedContentTypes = ["sh", "command", "py", "zsh", "bash", "applescript", "scpt"].compactMap { UTType(filenameExtension: $0) }
-
+        
         if panel.runModal() == .OK, let url = panel.url {
             let path = url.path
             self.runAtInsertScriptPath = path
@@ -373,7 +373,7 @@ class PreferencesViewController: NSViewController {
             os_log("Selected insert script: %{public}s", log: self.prefsLog, type: .default, path)
         }
     }
-
+    
     /// Present an open panel to select a script to run on removal. Stores the full path
     /// in `UserDefaults` under `run_on_removal_script_path` and updates the label.
     @objc private func chooseRemovalScript(_ sender: Any) {
@@ -383,7 +383,7 @@ class PreferencesViewController: NSViewController {
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
         panel.allowedContentTypes = ["sh", "command", "py", "zsh", "bash", "applescript", "scpt"].compactMap { UTType(filenameExtension: $0) }
-
+        
         if panel.runModal() == .OK, let url = panel.url {
             let path = url.path
             self.runAtRemovalScriptPath = path
