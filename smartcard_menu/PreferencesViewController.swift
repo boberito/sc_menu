@@ -88,6 +88,7 @@ class PreferencesViewController: NSViewController {
         
         let notificationsButton = NSButton(checkboxWithTitle: "Show Notifications", target: Any?.self, action: #selector(notificationChange))
         notificationsButton.frame = NSRect(x: 20, y: 45, width: 200, height: 25)
+        let isNotificationsForced = CFPreferencesAppValueIsForced("show_notifications" as CFString, appBundleID as CFString)
         
         let nc = UNUserNotificationCenter.current()
         Task {
@@ -105,6 +106,11 @@ class PreferencesViewController: NSViewController {
             }
             
         }
+        
+        if isNotificationsForced {
+            notificationsButton.isEnabled = false
+        }
+        
         let startUpButton = NSButton(checkboxWithTitle: "Launch SC Menu at Login", target: Any?.self, action: #selector(loginItemChange))
         
         startUpButton.frame = NSRect(x: 20, y: 15, width: 200, height: 25)
