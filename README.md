@@ -12,6 +12,7 @@ Shows a green smartcard icon when the card is inserted. Shows a blank smartcard 
 
 ![additional info](additionalInfo.png "Additional Info")
 
+![preferences window](prefs.png "Preferences Window")
 If you want to disallow user's from being prompted to update SC Menu or have the ability to check for updates.
 
 SC Menu can be registered and unregistered to load at login
@@ -30,6 +31,27 @@ SC Menu can be configured by Configuration Profile deployed by your MDM.
 `disableUpdates` - **Type: Boolean**
 Acceptable Value: **true** or **false**
 Disables "Check for Updates" button and disables the auto-update check on launch.
+
+`showNotifications` - **Type: Boolean**
+Acceptable Value: **true** or **false**
+When mixed with the Notifications payload, it will lock notifications on or off.
+
+`run_on_insert` - **Type: Boolean**
+Acceptable Value: **true** or **false**
+Enables or Disables the ability to run a script on smartcard insertion.
+
+`run_on_insert_script_path` - **Type: String**
+Acceptable Value: **Path to a script**
+POSIX path to a script to run on smartcard insert.
+
+`run_on_removal` - **Type: Boolean**
+Acceptable Value: **true** or **false**
+Enables or Disables the ability to run a script on smartcard removal.
+
+`run_on_removal_script_path` - **Type String**
+Acceptable Value: **Path to a script**
+POSIX path to a script to run on smartcard removal.
+
 
 Example mobileconfig
 ```
