@@ -72,6 +72,16 @@ Example mobileconfig
             <integer>1</integer>
             <key>disableUpdates</key>
             <true/>
+            <key>run_on_insert</key>
+            <true/>
+            <key>run_on_insert_script_path</key>
+            <string>/Users/Shared/insert-piv.sh</string>
+            <key>run_on_removal</key>
+            <true/>
+            <key>run_on_removal_script_path</key>
+            <string>/Users/Shared/myscript.sh</string>
+            <key>show_notifications</key>
+            <true/>
         </dict>
     </array>
     <key>PayloadDescription</key>
