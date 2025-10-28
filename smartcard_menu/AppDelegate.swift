@@ -601,7 +601,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         func insert() {
             let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
-            if TkID.contains("com.apple.setoken") { return }
+            //Escapes and doesn't show the token for the Secure Enclave or pSSO registration.
+            if TkID.contains("com.apple.setoken") || TkID.contains("com.apple.ctkcard") { return }
             if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
                 let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
                 readerMenuItem.representedObject = TkID
