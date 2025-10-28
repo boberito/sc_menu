@@ -9,6 +9,8 @@ import Cocoa
 import CryptoTokenKit
 import OSLog
 
+/// Aggregated cardholder fields gathered from PIV data objects and CHUID parsing. This
+/// drives the UI in `MyInfoViewController`.
 struct CardHolderInfo {
     var imagePath: String? = nil
     var name: String? = nil
@@ -32,6 +34,8 @@ struct CardHolderInfo {
     var CHUIDExpirationDate: String? = nil
 }
 
+/// Parsed subset of the Card Capability Container (CCC) data object. Values are simplified
+/// for display purposes.
 struct CardholderCapabilityContainer {
     var version: String
     var features: [String]
@@ -40,16 +44,20 @@ struct CardholderCapabilityContainer {
     // Add more fields as needed
 }
 
-protocol APDUDelgate {
+/// Callbacks from `smartCardAPDU` for UI updates and PIN failure handling.
+protocol APDUDelgate: AnyObject {
     func didReceiveUpdate(cardInfo: CardHolderInfo)
     func pinFailed(slotName: String, attempts: Int)
 }
 
+/// Encapsulates APDU transport and parsing for PIV cards using CryptoTokenKit. Handles
+/// session lifecycle, PIN verification, TLV parsing, CHUID/FASC-N extraction, and facial
+/// image retrieval and conversion.
 class smartCardAPDU {
     
     var slotNameString = ""
     private let apduLog = OSLog(subsystem: subsystem, category: "APDUFunctions")
-    var delegate: APDUDelgate?
+    weak var delegate: APDUDelgate?
     let SELECT_PIV_APPLICATION: [UInt8] = [0x00, 0xA4, 0x04, 0x00, 0x09, 0xA0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00]
     let GET_FACIAL_IMAGE: [UInt8] = [0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x08, 0x00]
     let GET_CARDHOLDER_NAME: [UInt8] = [0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x09, 0x00]
@@ -86,6 +94,8 @@ class smartCardAPDU {
     )
     
     
+    /// Read a single BER-TLV at `offset` and return (tag, value, nextOffsetDelta).
+    /// Supports short and extended (0x81/0x82) length encodings.
     func getBER_TLV(data: [UInt8], offset: Int = 0) -> (UInt8, [UInt8], Int)? {
         guard offset < data.count else {
             os_log("Offset out of range", log: self.apduLog, type: .error)
@@ -120,6 +130,8 @@ class smartCardAPDU {
     }
     
     
+    /// Decode a sequence of BER-TLVs into an array of [tag + value] byte arrays. If the first
+    /// tag is 0x53, recursively decode its inner payload.
     func decodeBER_TLV(data: [UInt8]) -> [[UInt8]]? {
         var offset = 0
         var rtnList: [[UInt8]] = []
@@ -152,6 +164,7 @@ class smartCardAPDU {
         }
     }
     
+    /// Persist raw facial image bytes to a temp .dat file for later extraction/conversion.
     func saveFacialImage(_ imageData: Data) {
         let directoryURL = URL(fileURLWithPath: "\(tempPath)image")
         
@@ -166,6 +179,8 @@ class smartCardAPDU {
             os_log("Failed to save image data: %{public}s", log: apduLog, type: .error, error.localizedDescription)
         }
     }
+    /// Inspect the saved .dat for JP2/JPC/JPEG signatures and export a usable image file.
+    /// If JPC is found, uses `ImageConversionService` to convert to JPEG.
     func extractImageFromDat() async {
         os_log("Attempting to read facial image data from .dat file...", log: apduLog, type: .default)
         let datFile = "\(tempPath)image/facial_image.dat"
@@ -225,6 +240,7 @@ class smartCardAPDU {
         }
     }
     
+    /// Best-effort conversion of data to UTF-8 string; falls back to uppercase hex.
     func hex_to_string(with hexData: Data) -> String{
         if let string = String(data: hexData, encoding: .utf8) {
             return string
@@ -234,6 +250,7 @@ class smartCardAPDU {
     }
     
     
+    /// Parse a subset of CCC TLVs into a `CardholderCapabilityContainer` for display.
     func parseCCCResponse(_ response: [[UInt8]]) -> CardholderCapabilityContainer? {
         var version = ""
         var features = [String]()
@@ -280,6 +297,7 @@ class smartCardAPDU {
         )
     }
     
+    /// Append debug logs to ~/Library/Logs/smartcard_apdu.log when debug mode is enabled.
     private func writeLogs(log: String) {
         let newlinelog = log + "\n"
         if let fileHandle = try? FileHandle(forWritingTo: self.logPath!) {
@@ -303,14 +321,25 @@ class smartCardAPDU {
             
         }
     }
+    /// High-level flow: GET facial image -> GET cardholder name block -> GET CCC -> GET CHUID.
+    /// Populates `cardHolderInfo` and notifies the delegate on completion.
     func retrieveData() {
+        // High-level APDU chain executed after successful PIN verify:
+        // 1) GET facial image (5FC108) -> save raw -> extract JP2/JPC/JPEG
+        // 2) GET cardholder name block (5FC109) -> parse TLVs into fields
+        // 3) GET Card Capability Container (5FC107) -> parse into CCC model
+        // 4) GET CHUID (5FC102) -> parse TLVs, extract FASC-N + metadata
+        // Finally, end the session and notify the delegate with the aggregated `cardHolderInfo`.
         os_log("Retrieving facial image...", log: apduLog, type: .default)
         
+        // 1) Facial Image: may be JP2 container, raw JPC code stream, or JPEG depending on card.
+        //    We save and then extract/convert to a displayable format.
         sendAPDUCommand(apdu: GET_FACIAL_IMAGE) { data, sw1, sw2 in
             if sw1 == 0x90 && sw2 == 0x00 {
                 if self.debugMode {
                     self.writeLogs(log: "facial image: \(data)")
                 }
+                // Parse TLV response to locate the 0xBC (biometric container) which holds the image bytes.
                 let tv_data = self.decodeBER_TLV(data: data)
                 
                 guard let tv_data else { return }
@@ -336,6 +365,7 @@ class smartCardAPDU {
                 
             }
             os_log("Retrieving Card Holder Name...", log: self.apduLog, type: .default)
+            // Parse cardholder name TLV set; each tag maps to a specific field (name, affiliation, etc.).
             self.sendAPDUCommand(apdu: self.GET_CARDHOLDER_NAME) { data, sw1, sw2 in
                 if sw1 == 0x90 && sw2 == 0x00 {
                     let tv_data = self.decodeBER_TLV(data: data)
@@ -376,6 +406,7 @@ class smartCardAPDU {
                     os_log("Failed to retrieve Card Holder Information", log: self.apduLog, type: .error)
                 }
                 os_log("Retrieving Card Capacity Container...", log: self.apduLog, type: .default)
+                // Parse CCC TLVs and convert a subset into a display model (version, features, support flags).
                 self.sendAPDUCommand(apdu: self.GET_CARD_CAPABILITY_CONTAINER) { data, sw1, sw2 in
                     if sw1 == 0x90 && sw2 == 0x00 {
                         if self.debugMode {
@@ -397,6 +428,7 @@ class smartCardAPDU {
                         os_log("Failed to retrieve Card Capability Container", log: self.apduLog, type: .error)
                     }
                     os_log("Retrieving Card Unique Identifier...", log: self.apduLog, type: .default)
+                    // Parse CHUID TLVs. 0x30 contains the FASC-N; extract and decode 5-bit symbols into fields.
                     self.sendAPDUCommand(apdu: self.GET_CARD_HOLDER_UNIQUE_IDENTIFIER) { data, sw1, sw2 in
                         os_log("SW1: %{public}s, SW2: %{public}s", log: self.apduLog, type: .debug, String(format: "%02x", sw1), String(format: "%02x", sw2))
                         if sw1 == 0x90 && sw2 == 0x00 {
@@ -452,6 +484,7 @@ class smartCardAPDU {
         
     }
     
+    /// Decode a 5-bit BCD symbol used by FASC-N into its string representation.
     func decodeBCD(bcd_num: UInt8) -> String? {
         let bcd_table: [String: UInt8] = [
             "0": 0b00001,
@@ -472,7 +505,10 @@ class smartCardAPDU {
         return bcd_table.first(where: { $0.value == bcd_num })?.key
     }
     
+    /// Extract 5-bit FASC-N symbols from a packed byte stream and forward to field conversion.
     func extractFascNFields(from data: Data) {
+        // FASC-N is a packed 5-bit-per-symbol stream. Build a bit buffer and peel off 5-bit chunks
+        // to produce a list of BCD-like symbols before converting them into human-readable fields.
         var fasc_n_list: [String] = []
         var bitShiftedData = [UInt8]()
         
@@ -507,6 +543,8 @@ class smartCardAPDU {
         convertFascNFields(from: fasc_n_list)
     }
     
+    /// Convert decoded FASC-N symbols into human-readable fields (agency code, system code,
+    /// credential number/series, org/person categories, etc.) and store into `cardHolderInfo`.
     func convertFascNFields(from bcdValues: [String?]){
         os_log("Attempting to convert FASC-N fields...", log: apduLog, type: .default)
         let agencyCode = bcdValues[1...4].compactMap { $0 }.joined()
@@ -528,6 +566,7 @@ class smartCardAPDU {
         
         cardHolderInfo.individualCredentail = individualCredentialIssue
         cardHolderInfo.personID = personIdentifier
+        // Map organizational/person categories to descriptive strings per spec.
         var orgCategory: String
         switch organizationalCategory
         {
@@ -586,6 +625,7 @@ Person Association Category: \(personCategory)
     }
     
     
+    /// Convert an array of ASCII byte values into a Swift String.
     func getStr(inputList: [UInt8]) -> String {
         var output = ""
         for byte in inputList {
@@ -598,7 +638,10 @@ Person Association Category: \(personCategory)
         return output
     }
     
+    /// Entry point to select the correct reader slot, open a session, and (optionally) log ATR.
+    /// Proceeds to `startSession` where PIN verification and data retrieval occur.
     func initializeSmartCard(with pin: Data, with passedSlot: String) async {
+        // Locate the slot that matches `passedSlot` and (optionally) log ATR in debug mode.
         if debugMode {
             if let logPath = logPath {
                 os_log("MY LOG: %{public}s", log: self.apduLog, type: .debug, logPath.absoluteString)
@@ -626,9 +669,11 @@ Person Association Category: \(personCategory)
         }
         return
     }
+    /// Helper to log the ATR bytes to the debug log for the active slot.
     func getATRLog(cardSlotName: String, cardSlotManager: TKSmartCardSlotManager, completion: @escaping (Data) -> Void){
         cardSlotManager.getSlot(withName: slotNameString, reply: { slot in
             if let atr = slot?.atr {
+                // Convert ATR bytes to hex for easier debugging and external tools.
                 let atr = atr.bytes.hexEncodedString()
                 
                 os_log("ATR: %{public}s", log: self.apduLog, type: .debug, atr)
@@ -637,8 +682,10 @@ Person Association Category: \(personCategory)
             }
         })
     }
+    /// Construct and transmit a VERIFY PIN APDU (8-byte PIN, padded/truncated as needed).
+    /// Calls completion with success/failure.
     func sendVerifyPINCommand(pin: Data, smartCardSlot: TKSmartCardSlot, completion: @escaping (Bool) -> Void) {
-        
+        // Normalize PIN to exactly 8 bytes as required by VERIFY (pad with 0xFF or truncate).
         var pinArray: [UInt8] = [UInt8](pin)
         
         // Ensure the pin is of correct length (e.g., 8 bytes)
@@ -650,7 +697,7 @@ Person Association Category: \(personCategory)
             pinArray = Array(pinArray.prefix(8))
         }
         
-        // Construct the APDU for verifying the PIN (no padding after PIN)
+        // VERIFY: CLA=00, INS=20, P1=00, P2=80 (reference), LC=08 (PIN length), followed by 8-byte PIN.
         let verifyPINCommand: [UInt8] = [
             0x00, // CLA: Class byte
             0x20, // INS: Instruction byte (Verify)
@@ -677,7 +724,12 @@ Person Association Category: \(personCategory)
         }
     }
     
+    /// Begin a TKSmartCard session, select the PIV applet, then verify the PIN. On success,
+    /// chains into `retrieveData()`. On failure, determines remaining attempts and notifies delegate.
     func startSession(pin: Data, smartCardSlot: TKSmartCardSlot) {
+        // Open a card session, select the PIV application (AID), then verify the user PIN.
+        // On success, chain into `retrieveData()`; on failure, determine attempts remaining
+        // with a null VERIFY and report via delegate.
         smartCard = smartCardSlot.makeSmartCard()
         
         smartCard?.beginSession( reply: { success , error in
@@ -718,11 +770,18 @@ Person Association Category: \(personCategory)
         })
         
     }
+    /// Transmit an APDU and return the response bytes along with SW1/SW2. If SW1==0x61, recursively
+    /// issues GET RESPONSE commands to fetch remaining data, concatenating the result.
     func sendAPDUCommand(apdu: [UInt8], completion: @escaping ([UInt8], UInt8, UInt8) -> Void) {
+        // Generic APDU transmit wrapper. Handles:
+        // - Logging (with PIN-masking for VERIFY)
+        // - Extracting payload vs. SW1/SW2
+        // - Following 0x61 (more data) with GET RESPONSE and concatenating chunks
         
-        // Convert command array to Data
+        // Convert the APDU byte array into Data for CryptoTokenKit.
         let apduData = Data(apdu)
         if debugMode {
+            // Mask the PIN for VERIFY (00 20 00 80 08 <8 bytes>) when logging.
             let apduString = apdu.map { String(format: "%02X", $0) }.joined()
             if apduString.starts(with: "0020008008") {
                 writeLogs(log: "Sending APDU: 0020008008XXXXXXXXXXXX")
@@ -740,6 +799,7 @@ Person Association Category: \(personCategory)
                     return
                 }
                 
+                // Separate data payload from status words. SW1/SW2 are the last two bytes.
                 var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
                 let sw1 = responseData[responseData.count - 2]
                 let sw2 = responseData[responseData.count - 1]
@@ -748,7 +808,7 @@ Person Association Category: \(personCategory)
                 }
                 
                 
-                // Check if more data is available (SW1 == 0x61)
+                // SW1==0x61 means "more data available"; issue GET RESPONSE (Le=SW2) and append bytes.
                 if sw1 == 0x61 {
                     let getResponseCommand: [UInt8] = [
                         0x00, 0xC0, 0x00, 0x00, sw2
@@ -777,3 +837,4 @@ Person Association Category: \(personCategory)
         }
     }
 }
+

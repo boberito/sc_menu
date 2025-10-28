@@ -11,9 +11,12 @@
 		731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */; };
 		731A33CA2CD5B80F00EE6778 /* APDUFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */; };
 		7338D8902BB1E9590003D385 /* UpdateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7338D88F2BB1E9590003D385 /* UpdateCheck.swift */; };
+		734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */; };
 		734F914E2B95719F005C24ED /* smartcard_in_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914C2B95719F005C24ED /* smartcard_in_bw.png */; };
 		734F914F2B95719F005C24ED /* smartcard_out_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914D2B95719F005C24ED /* smartcard_out_bw.png */; };
 		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
+		736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 736E51C62E8D37B200F07D9F /* Subprocess */; };
+		7396D1412E945E8A00DEB0E8 /* new_icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 7396D1402E945E8A00DEB0E8 /* new_icon.icon */; };
 		73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C7726E2D5C33BA00D4031A /* libopenjp2.a */; };
 		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
 		73DE8C342D67925800458A21 /* nist80087.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DE8C332D67925800458A21 /* nist80087.swift */; };
@@ -37,9 +40,11 @@
 		731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyInfoViewController.swift; sourceTree = "<group>"; };
 		731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APDUFunctions.swift; sourceTree = "<group>"; };
 		7338D88F2BB1E9590003D385 /* UpdateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCheck.swift; sourceTree = "<group>"; };
+		734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCertsViewController.swift; sourceTree = "<group>"; };
 		734F914C2B95719F005C24ED /* smartcard_in_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_in_bw.png; sourceTree = "<group>"; };
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
+		7396D1402E945E8A00DEB0E8 /* new_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = new_icon.icon; sourceTree = "<group>"; };
 		73C7726E2D5C33BA00D4031A /* libopenjp2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libopenjp2.a; sourceTree = "<group>"; };
 		73C7726F2D5C33BA00D4031A /* openjpeg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = openjpeg.h; sourceTree = "<group>"; };
 		73C772702D5C33BA00D4031A /* opj_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = opj_config.h; sourceTree = "<group>"; };
@@ -70,6 +75,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */,
+				736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +118,7 @@
 				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
 				86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */,
 				860203512B84F2DE00E84186 /* ViewCerts.swift */,
+				734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */,
 				86FF1DC52B7FA45A007F3959 /* ViewController.swift */,
 				731A33C52CD5B47400EE6778 /* MyInfoWindow.swift */,
 				731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */,
@@ -123,6 +130,7 @@
 				86FF1DDC2B7FCE60007F3959 /* smartcard_out.png */,
 				734F914C2B95719F005C24ED /* smartcard_in_bw.png */,
 				734F914D2B95719F005C24ED /* smartcard_out_bw.png */,
+				7396D1402E945E8A00DEB0E8 /* new_icon.icon */,
 			);
 			path = smartcard_menu;
 			sourceTree = "<group>";
@@ -155,7 +163,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1530;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					86FF1DBF2B7FA45A007F3959 = {
 						CreatedOnToolsVersion = 15.2;
@@ -171,6 +179,9 @@
 				Base,
 			);
 			mainGroup = 86FF1DB72B7FA45A007F3959;
+			packageReferences = (
+				736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */,
+			);
 			productRefGroup = 86FF1DC12B7FA45A007F3959 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -191,6 +202,7 @@
 				734F914E2B95719F005C24ED /* smartcard_in_bw.png in Resources */,
 				86FF1DC82B7FA45B007F3959 /* Assets.xcassets in Resources */,
 				86FF1DCB2B7FA45B007F3959 /* Main.storyboard in Resources */,
+				7396D1412E945E8A00DEB0E8 /* new_icon.icon in Resources */,
 				734F914F2B95719F005C24ED /* smartcard_out_bw.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -217,6 +229,7 @@
 				73DE8C342D67925800458A21 /* nist80087.swift in Sources */,
 				731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */,
 				86F7327D2B92D317007DFED7 /* PrefView.swift in Sources */,
+				734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,6 +283,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 2WUMX954UB;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -293,9 +307,10 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -335,6 +350,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 2WUMX954UB;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -351,8 +367,9 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -360,7 +377,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = new_icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = smartcard_menu/smartcard_menu.entitlements;
@@ -368,9 +385,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 679;
+				CURRENT_PROJECT_VERSION = 789;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 2WUMX954UB;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
@@ -388,7 +405,7 @@
 					"$(PROJECT_DIR)/smartcard_menu",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -402,7 +419,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = new_icon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = smartcard_menu/smartcard_menu.entitlements;
@@ -410,9 +427,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 679;
+				CURRENT_PROJECT_VERSION = 789;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 2WUMX954UB;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
@@ -430,7 +447,7 @@
 					"$(PROJECT_DIR)/smartcard_menu",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.9;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -462,6 +479,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		736E51C62E8D37B200F07D9F /* Subprocess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */;
+			productName = Subprocess;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 86FF1DB82B7FA45A007F3959 /* Project object */;
 }

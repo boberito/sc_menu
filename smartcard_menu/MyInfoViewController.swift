@@ -7,20 +7,28 @@
 import Cocoa
 import os
 
-protocol isLockedDelegate {
+/// Notifies when a PIN verification attempt failed and the card is locked (0 attempts remaining).
+/// Implemented by `AppDelegate` to update menu/icon state.
+protocol isLockedDelegate: AnyObject {
     func pinFailedandLocked(slotName: String)
 }
 
+/// A window controller that initializes a PIV smartcard session, verifies PIN, and displays
+/// cardholder information (image, CHUID fields, affiliations, etc.) retrieved via APDUs.
+/// Uses `smartCardAPDU` to perform the reads and receives updates through `APDUDelgate`.
 class MyInfoViewController: NSViewController, APDUDelgate {
     
     private let infoViewLog = OSLog(subsystem: subsystem, category: "CardInfo")
     let apduFunctions = smartCardAPDU()
-    var pinDelegate: isLockedDelegate?
+    weak var pinDelegate: isLockedDelegate?
     var passedSlot: String? = nil
     var pin: Data? = nil
+    /// APDU delegate callback when PIN verification fails. Presents an alert and informs
+    /// the `pinDelegate` (e.g., AppDelegate) so the UI can reflect a locked card.
     func pinFailed(slotName: String, attempts: Int) {
         if attempts == 0 {
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 NSApplication.shared.keyWindow?.close()
                 let alert = NSAlert()
                 alert.messageText = "PIN Failed"
@@ -33,7 +41,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 self.pinDelegate?.pinFailedandLocked(slotName: slotName)
             }
         } else {
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
                 NSApplication.shared.keyWindow?.close()
                 let alert = NSAlert()
                 alert.messageText = "PIN Failed"
@@ -47,10 +56,13 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             }
         }
     }
+    /// APDU delegate callback with parsed cardholder info. Updates UI elements on the main thread.
+    /// Handles both image loading and textual metadata rendering.
     func didReceiveUpdate(cardInfo: CardHolderInfo) {
         //      do things
         os_log("Updating Card Info Window", log: self.infoViewLog, type: .default)
-        DispatchQueue.main.async {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             if let imagePath = cardInfo.imagePath {
                 if FileManager.default.fileExists(atPath: imagePath) {
                     
@@ -96,7 +108,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 // Assign to holderExpLabel
                 self.holderExpLabel.stringValue = formattedDate
             } else if let exp = cardInfo.CHUIDExpirationDate {
-//                20231116
                 let startIndex = exp.startIndex
                 let yearRange = startIndex..<exp.index(startIndex, offsetBy: 4)  // "2023"
                 let monthRange = exp.index(startIndex, offsetBy: 4)..<exp.index(startIndex, offsetBy: 6)  // "11"
@@ -118,7 +129,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 
                 let outputFormatter = DateFormatter()
                 outputFormatter.dateFormat = "MMM-dd-yyyy"
-                    
+                
                 if let date = inputFormatter.date(from: formattedDate) {
                     self.holderExpLabel.stringValue = outputFormatter.string(from: date)
                 } else {
@@ -162,7 +173,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
             
             if let orgID = cardInfo.orgID {
                 let nistList = nist80087()
-//                self.organizationalCodeLabel.stringValue = orgID
+                //                self.organizationalCodeLabel.stringValue = orgID
                 self.organizationalCodeLabel.stringValue = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
                 self.organizationalCodeLabel.toolTip = "\(orgID) - \(nistList.list[orgID] ?? "Not Found")"
                 
@@ -180,8 +191,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
                 self.biometricsLabel.stringValue = "False"
             }
             
-            
-            
         }
         
     }
@@ -194,8 +203,6 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     let holderExpLabel = NSTextField()
     let cardSerialLabel = NSTextField()
     let issuerIdentifierLabel = NSTextField()
-    
-    
     let agencyCardSerialLabel = NSTextField()
     let organizationalCodeLabel = NSTextField()
     let agencyCodeLabel = NSTextField()
@@ -213,7 +220,8 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     
     private let prefsLog = OSLog(subsystem: subsystem, category: "My Card Info")
     override func loadView() {
-        
+        // Build the layout programmatically and immediately kick off APDU reads once `pin`
+        // and `passedSlot` are provided. If either is missing, the window closes.
         
         apduFunctions.delegate = self
         
@@ -554,3 +562,4 @@ class MyInfoViewController: NSViewController, APDUDelgate {
         }
     }
 }
+

@@ -85,7 +85,7 @@ class ImageConversionService {
         guard let buffer = context.data else {
             os_log("Error: Failed to get context data buffer", log: ICSLog, type: .error)
             throw NSError(domain: "ImageConversionService", code: 8, userInfo: [NSLocalizedDescriptionKey: "Failed to get context data buffer"])
-
+            
         }
         
         // Convert image data
@@ -124,9 +124,9 @@ class ImageConversionService {
         // Create CGImage
         guard let cgImage = context.makeImage() else {
             os_log("Error: Failed to create CGImage", log: ICSLog, type: .error)
-//            print("Error: Failed to create CGImage")
+            //            print("Error: Failed to create CGImage")
             throw NSError(domain: "ImageConversionService", code: 9, userInfo: [NSLocalizedDescriptionKey: "Error: Failed to create CGImage"])
-
+            
             
         }
         
@@ -152,5 +152,5 @@ class ImageConversionService {
         
         return
     }
-
+    
 }
