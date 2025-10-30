@@ -222,7 +222,7 @@ class PreferencesViewController: NSViewController {
         infoTextView.textStorage?.setAttributedString(infoAttributedString)
         
         let appIcon = NSImageView(frame:NSRect(x: 265, y:170, width: 40, height: 40))
-        appIcon.image = NSImage(named: "AppIcon")
+        appIcon.image = NSImage(named: "new_icon")
         
         view.addSubview(iconLabel)
         view.addSubview(startUpButton)
