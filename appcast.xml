@@ -12,11 +12,11 @@
 
     <!-- Latest release -->
     <item>
-      <title>SC Menu 2.1</title>
+      <title>SC Menu 2.0</title>
 
       <!-- Human-facing release notes page (can be GitHub release page) -->
       <sparkle:releaseNotesLink>
-        https://github.com/boberito/sc_menu/releases/tag/v2.0.0
+        https://github.com/boberito/sc_menu/releases/tag/2.0
       </sparkle:releaseNotesLink>
 
       <!-- Publish date (RFC 2822) -->
