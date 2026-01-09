@@ -146,7 +146,6 @@ class ViewCerts{
                                 days = UserDefaults.standard.integer(forKey: "DaysToExpiration")
                             }
                             guard let xDaysFromNow = Calendar.current.date(byAdding: .day, value: days, to: Date.now) else { continue }
-                            print("Expires X Days from now : \(expDate), now: \(Date.now), xDaysFromNow: \(xDaysFromNow), Days: \(days), pref: \(UserDefaults.standard.integer(forKey: "DaysToExpiration"))")
                             if expDate <= xDaysFromNow && expDate >= Date.now {
                                 let nc = UNUserNotificationCenter.current()
                                 let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expDate).day ?? 0

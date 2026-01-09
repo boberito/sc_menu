@@ -17,6 +17,7 @@ import ServiceManagement
 import Security
 import Subprocess
 import System
+import Sparkle
 
 let subsystem = "com.ttinc.sc-menu"
 
@@ -160,6 +161,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     
     var menuIsOpen = false
     
+    private lazy var updaterController: SPUStandardUpdaterController = {
+           SPUStandardUpdaterController(
+               startingUpdater: true,
+               updaterDelegate: nil,
+               userDriverDelegate: nil
+           )
+       }()
+    
+    override init() {
+        super.init()
+     }
+    
+    @IBAction func checkForUpdates(_ sender: Any?) {
+            updaterController.checkForUpdates(sender)
+        }
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App startup: request notifications, optionally register/unregister as login item,
         // configure observers, and initialize the status item & token watcher.
@@ -224,15 +241,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
         UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
         guard let appBundleID = Bundle.main.bundleIdentifier else { return }
-        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
-        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
-            os_log("Updates disabled", log: self.appLog, type: .default)
-        } else {
-            let updater = UpdateCheck()
-            Task {
-                await updater.check()
-            }
-        }
+        
+//        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
+//        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
+//            os_log("Updates disabled", log: self.appLog, type: .default)
+//        } else {
+//            let updater = UpdateCheck()
+//            Task {
+//                await updater.check()
+//            }
+//        }
         
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),

@@ -17,6 +17,7 @@
 		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
 		736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 736E51C62E8D37B200F07D9F /* Subprocess */; };
 		7396D1412E945E8A00DEB0E8 /* new_icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 7396D1402E945E8A00DEB0E8 /* new_icon.icon */; };
+		73ACFD0F2F115FC200460E13 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 73ACFD0E2F115FC200460E13 /* Sparkle */; };
 		73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C7726E2D5C33BA00D4031A /* libopenjp2.a */; };
 		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
 		73DE8C342D67925800458A21 /* nist80087.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DE8C332D67925800458A21 /* nist80087.swift */; };
@@ -45,6 +46,7 @@
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		7396D1402E945E8A00DEB0E8 /* new_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = new_icon.icon; sourceTree = "<group>"; };
+		73ACFD102F1166BC00460E13 /* SC-Menu-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SC-Menu-Info.plist"; sourceTree = "<group>"; };
 		73C7726E2D5C33BA00D4031A /* libopenjp2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libopenjp2.a; sourceTree = "<group>"; };
 		73C7726F2D5C33BA00D4031A /* openjpeg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = openjpeg.h; sourceTree = "<group>"; };
 		73C772702D5C33BA00D4031A /* opj_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = opj_config.h; sourceTree = "<group>"; };
@@ -74,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				73ACFD0F2F115FC200460E13 /* Sparkle in Frameworks */,
 				73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */,
 				736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */,
 			);
@@ -85,6 +88,7 @@
 		86FF1DB72B7FA45A007F3959 = {
 			isa = PBXGroup;
 			children = (
+				73ACFD102F1166BC00460E13 /* SC-Menu-Info.plist */,
 				86FF1DC22B7FA45A007F3959 /* smartcard_menu */,
 				86FF1DC12B7FA45A007F3959 /* Products */,
 				766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */,
@@ -181,6 +185,7 @@
 			mainGroup = 86FF1DB72B7FA45A007F3959;
 			packageReferences = (
 				736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */,
+				73ACFD0D2F115FC200460E13 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = 86FF1DC12B7FA45A007F3959 /* Products */;
 			projectDirPath = "";
@@ -390,6 +395,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SC-Menu-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -432,6 +438,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "SC-Menu-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "SC Menu";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -489,6 +496,14 @@
 				minimumVersion = 0.1.0;
 			};
 		};
+		73ACFD0D2F115FC200460E13 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -496,6 +511,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */;
 			productName = Subprocess;
+		};
+		73ACFD0E2F115FC200460E13 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73ACFD0D2F115FC200460E13 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss
+  version="2.0"
+  xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+  xmlns:dc="http://purl.org/dc/elements/1.1/">
+
+  <channel>
+    <title>SC Menu</title>
+    <link>https://github.com/boberito/sc_menu</link>
+    <description>Software updates for SC Menu.</description>
+    <language>en</language>
+
+    <!-- Latest release -->
+    <item>
+      <title>SC Menu 2.1</title>
+
+      <!-- Human-facing release notes page (can be GitHub release page) -->
+      <sparkle:releaseNotesLink>
+        https://github.com/boberito/sc_menu/releases/tag/v2.0.0
+      </sparkle:releaseNotesLink>
+
+      <!-- Publish date (RFC 2822) -->
+      <pubDate>Fri, 09 Jan 2026 12:00:00 -0500</pubDate>
+
+      <!-- Optional: author -->
+      <dc:creator>Bob Gendler</dc:creator>
+
+      <!-- The actual update file users download -->
+      <enclosure
+        url="https://github.com/boberito/sc_menu/releases/download/v2.0.0/SC_Menu-2.0.0.dmg"
+        length="__BYTES__"
+        type="application/octet-stream"
+        sparkle:version="200"
+        sparkle:shortVersionString="2.0.0"
+        sparkle:edSignature="__EDDSA_SIGNATURE__"
+      />
+
+      <!-- Optional: minimum OS -->
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+    </item>    
+
+  </channel>
+</rss>
