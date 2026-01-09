@@ -141,9 +141,13 @@ class ViewCerts{
                         }
                         
                         if let expDate = expirationDate {
-                            guard let thirtyDaysFromNow = Calendar.current.date(byAdding: .day, value: 30, to: Date.now) else { continue }
-                            
-                            if expDate <= thirtyDaysFromNow && expDate >= Date.now {
+                            var days = 30
+                            if UserDefaults.standard.integer(forKey: "DaysToExpiration") != 0 {
+                                days = UserDefaults.standard.integer(forKey: "DaysToExpiration")
+                            }
+                            guard let xDaysFromNow = Calendar.current.date(byAdding: .day, value: days, to: Date.now) else { continue }
+                            print("Expires X Days from now : \(expDate), now: \(Date.now), xDaysFromNow: \(xDaysFromNow), Days: \(days), pref: \(UserDefaults.standard.integer(forKey: "DaysToExpiration"))")
+                            if expDate <= xDaysFromNow && expDate >= Date.now {
                                 let nc = UNUserNotificationCenter.current()
                                 let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expDate).day ?? 0
                                 os_log("Certificate on the smartcard is expiring within %{public}d days", log: certLog, type: .info, daysUntilExpiration)
