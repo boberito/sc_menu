@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/boberito/sc-menu-test/main/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/boberito/sc_menu/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>ZME/ljVgiuE3yevDwqNL5kK3hPRVzZLRZnc3Ihz9gl8=</string>
 </dict>
