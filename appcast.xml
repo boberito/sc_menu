@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss
+  version="2.0"
+  xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+  xmlns:dc="http://purl.org/dc/elements/1.1/">
+
+  <channel>
+    <title>SC Menu</title>
+    <link>https://github.com/boberito/sc_menu</link>
+    <description>Software updates for SC Menu.</description>
+    <language>en</language>
+
+    <!-- Latest release -->
+    <item>
+      <title>SC Menu 2.1</title>        
+  <description sparkle:format="plain-text"><![CDATA[
+- Added configuration option to configure days to show notification until certificates expire (MDM or defaults write command)
+- Fixed issue with displaying com.apple.ctkcard:user 
+- Updated to show new icon in Preferences window
+- Added Sparkle Framework for app updating 
+  ]]></description>
+      <sparkle:fullReleaseNotesLink>https://github.com/boberito/sc_menu/releases/tag/2.1</sparkle:fullReleaseNotesLink>
+      <pubDate>Tue, 20 Jan 2026 16:00:00 -0500</pubDate>
+      <dc:creator>Bob Gendler</dc:creator>
+
+      <!-- The actual update file users download -->
+      <enclosure
+        url="https://github.com/boberito/sc-menu/releases/download/2.1/SC_Menu.dmg"
+        type="application/x-apple-diskimage"
+        sparkle:version="810"
+        sparkle:shortVersionString="2.1"
+        sparkle:edSignature="IJeJOcF5tToUC+O2rg5KKFYOAcHaLQz3t4VvxkxI97MtxReowMupUGJv+ZCE+mlG90vkxTSinB33dVF07yNHAg==" length="4259243"
+    />
+
+      <!-- Optional: minimum OS -->
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+    </item>    
+
+  </channel>
+</rss>
