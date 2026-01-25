@@ -242,15 +242,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
         guard let appBundleID = Bundle.main.bundleIdentifier else { return }
         
-//        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
-//        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
-//            os_log("Updates disabled", log: self.appLog, type: .default)
-//        } else {
-//            let updater = UpdateCheck()
-//            Task {
-//                await updater.check()
-//            }
-//        }
+        let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
+        if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
+            os_log("Updates disabled", log: self.appLog, type: .default)
+        } else {
+//            checkForUpdates(self)
+            updaterController.updater.checkForUpdatesInBackground()
+        }
+        
+        
         
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),

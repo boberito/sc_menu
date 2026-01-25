@@ -319,28 +319,6 @@ class PreferencesViewController: NSViewController {
     @objc func updateCheck(_ sender: NSButton) {
         os_log("Update button pressed", log: prefsLog, type: .default)
         (NSApp.delegate as? AppDelegate)?.checkForUpdates(nil)
-//        let updater = UpdateCheck()
-//        Task {
-//            switch await updater.check() {
-//            case 1:
-//                return
-//            case 2:
-//                let alert = NSAlert()
-//                alert.messageText = "Error"
-//                alert.informativeText = """
-//            Cannot reach GitHub to check SC Menu updates.
-//            """
-//                alert.runModal()
-//            default:
-//                let alert = NSAlert()
-//                alert.messageText = "No Update Available"
-//                alert.informativeText = """
-//            SC Menu is currently up to date.
-//            """
-//                alert.runModal()
-//            }
-//        }
-        
     }
     
     
