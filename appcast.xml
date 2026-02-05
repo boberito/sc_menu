@@ -17,6 +17,7 @@
 - Added configuration option to configure days to show notification until certificates expire (MDM or defaults write command)
 - Fixed issue with displaying com.apple.ctkcard:user 
 - Updated to show new icon in Preferences window
+- Sped up UI changes and notifications on card insertion by moving certain functions to MainActor and async/await
 - Added Sparkle Framework for app updating 
   ]]></description>
       <sparkle:fullReleaseNotesLink>https://github.com/boberito/sc_menu/releases/tag/2.1</sparkle:fullReleaseNotesLink>
@@ -29,7 +30,7 @@
         type="application/x-apple-diskimage"
         sparkle:version="810"
         sparkle:shortVersionString="2.1"
-        sparkle:edSignature="IJeJOcF5tToUC+O2rg5KKFYOAcHaLQz3t4VvxkxI97MtxReowMupUGJv+ZCE+mlG90vkxTSinB33dVF07yNHAg==" length="4259243"
+        sparkle:edSignature="Tjn9PxMfVrNPq9TV37ATLk2vabCtk0eIwlhUu36kfskrFEhuxLbVspIn694/EfL7YPD9zb7ldgBD+S1KWzD9Ag==" length="4260455"
     />
 
       <!-- Optional: minimum OS -->
