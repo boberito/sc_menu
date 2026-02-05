@@ -1,3 +1,17 @@
+<div align="center">
+
+<img src="appicon.png" width="128">
+
+<h2> SC Menu </h2>
+
+A lightweight menu application for viewing PIV based smartcards.
+    
+![macOS 3+](https://img.shields.io/badge/macOS-13%2B-blue?logo=apple)
+![Swift 5](https://img.shields.io/badge/Swift-5-red?logo=swift)
+![License](https://img.shields.io/badge/License-MIT-green)
+    
+</div>
+
 # sc_menu
 Simple smartcard Menu item
 

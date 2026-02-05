@@ -17,6 +17,7 @@ import ServiceManagement
 import Security
 import Subprocess
 import System
+import Sparkle
 
 let subsystem = "com.ttinc.sc-menu"
 
@@ -43,70 +44,74 @@ struct CardStatus {
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
     
     func pinFailedandLocked(slotName: String) {
-        
-        guard let checkCardstatus = checkCard(slotName: slotName) else { return }
-        
-        if checkCardstatus.isLocked {
-            RunLoop.main.perform { [weak self] in
-                guard let self else { return }
-                if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
-                    
-                    if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
-                        
-                        guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
-                        
-                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                        if fileExists {
-                            if let button = self.statusItem.button {
-                                button.image = NSImage(byReferencingFile: fileURLString)
-                                let circleSize = NSSize(width: 10, height: 10)
-                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
-                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
-                                    buttonImage.draw(in: newImageRect)
-                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
-                                    NSColor.red.setFill()
-                                    circlePath.fill()
-                                    return true
-                                }
-                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                                    fatalError("Failed to create CGImage")
-                                }
-                                button.image = redCircleImage
-                            }
+        // Re-check card state off the main thread; UI updates happen on the main queue.
+        Task { [weak self] in
+            guard let self else { return }
+            guard let checkCardstatus = await self.checkCard(slotName: slotName) else { return }
+            guard checkCardstatus.isLocked else { return }
+            await self.applyLockedUI(slotName: slotName)
+        }
+    }
+
+    @MainActor
+    private func applyLockedUI(slotName: String) {
+        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+            
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
+                
+                guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                
+                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                if fileExists {
+                    if let button = self.statusItem.button {
+                        button.image = NSImage(byReferencingFile: fileURLString)
+                        let circleSize = NSSize(width: 10, height: 10)
+                        let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                        let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                            buttonImage.draw(in: newImageRect)
+                            let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                            NSColor.red.setFill()
+                            circlePath.fill()
+                            return true
                         }
-                    } else {
-                        guard let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") else { return }
-                        guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
-                        let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-                        if fileExists {
-                            if let button = self.statusItem.button {
-                                button.image = NSImage(byReferencingFile: fileURLString)
-                                let circleSize = NSSize(width: 10, height: 10)
-                                let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
-                                let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
-                                    buttonImage.draw(in: newImageRect)
-                                    let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
-                                    NSColor.red.setFill()
-                                    circlePath.fill()
-                                    
-                                    return true
-                                }
-                                guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-                                    fatalError("Failed to create CGImage")
-                                }
-                                button.image = redCircleImage
-                            }
+                        guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                            fatalError("Failed to create CGImage")
                         }
+                        button.image = redCircleImage
+                    }
+                }
+            } else {
+                guard let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") else { return }
+                guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+                if fileExists {
+                    if let button = self.statusItem.button {
+                        button.image = NSImage(byReferencingFile: fileURLString)
+                        let circleSize = NSSize(width: 10, height: 10)
+                        let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
+                        let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
+                            buttonImage.draw(in: newImageRect)
+                            let circlePath = NSBezierPath(ovalIn: NSRect(origin: circleOrigin, size: circleSize))
+                            NSColor.red.setFill()
+                            circlePath.fill()
+                            
+                            return true
+                        }
+                        guard let _ = redCircleImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+                            fatalError("Failed to create CGImage")
+                        }
+                        button.image = redCircleImage
                     }
                 }
             }
-            guard let statusItemMenu = self.statusItem.menu else { return }
-            for menuItem in statusItemMenu.items {
-                if menuItem.title == slotName {
-                    let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
-                    menuItem.submenu?.insertItem(lockedMenuItem, at: 0)
-                    
-                }
+        }
+        
+        guard let statusItemMenu = self.statusItem.menu else { return }
+        for menuItem in statusItemMenu.items {
+            if menuItem.title == slotName {
+                let lockedMenuItem = NSMenuItem(title: "Smartcard Locked", action: nil, keyEquivalent: "")
+                menuItem.submenu?.insertItem(lockedMenuItem, at: 0)
+                
             }
         }
     }
@@ -160,6 +165,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     
     var menuIsOpen = false
     
+    private lazy var updaterController: SPUStandardUpdaterController = {
+           SPUStandardUpdaterController(
+               startingUpdater: true,
+               updaterDelegate: nil,
+               userDriverDelegate: nil
+           )
+       }()
+    
+    override init() {
+        super.init()
+     }
+    
+    @IBAction func checkForUpdates(_ sender: Any?) {
+            updaterController.checkForUpdates(sender)
+        }
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App startup: request notifications, optionally register/unregister as login item,
         // configure observers, and initialize the status item & token watcher.
@@ -224,15 +245,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         }
         UserDefaults.standard.setValue(true, forKey: "afterFirstLaunch")
         guard let appBundleID = Bundle.main.bundleIdentifier else { return }
+        
         let isForced = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
         if UserDefaults.standard.bool(forKey: "disableUpdates") && isForced {
             os_log("Updates disabled", log: self.appLog, type: .default)
         } else {
-            let updater = UpdateCheck()
-            Task {
-                await updater.check()
-            }
+            updaterController.updater.checkForUpdatesInBackground()
         }
+        
+        
         
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
@@ -601,7 +622,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         func insert() {
             let readerName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.slotName ?? TkID
-            if TkID.contains("com.apple.setoken") { return }
+            //Escapes and doesn't show the token for the Secure Enclave or pSSO registration.
+            if TkID.contains("com.apple.setoken") || TkID.contains("com.apple.ctkcard") { return }
             if let pivToken = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID {
                 let readerMenuItem = NSMenuItem(title: readerName, action: nil, keyEquivalent: "")
                 readerMenuItem.representedObject = TkID
@@ -970,55 +992,48 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     /// Handle a token insertion: optional script execution, lock/cert checks, notification,
     /// expiration scan, and UI/menu updates. Also registers a paired removal handler.
     func update(CTKTokenID: String) {
-        if myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName != nil {
-            os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
-            checkCardStatus = checkCard(slotName: myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName)
+        guard let slotName = myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName else { return }
+        os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
+        
+        // Run APDU probing and related work on a background Task to keep the menu responsive.
+        // UI/menu mutations are performed on the main queue.
+        Task { [weak self] in
+            guard let self else { return }
+            let status = await self.checkCard(slotName: slotName)
+            
             if UserDefaults.standard.bool(forKey: "run_on_insert") {
                 if let scriptPath = UserDefaults.standard.string(forKey: "run_on_insert_script_path") {
-                    Task {
-                        await run_on(action: "Insert", path: scriptPath)
+                    Task { [weak self] in
+                        guard let self else { return }
+                        await self.run_on(action: "Insert", path: scriptPath)
                     }
                 }
             }
-            guard let isCardLocked = checkCardStatus?.isLocked else { return }
-            lockedDictArray.append([CTKTokenID:isCardLocked])
             
-            if UserDefaults.standard.bool(forKey: "show_notifications") {
-                if showInsertAfterScreenUnlock == false && screenLockedVar == false {
-                    Task {
-                        let settings = await nc.notificationSettings()
-                        guard (settings.authorizationStatus == .authorized) ||
-                                (settings.authorizationStatus == .provisional) else
-                        { return }
-                        let content = UNMutableNotificationContent()
-                        content.title = "SC Menu"
-                        content.body = "Smartcard Inserted"
-                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                        
-                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                        try await nc.add(request)
-                    }
-                }
-            }
-            if let pivToken = myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.tokenID {
+            let shouldNotify = await self.applyInsertUI(CTKTokenID: CTKTokenID, status: status)
+            if UserDefaults.standard.bool(forKey: "show_notifications") && shouldNotify {
                 Task { [weak self] in
                     guard let self else { return }
-                    await certViewing.readExpiration(pivToken: pivToken)
+                    let settings = await self.nc.notificationSettings()
+                    guard (settings.authorizationStatus == .authorized) ||
+                            (settings.authorizationStatus == .provisional) else
+                    { return }
+                    let content = UNMutableNotificationContent()
+                    content.title = "SC Menu"
+                    content.body = "Smartcard Inserted"
+                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                    
+                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                    try await self.nc.add(request)
+                }
+            }
+            
+            if let pivToken = self.myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.tokenID {
+                Task { [weak self] in
+                    guard let self else { return }
+                    await self.certViewing.readExpiration(pivToken: pivToken)
                 }
                 
-            }
-            showInsertAfterScreenUnlock = false
-            if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
-                if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
-                    menuBarIcon(fileURLString: fileURLString)
-                    self.showReader(TkID: CTKTokenID)
-                }
-            } else {
-                if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
-                    menuBarIcon(fileURLString: fileURLString)
-                    self.showReader(TkID: CTKTokenID)
-                    
-                }
             }
         }
         
@@ -1129,195 +1144,189 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }, forTokenID: CTKTokenID)
     }
+
+    @MainActor
+    private func applyInsertUI(CTKTokenID: String, status: CardStatus?) -> Bool {
+        self.checkCardStatus = status
+        guard let status else { return false }
+        let isCardLocked = status.isLocked
+        let shouldNotify = self.showInsertAfterScreenUnlock == false && self.screenLockedVar == false
+        self.lockedDictArray.append([CTKTokenID:isCardLocked])
+        self.showInsertAfterScreenUnlock = false
+        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
+                self.menuBarIcon(fileURLString: fileURLString)
+                self.showReader(TkID: CTKTokenID)
+            }
+        } else {
+            if let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") {
+                self.menuBarIcon(fileURLString: fileURLString)
+                self.showReader(TkID: CTKTokenID)
+                
+            }
+        }
+        return shouldNotify
+    }
     /// Perform low-level APDU exchanges against the card in the provided slot to determine
     /// lock status and whether certificate objects exist. Returns a `CardStatus` snapshot.
     ///
-    /// Note: Uses a semaphore to serialize the async TKSmartCard calls for a synchronous return.
-    func checkCard(slotName: String?) -> (CardStatus?) {
-        // This routine synchronously probes the card using APDUs to determine two things:
+    /// Note: Uses async/await to serialize the TKSmartCard calls without blocking the main thread.
+    func checkCard(slotName: String?) async -> (CardStatus?) {
+        // Probe the card using APDUs to determine:
         // 1) Is the PIN currently locked (or requires PIN)?
         // 2) Do PIV certificate data objects (9A/9C/9D/9E) exist on the card?
-        //
-        // It uses a semaphore to block until all asynchronous CryptoTokenKit calls complete.
+        
+        let apduLog = self.apduLog
         
         let sm = TKSmartCardSlotManager()
-        var card : TKSmartCard? = nil
-        // Use a semaphore to convert the async TKSmartCard flow into a synchronous return value.
-        let sema = DispatchSemaphore.init(value: 0)
         
         guard let slotName = slotName else { return nil }
-        sm.getSlot(withName: slotName, reply: { currentslot in
-            card = currentslot?.makeSmartCard()
-            guard card != nil else {
-                card?.endSession()
-                sema.signal()
-                return
-            }
-            sema.signal()
-        })
-        sema.wait()
+        // Bridge CryptoTokenKit's callback-based API into async/await without blocking.
+        let card: TKSmartCard? = await withCheckedContinuation { continuation in
+            sm.getSlot(withName: slotName, reply: { currentslot in
+                continuation.resume(returning: currentslot?.makeSmartCard())
+            })
+        }
+        guard let card else { return nil }
         
         var hasCerts = false
         var locked = false
         
         
-        func sendAPDU(apdu: [UInt8], completion: (Data, Error)) {
-            let apduData = Data(apdu)
-            card?.transmit(apduData, reply: { data, error in
-                
+        let beginOK: Bool = await withCheckedContinuation { continuation in
+            card.beginSession(reply: { _, error in
+                if let error = error {
+                    os_log("APDU beginSession error %{public}s", log: apduLog, type: .error, error.localizedDescription)
+                }
+                continuation.resume(returning: error == nil)
             })
         }
+        guard beginOK else {
+            card.endSession()
+            let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)
+            return cardStatus
+        }
+        defer { card.endSession() }
         
-        
-        card?.beginSession(reply: { something, error in
-            // APDUs used in this check:
-            // - SELECT (AID) to select the PIV application
-            // - VERIFY PIN with LC=0 ("null verify") to read remaining attempts (and infer locked state)
-            // - GET DATA for PIV cert containers 9A/9C/9D/9E to infer if certs exist
-            
-            let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
-            let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
-            let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05, 0x00 ]
-            let getCert9C: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0A, 0x00 ]
-            let getCert9D: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0B, 0x00 ]
-            let getCert9E: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x01, 0x00 ]
-            let apidRequest = Data(apid)
-            let request2 = Data(pinVerifyNull)
-            
-            
-            // Helper that sends an APDU and follows up with GET RESPONSE (00 C0 00 00 Le) if SW1==0x61
-            // to retrieve remaining bytes, concatenating all chunks before calling completion.
-            func sendMoreAPDUCommands(apdu: [UInt8], completion: @escaping ([UInt8], UInt8, UInt8) -> Void) {
-                
-                // Convert command array to Data
-                let apduData = Data(apdu)
-                
-                if let smartCard = card {
-                    smartCard.transmit(apduData) { response, error in
-                        guard let responseData = response, error == nil else {
-                            completion([], 0x00, 0x00)
-                            return
-                        }
-                        if error != nil {
-                            card?.endSession()
-                            sema.signal()
-                            return
-                        }
-                        
-                        
-                        var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
-                        // SW1/SW2 are the last two bytes of the response (status words). Drop them from the payload.
-                        let sw1 = responseData[responseData.count - 2]
-                        let sw2 = responseData[responseData.count - 1]
-                        
-                        // Check if more data is available (SW1 == 0x61)
-                        if sw1 == 0x61 {
-                            // 0x61 indicates more data is available; issue GET RESPONSE for the indicated length (SW2)
-                            let getResponseCommand: [UInt8] = [
-                                0x00, 0xC0, 0x00, 0x00, sw2
-                            ]
-                            
-                            // Call sendAPDUCommand recursively to get the remaining data
-                            sendMoreAPDUCommands(apdu: getResponseCommand) { moreData, moreSW1, moreSW2 in
-                                responseBytes += moreData // Combine the previously received data with the new data
-                                
-                                // Check the final SW1 and SW2
-                                if moreSW1 == 0x90 && moreSW2 == 0x00 {
-                                    // Handle successful retrieval of all data
-                                    completion(responseBytes, moreSW1, moreSW2)
-                                } else {
-                                    // Return the status words and received data
-                                    completion(responseBytes, moreSW1, moreSW2)
-                                }
-                            }
-                        } else {
-                            // No more data, return the response and status words
-                            completion(responseBytes, sw1, sw2)
-                        }
+        // Helper that transmits an APDU and returns the raw response (including SW1/SW2).
+        func transmit(_ apdu: [UInt8]) async -> Data? {
+            await withCheckedContinuation { continuation in
+                card.transmit(Data(apdu), reply: { data, error in
+                    if let error = error {
+                        os_log("APDU transmit error %{public}s", log: apduLog, type: .error, error.localizedDescription)
                     }
-                } else {
-                    completion([], 0, 0)
-                }
+                    continuation.resume(returning: data)
+                })
+            }
+        }
+        
+        // Helper that sends an APDU and follows up with GET RESPONSE (00 C0 00 00 Le) if SW1==0x61
+        // to retrieve remaining bytes, concatenating all chunks before returning.
+        func sendMoreAPDUCommands(apdu: [UInt8]) async -> ([UInt8], UInt8, UInt8) {
+            guard let responseData = await transmit(apdu) else {
+                return ([], 0x00, 0x00)
+            }
+            guard responseData.count >= 2 else {
+                return (Array(responseData), 0x00, 0x00)
             }
             
+            var responseBytes = Array(responseData.dropLast(2)) // Extract response without SW1, SW2
+            // SW1/SW2 are the last two bytes of the response (status words). Drop them from the payload.
+            let sw1 = responseData[responseData.count - 2]
+            let sw2 = responseData[responseData.count - 1]
             
-            card?.transmit(apidRequest, reply: { data, error in
-                if error == nil {
-                    
-                    // Null VERIFY (LC=0) doesn't change PIN state but returns remaining attempts in SW1/SW2.
-                    // We use it to infer `locked` without requiring the user's PIN.
-                    card?.transmit(request2, reply: { data, error in
-                        guard let data = data else { return }
-                        let result = data.hexEncodedString()
-                        
-                        // SW1/SW2 as hex string. "63Cx" means verify failed with x attempts remaining.
-                        // "9000" means success; any other code is treated as locked for safety.
-                        if result.starts(with: "63c") {
-                            if let attempts = Int(String(result.last!), radix: 16) {
-                                if attempts == 0 {
-                                    locked = true
-                                } else {
-                                    locked = false
-                                }
-                            }
-                        } else if result == "9000" {
-                            locked = false
-                        } else {
-                            locked = true
-                        }
-                        
-                    })
-                    // Probe for presence of PIV certificate data objects. If any container returns payload
-                    // (bytes > 2), assume certs are present on the card.
-                    sendMoreAPDUCommands(apdu: getCert9A) { data, sw1, sw2 in
-                        // 9A: PIV Authentication cert
-                        if sw1 == 0x90 && sw2 == 0x00 {
-                            os_log("9A bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
-                            if data.count > 2 {
-                                hasCerts = true
-                            }
-                        }
-                        sendMoreAPDUCommands(apdu: getCert9C) { data, sw1, sw2 in
-                            // 9C: Digital Signature cert
-                            if sw1 == 0x90 && sw2 == 0x00 {
-                                os_log("9C bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
-                                if data.count > 2 {
-                                    hasCerts = true
-                                }
-                            }
-                            sendMoreAPDUCommands(apdu: getCert9D) { data, sw1, sw2 in
-                                // 9D: Key Management cert
-                                if sw1 == 0x90 && sw2 == 0x00 {
-                                    os_log("9D bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
-                                    if data.count > 2 {
-                                        hasCerts = true
-                                    }
-                                }
-                                sendMoreAPDUCommands(apdu: getCert9E) { data, sw1, sw2 in
-                                    // 9E: Card Authentication cert
-                                    if sw1 == 0x90 && sw2 == 0x00 {
-                                        os_log("9E bytes received: %{public}s", log: self.apduLog, type: .debug, "\(data.count)")
-                                        if data.count > 2 {
-                                            hasCerts = true
-                                        }
-                                    }
-                                    // Done probing; end the smartcard session and unblock the semaphore.
-                                    card?.endSession()
-                                    sema.signal()
-                                    
-                                }
-                            }
-                        }
-                        
+            // Check if more data is available (SW1 == 0x61)
+            if sw1 == 0x61 {
+                // 0x61 indicates more data is available; issue GET RESPONSE for the indicated length (SW2)
+                let getResponseCommand: [UInt8] = [
+                    0x00, 0xC0, 0x00, 0x00, sw2
+                ]
+                
+                let moreData = await sendMoreAPDUCommands(apdu: getResponseCommand)
+                responseBytes += moreData.0 // Combine the previously received data with the new data
+                return (responseBytes, moreData.1, moreData.2)
+            }
+            
+            // No more data, return the response and status words
+            return (responseBytes, sw1, sw2)
+        }
+        
+        // APDUs used in this check:
+        // - SELECT (AID) to select the PIV application
+        // - VERIFY PIN with LC=0 ("null verify") to read remaining attempts (and infer locked state)
+        // - GET DATA for PIV cert containers 9A/9C/9D/9E to infer if certs exist
+        
+        let apid : [UInt8] = [0x00, 0xa4, 0x04, 0x00, 0x0b, 0xa0, 0x00, 0x00, 0x03, 0x08, 0x00, 0x00, 0x10, 0x00, 0x01, 0x00 ]
+        let pinVerifyNull : [UInt8] = [ 0x00, 0x20, 0x00, 0x80, 0x00]
+        let getCert9A: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x05, 0x00 ]
+        let getCert9C: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0A, 0x00 ]
+        let getCert9D: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0B, 0x00 ]
+        let getCert9E: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x01, 0x00 ]
+        
+        guard await transmit(apid) != nil else {
+            let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)
+            return cardStatus
+        }
+        
+        // Null VERIFY (LC=0) doesn't change PIN state but returns remaining attempts in SW1/SW2.
+        // We use it to infer `locked` without requiring the user's PIN.
+        if let data = await transmit(pinVerifyNull) {
+            let result = data.hexEncodedString()
+            
+            // SW1/SW2 as hex string. "63Cx" means verify failed with x attempts remaining.
+            // "9000" means success; any other code is treated as locked for safety.
+            if result.starts(with: "63c") {
+                if let attempts = Int(String(result.last!), radix: 16) {
+                    if attempts == 0 {
+                        locked = true
+                    } else {
+                        locked = false
                     }
-                } else {
-                    card?.endSession()
-                    sema.signal()
                 }
-            })
-            
-        })
-        sema.wait()
+            } else if result == "9000" {
+                locked = false
+            } else {
+                locked = true
+            }
+        }
+        
+        // Probe for presence of PIV certificate data objects. If any container returns payload
+        // (bytes > 2), assume certs are present on the card.
+        let cert9A = await sendMoreAPDUCommands(apdu: getCert9A)
+        // 9A: PIV Authentication cert
+        if cert9A.1 == 0x90 && cert9A.2 == 0x00 {
+            os_log("9A bytes received: %{public}s", log: apduLog, type: .debug, "\(cert9A.0.count)")
+            if cert9A.0.count > 2 {
+                hasCerts = true
+            }
+        }
+        
+        let cert9C = await sendMoreAPDUCommands(apdu: getCert9C)
+        // 9C: Digital Signature cert
+        if cert9C.1 == 0x90 && cert9C.2 == 0x00 {
+            os_log("9C bytes received: %{public}s", log: apduLog, type: .debug, "\(cert9C.0.count)")
+            if cert9C.0.count > 2 {
+                hasCerts = true
+            }
+        }
+        
+        let cert9D = await sendMoreAPDUCommands(apdu: getCert9D)
+        // 9D: Key Management cert
+        if cert9D.1 == 0x90 && cert9D.2 == 0x00 {
+            os_log("9D bytes received: %{public}s", log: apduLog, type: .debug, "\(cert9D.0.count)")
+            if cert9D.0.count > 2 {
+                hasCerts = true
+            }
+        }
+        
+        let cert9E = await sendMoreAPDUCommands(apdu: getCert9E)
+        // 9E: Card Authentication cert
+        if cert9E.1 == 0x90 && cert9E.2 == 0x00 {
+            os_log("9E bytes received: %{public}s", log: apduLog, type: .debug, "\(cert9E.0.count)")
+            if cert9E.0.count > 2 {
+                hasCerts = true
+            }
+        }
         
         // Build a snapshot of the findings for the caller.
         let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)

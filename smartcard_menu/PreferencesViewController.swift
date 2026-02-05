@@ -9,6 +9,7 @@ import UserNotifications
 import Cocoa
 import os
 import UniformTypeIdentifiers
+import Sparkle
 
 /// Notifies listeners (like `AppDelegate`) when a preference that affects UI or behavior changes,
 /// so they can refresh state (e.g., update status bar icon).
@@ -222,7 +223,7 @@ class PreferencesViewController: NSViewController {
         infoTextView.textStorage?.setAttributedString(infoAttributedString)
         
         let appIcon = NSImageView(frame:NSRect(x: 265, y:170, width: 40, height: 40))
-        appIcon.image = NSImage(named: "AppIcon")
+        appIcon.image = NSImage(named: "new_icon")
         
         view.addSubview(iconLabel)
         view.addSubview(startUpButton)
@@ -317,28 +318,7 @@ class PreferencesViewController: NSViewController {
     /// Manually trigger an update check against GitHub Releases and present the result.
     @objc func updateCheck(_ sender: NSButton) {
         os_log("Update button pressed", log: prefsLog, type: .default)
-        let updater = UpdateCheck()
-        Task {
-            switch await updater.check() {
-            case 1:
-                return
-            case 2:
-                let alert = NSAlert()
-                alert.messageText = "Error"
-                alert.informativeText = """
-            Cannot reach GitHub to check SC Menu updates.
-            """
-                alert.runModal()
-            default:
-                let alert = NSAlert()
-                alert.messageText = "No Update Available"
-                alert.informativeText = """
-            SC Menu is currently up to date.
-            """
-                alert.runModal()
-            }
-        }
-        
+        (NSApp.delegate as? AppDelegate)?.checkForUpdates(nil)
     }
     
     
