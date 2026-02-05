@@ -67,7 +67,7 @@ Acceptable Value: **Path to a script**\
 POSIX path to a script to run on smartcard removal.
 
 `DaysToExpiration` - **Type Integer**\
-Acceptable Value: **Integer numbers**
+Acceptable Value: **Integer numbers**\
 Sets the value on check for days to notify on certficate expiration. Default is 30 days.
 
 
