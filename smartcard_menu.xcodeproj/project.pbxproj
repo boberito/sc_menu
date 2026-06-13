@@ -16,6 +16,7 @@
 		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
 		736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 736E51C62E8D37B200F07D9F /* Subprocess */; };
 		7396D1412E945E8A00DEB0E8 /* new_icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 7396D1402E945E8A00DEB0E8 /* new_icon.icon */; };
+		73995E762FDDA1E200EDB283 /* ExportDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73995E752FDDA1E100EDB283 /* ExportDebug.swift */; };
 		73ACFD0F2F115FC200460E13 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 73ACFD0E2F115FC200460E13 /* Sparkle */; };
 		73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C7726E2D5C33BA00D4031A /* libopenjp2.a */; };
 		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
@@ -44,6 +45,7 @@
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		7396D1402E945E8A00DEB0E8 /* new_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = new_icon.icon; sourceTree = "<group>"; };
+		73995E752FDDA1E100EDB283 /* ExportDebug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDebug.swift; sourceTree = "<group>"; };
 		73ACFD102F1166BC00460E13 /* SC-Menu-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SC-Menu-Info.plist"; sourceTree = "<group>"; };
 		73C7726E2D5C33BA00D4031A /* libopenjp2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libopenjp2.a; sourceTree = "<group>"; };
 		73C7726F2D5C33BA00D4031A /* openjpeg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = openjpeg.h; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				86F7327C2B92D317007DFED7 /* PrefView.swift */,
 				862CDBB52B911BD000E75D2D /* ATR.swift */,
 				73C772732D5C345100D4031A /* ImageConversion.swift */,
+				73995E752FDDA1E100EDB283 /* ExportDebug.swift */,
 				868A89112B87BB0800328DDE /* CertWindow.swift */,
 				862CDBB72B91209A00E75D2D /* WebWindow.swift */,
 				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
@@ -218,6 +221,7 @@
 			files = (
 				86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */,
 				86FF1DC42B7FA45A007F3959 /* AppDelegate.swift in Sources */,
+				73995E762FDDA1E200EDB283 /* ExportDebug.swift in Sources */,
 				860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */,
 				73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */,
 				731A33C62CD5B47400EE6778 /* MyInfoWindow.swift in Sources */,
