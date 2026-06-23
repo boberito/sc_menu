@@ -1201,11 +1201,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         
         let beginOK: Bool = await withCheckedContinuation { continuation in
-            card.beginSession(reply: { _, error in
+            card.beginSession(reply: { success , error in
                 if let error = error {
                     os_log("APDU beginSession error %{public}s", log: apduLog, type: .error, error.localizedDescription)
                 }
-                continuation.resume(returning: error == nil)
+                continuation.resume(returning: success && error == nil)
             })
         }
         guard beginOK else {
