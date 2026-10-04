@@ -18,6 +18,7 @@ import Security
 import Subprocess
 import System
 import Sparkle
+import ArgumentParser
 
 let subsystem = "com.ttinc.sc-menu"
 
@@ -30,6 +31,9 @@ struct CardStatus {
     var isLocked: Bool
     var hasCerts: Bool
 }
+
+
+
 
 /// Main application delegate. Manages the menubar item/menu, watches smartcard
 /// insertions/removals, posts notifications, and opens auxiliary windows.
@@ -52,7 +56,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             await self.applyLockedUI(slotName: slotName)
         }
     }
-
+    
     @MainActor
     private func applyLockedUI(slotName: String) {
         if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
@@ -142,6 +146,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }
     }
+    
+    private var arguments = Arguments()
     private let apduLog = OSLog(subsystem: subsystem, category: "APDUFunctions")
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
     let appLog = OSLog(subsystem: subsystem, category: "General")
@@ -166,32 +172,43 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     var menuIsOpen = false
     
     private lazy var updaterController: SPUStandardUpdaterController = {
-           SPUStandardUpdaterController(
-               startingUpdater: true,
-               updaterDelegate: nil,
-               userDriverDelegate: nil
-           )
-       }()
+        SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+    }()
     
     override init() {
         super.init()
-     }
+    }
     
     @IBAction func checkForUpdates(_ sender: Any?) {
-            updaterController.checkForUpdates(sender)
-        }
-
+        updaterController.checkForUpdates(sender)
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // App startup: request notifications, optionally register/unregister as login item,
         // configure observers, and initialize the status item & token watcher.
-        UNUserNotificationCenter.current().delegate = self
+        
         os_log("SC Menu launched", log: appLog, type: .default)
         let appService = SMAppService.mainApp
-        if CommandLine.arguments.count > 1 {
+        do {
+            // AppKit may add single-dash defaults arguments when the app is launched
+            // from Xcode. Only double-dash arguments belong to this app's CLI.
+            let commandLineArguments = CommandLine.arguments.dropFirst().filter {
+                $0.hasPrefix("--") || $0.contains("-h")
+            }
+            arguments = try Arguments.parse(commandLineArguments)
             
-            let arguments = CommandLine.arguments
+            if arguments.info {
+                Task{
+                    await ExportDebug().export()
+                    NSApp.terminate(nil)
+                }
+            }
             
-            if arguments[1] == "--register" {
+            if arguments.register {
                 do {
                     try appService.register()
                     
@@ -200,9 +217,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     os_log("SMApp Service register error %{public}s", log: self.prefsLog, type: .error, error.localizedDescription)
                     
                 }
+                NSApp.terminate(nil)
             }
             
-            if arguments[1] == "--unregister" {
+            if arguments.unregister {
                 do {
                     if appService.status == .enabled {
                         try appService.unregister()
@@ -215,19 +233,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 } catch {
                     os_log("Problem unregistering service - error %{public}s", log: self.prefsLog, type: .default, error.localizedDescription)
                 }
-                
+                NSApp.terminate(nil)
             }
-            if arguments[1] == "--Info" {
-                Task{
-                    await ExportDebug().export()
-                    exit(0)
-                }
-                
+            
+        } catch {
+            
+            let message = Arguments.fullMessage(for: error)
+            print(message)
+            
+            
+            if error is CleanExit {
+                print(error.localizedDescription)
+                NSApp.terminate(nil)
             }
-#if !DEBUG
             NSApp.terminate(nil)
-#endif
+            return
         }
+
+        UNUserNotificationCenter.current().delegate = self
         
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
             
@@ -258,9 +281,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             os_log("Updates disabled", log: self.appLog, type: .default)
         } else {
             updaterController.updater.checkForUpdatesInBackground()
-        }
-        
-        
+        }        
         
         NSApplication.shared.setActivationPolicy(.accessory)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sleepListener(_:)),
@@ -1151,7 +1172,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }, forTokenID: CTKTokenID)
     }
-
+    
     @MainActor
     private func applyInsertUI(CTKTokenID: String, status: CardStatus?) -> Bool {
         self.checkCardStatus = status
