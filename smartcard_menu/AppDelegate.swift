@@ -217,7 +217,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
                 
             }
-            if arguments[1] == "--debugInfo" {
+            if arguments[1] == "--Info" {
                 Task{
                     await ExportDebug().export()
                     exit(0)
