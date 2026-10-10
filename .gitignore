@@ -11,3 +11,6 @@ db.sqlite
 .env
 .env.*
 !.env.example
+# Xcode user-specific settings
+*.xcuserstate
+xcuserdata/

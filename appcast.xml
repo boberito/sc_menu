@@ -12,6 +12,26 @@
 
     <!-- Latest release -->
     <item>
+             <title>SC Menu 2.1.1</title>
+             <description sparkle:format="plain-text"><![CDATA[
+           - Updated Sparkle Framework Package dependency to 2.10.0
+           - Updated Swift Subprocess Package dependency to 1.0.1
+             ]]></description>
+             <sparkle:fullReleaseNotesLink>https://github.com/boberito/sc_menu/releases/tag/2.1.1</sparkle:fullReleaseNotesLink>
+             <pubDate>Fri, 09 Oct 2026 21:32:57 -0400</pubDate>
+             <dc:creator>Bob Gendler</dc:creator>
+             <sparkle:version>811</sparkle:version>
+             <sparkle:shortVersionString>2.1.1</sparkle:shortVersionString>
+             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+             <enclosure
+               url="https://github.com/boberito/sc_menu/releases/download/2.1.1/SC_Menu.dmg"
+               type="application/x-apple-diskimage"
+               sparkle:version="811"
+               sparkle:shortVersionString="2.1.1"
+               sparkle:edSignature="8DxYyDnm/zYHjdPucDCIEwf/kw2WhHNzalxJxwq8gWiJne+LE9HeWYWM/7AOeefeKJLmhgdgNaQcHBRdSQVfCA==" length="4430438"/>
+             
+         </item>
+    <item>
       <title>SC Menu 2.1</title>        
   <description sparkle:format="plain-text"><![CDATA[
 - Added configuration option to configure days to show notification until certificates expire (MDM or defaults write command)
@@ -21,7 +41,7 @@
 - Added Sparkle Framework for app updating 
   ]]></description>
       <sparkle:fullReleaseNotesLink>https://github.com/boberito/sc_menu/releases/tag/2.1</sparkle:fullReleaseNotesLink>
-      <pubDate>Thur, 5 February 2026 12:00:00 -0500</pubDate>
+      <pubDate>Thu, 5 February 2026 12:00:00 -0500</pubDate>
       <dc:creator>Bob Gendler</dc:creator>
 
       <!-- The actual update file users download -->
