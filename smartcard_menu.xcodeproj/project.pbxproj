@@ -21,6 +21,9 @@
 		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
 		73DE8C342D67925800458A21 /* nist80087.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DE8C332D67925800458A21 /* nist80087.swift */; };
 		73EA88CB2CE0594F003CF6C2 /* no-image-found.png in Resources */ = {isa = PBXBuildFile; fileRef = 73EA88CA2CE0594F003CF6C2 /* no-image-found.png */; };
+		73EEEDF63079D43E0078C066 /* ExportDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EEEDF53079D43E0078C066 /* ExportDebug.swift */; };
+		73EEEDF83079D4460078C066 /* Arguments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EEEDF73079D4460078C066 /* Arguments.swift */; };
+		73EEEDFB3079D4680078C066 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 73EEEDFA3079D4680078C066 /* ArgumentParser */; };
 		860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860203512B84F2DE00E84186 /* ViewCerts.swift */; };
 		862CDBB62B911BD000E75D2D /* ATR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862CDBB52B911BD000E75D2D /* ATR.swift */; };
 		862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862CDBB72B91209A00E75D2D /* WebWindow.swift */; };
@@ -52,6 +55,8 @@
 		73C772732D5C345100D4031A /* ImageConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageConversion.swift; sourceTree = "<group>"; };
 		73DE8C332D67925800458A21 /* nist80087.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = nist80087.swift; sourceTree = "<group>"; };
 		73EA88CA2CE0594F003CF6C2 /* no-image-found.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "no-image-found.png"; sourceTree = "<group>"; };
+		73EEEDF53079D43E0078C066 /* ExportDebug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDebug.swift; sourceTree = "<group>"; };
+		73EEEDF73079D4460078C066 /* Arguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Arguments.swift; sourceTree = "<group>"; };
 		766E3E742CC9F68500BB0920 /* SC-Menu-Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "SC-Menu-Shared.xcconfig"; sourceTree = "<group>"; };
 		860203512B84F2DE00E84186 /* ViewCerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCerts.swift; sourceTree = "<group>"; };
 		862CDBB52B911BD000E75D2D /* ATR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ATR.swift; sourceTree = "<group>"; };
@@ -76,6 +81,7 @@
 			files = (
 				73ACFD0F2F115FC200460E13 /* Sparkle in Frameworks */,
 				73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */,
+				73EEEDFB3079D4680078C066 /* ArgumentParser in Frameworks */,
 				736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -109,7 +115,9 @@
 				73C772702D5C33BA00D4031A /* opj_config.h */,
 				73C772722D5C33D300D4031A /* smartcard_menu-Bridging-Header.h */,
 				86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */,
+				73EEEDF53079D43E0078C066 /* ExportDebug.swift */,
 				73DE8C332D67925800458A21 /* nist80087.swift */,
+				73EEEDF73079D4460078C066 /* Arguments.swift */,
 				731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */,
 				86F7327C2B92D317007DFED7 /* PrefView.swift */,
 				862CDBB52B911BD000E75D2D /* ATR.swift */,
@@ -152,6 +160,9 @@
 			dependencies = (
 			);
 			name = "SC Menu";
+			packageProductDependencies = (
+				73EEEDFA3079D4680078C066 /* ArgumentParser */,
+			);
 			productName = smartcard_menu;
 			productReference = 86FF1DC02B7FA45A007F3959 /* SC Menu.app */;
 			productType = "com.apple.product-type.application";
@@ -183,6 +194,7 @@
 			packageReferences = (
 				736E51C52E8D37B200F07D9F /* XCRemoteSwiftPackageReference "swift-subprocess" */,
 				73ACFD0D2F115FC200460E13 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				73EEEDF93079D4680078C066 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			productRefGroup = 86FF1DC12B7FA45A007F3959 /* Products */;
 			projectDirPath = "";
@@ -217,10 +229,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */,
+				73EEEDF83079D4460078C066 /* Arguments.swift in Sources */,
 				86FF1DC42B7FA45A007F3959 /* AppDelegate.swift in Sources */,
 				860203522B84F2DE00E84186 /* ViewCerts.swift in Sources */,
 				73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */,
 				731A33C62CD5B47400EE6778 /* MyInfoWindow.swift in Sources */,
+				73EEEDF63079D43E0078C066 /* ExportDebug.swift in Sources */,
 				862CDBB62B911BD000E75D2D /* ATR.swift in Sources */,
 				86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */,
 				735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */,
@@ -407,7 +421,7 @@
 					"$(PROJECT_DIR)/smartcard_menu",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -450,7 +464,7 @@
 					"$(PROJECT_DIR)/smartcard_menu",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -501,6 +515,14 @@
 				minimumVersion = 2.8.1;
 			};
 		};
+		73EEEDF93079D4680078C066 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.8.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -513,6 +535,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 73ACFD0D2F115FC200460E13 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		73EEEDFA3079D4680078C066 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 73EEEDF93079D4680078C066 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
