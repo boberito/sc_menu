@@ -338,6 +338,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     /// Reset the status bar menu/icon to the default (no card), create the token watcher,
     /// and set up insertion handling. Also adds the Quit/Preferences items.
     func startup() {
+        // A new watcher reports every inserted token again, so start from an empty list.
+        lockedDictArray.removeAll() 
         myTKWatcher = TKTokenWatcher.init()
         statusItem.menu = NSMenu()
         statusItem.menu?.insertItem(nothingInsertedMenu, at: 0)
