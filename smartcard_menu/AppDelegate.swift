@@ -46,6 +46,7 @@ struct CardStatus {
 /// - Drive APDU checks to determine lock status and cert presence
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
+    private var pinPromptHostWindow: NSWindow?
     
     func pinFailedandLocked(slotName: String) {
         // Re-check card state off the main thread; UI updates happen on the main queue.
@@ -840,38 +841,44 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         // Force layout update before displaying the alert
         accessoryView.layoutSubtreeIfNeeded()
         
-        // Run the alert and handle button response
-        let response = alert.runModal()
         
-        if response == .alertFirstButtonReturn {
-            guard let pin = secureTextInput.stringValue.data(using: .utf8) else {
-                os_log("Invalid PIN format.", log: appLog, type: .default)
-                return
+        let screenSize = NSScreen.main?.frame.size ?? .zero
+        let hostWindow = NSWindow(
+            contentRect: NSRect(x: screenSize.width/2, y: screenSize.height/2 + 200, width: 1, height: 1),
+            styleMask: .borderless,
+            backing: .buffered,
+            defer: false
+        )
+
+        alert.beginSheetModal(for: hostWindow) { [weak self] response in
+            guard let self else { return }
+
+            if response == .alertFirstButtonReturn {
+                guard let pin = secureTextInput.stringValue.data(using: .utf8) else {
+                    os_log("Invalid PIN format.", log: self.appLog, type: .default)
+                    return
+                }
+                let myInfoViewController = MyInfoViewController()
+                myInfoViewController.pinDelegate = self
+                myInfoViewController.pin = pin
+                myInfoViewController.passedSlot = cardReader
+                os_log("SC Menu is opening my card info.", log: self.appLog, type: .default)
+
+                var window: MyInfoWindow?
+                let windowSize = NSSize(width: 415, height: 200)
+                let screenSize = NSScreen.main?.frame.size ?? .zero
+                let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
+                window = MyInfoWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
+                window?.title = "Additonal Card Information"
+                window?.identifier = NSUserInterfaceItemIdentifier(cardReader)
+                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                window?.makeKeyAndOrderFront(nil)
+                window?.orderFrontRegardless()
+                window?.contentViewController = myInfoViewController
+            } else if response == .alertSecondButtonReturn {
+                os_log("Cancel button pressed", log: self.appLog, type: .default)
             }
-            let myInfoViewController = MyInfoViewController()
-            myInfoViewController.pinDelegate = self
-            myInfoViewController.pin = pin
-            myInfoViewController.passedSlot = cardReader
-            os_log("SC Menu is opening my card info.", log: appLog, type: .default)
-            
-            var window: MyInfoWindow?
-            let windowSize = NSSize(width: 415, height: 200)
-            let screenSize = NSScreen.main?.frame.size ?? .zero
-            let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
-            window = MyInfoWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
-            window?.title = "Additonal Card Information"
-            window?.identifier = NSUserInterfaceItemIdentifier(cardReader)
-            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-            window?.makeKeyAndOrderFront(nil)
-            window?.orderFrontRegardless()
-            window?.contentViewController = myInfoViewController
-            
-            
-        } else if response == .alertSecondButtonReturn {
-            os_log("Cancel button pressed", log: appLog, type: .default)
-            return
         }
-        
     }
     
     @objc func quit() {
@@ -1054,7 +1061,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
                     
                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                    try await self.nc.add(request)
+                    do {
+                        try await self.nc.add(request)
+                    } catch {
+                        os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
+                    }
                 }
             }
             
@@ -1122,13 +1133,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
             if UserDefaults.standard.bool(forKey: "run_on_removal") {
                 if let scriptPath = UserDefaults.standard.string(forKey: "run_on_removal_script_path") {
-                    
                     Task {
                         await self.run_on(action: "Removal", path: scriptPath)
                     }
                 }
-                
-                
             }
             self.checkCardStatus = nil
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
@@ -1145,7 +1153,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
                             
                             let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                            try await self.nc.add(request)
+                            do {
+                                try await self.nc.add(request)
+                            } catch {
+                                os_log("Unable to schedule removal notification: %{public}s", log: self.appLog, type: .error, error.localizedDescription)
+                            }
                             
                         }
                     }
@@ -1292,6 +1304,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         let getCert9C: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0A, 0x00 ]
         let getCert9D: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x0B, 0x00 ]
         let getCert9E: [UInt8] = [ 0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x01, 0x00 ]
+        let CHUD: [UInt8] = [0x00, 0xCB, 0x3F, 0xFF, 0x05, 0x5C, 0x03, 0x5F, 0xC1, 0x02, 0x00]
         
         guard await transmit(apid) != nil else {
             let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)
@@ -1358,6 +1371,86 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }
         
+        print("next up card holder")
+        let CHUDdata = await sendMoreAPDUCommands(apdu: CHUD)
+        print("Card holder info")
+        if CHUDdata.1 == 0x90 && CHUDdata.2 == 0x00 {
+//            os_log("cardHolderInfo bytes received: %{public}s", log: apduLog, type: .debug, "\(cardHolderInfo.0.count)")
+            print("cardHolderInfo bytes received: \(CHUDdata.0.count)")
+            if CHUDdata.1 == 0x90 && CHUDdata.2 == 0x00 {
+                let tv_data = smartCardAPDU().decodeBER_TLV(data: CHUDdata.0)
+                
+                
+                guard let tv_data else { return nil }
+                for tv in tv_data {
+                    let tlv_type = tv[0]
+                    if tlv_type == 0x35 {
+                        let expiration = smartCardAPDU().hex_to_string(with: Data(tv[1..<tv.count]))
+                        print("Card expiration \(expiration)")
+                        let formatter = DateFormatter()
+                        formatter.dateFormat = "yyyyMMdd"
+                        formatter.locale = Locale(identifier: "en_US_POSIX")
+                        formatter.timeZone = TimeZone.current
+                        formatter.isLenient = false
+
+                        if let expirationDate = formatter.date(from: expiration) {
+                            print(expirationDate)
+                            var days = 30
+                            if UserDefaults.standard.integer(forKey: "DaysToExpiration") != 0 {
+                                days = UserDefaults.standard.integer(forKey: "DaysToExpiration")
+                            }
+                            guard let xDaysFromNow = Calendar.current.date(byAdding: .day, value: days, to: Date.now) else { continue }
+                            
+                            if expirationDate <= xDaysFromNow && expirationDate >= Date.now {
+                                let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expirationDate).day ?? 0
+                                os_log("Smartcard is expiring within %{public}d days", log: appLog, type: .info, daysUntilExpiration)
+                                
+                                Task { [weak self] in
+                                    guard let self else { return }
+                                    let settings = await self.nc.notificationSettings()
+                                    guard (settings.authorizationStatus == .authorized) ||
+                                            (settings.authorizationStatus == .provisional) else
+                                    { return }
+                                    let content = UNMutableNotificationContent()
+                                    content.title = "Smartcard Expiring"
+                                    content.body = "The smartcard inserted is expiring in \(daysUntilExpiration) days"
+                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                    
+                                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                                    do {
+                                        try await self.nc.add(request)
+                                    } catch {
+                                        os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
+                                    }
+                                }
+                                
+                            } else if expirationDate < Date.now {
+                                os_log("Smartcard EXPIRED on %{public}s", log: appLog, type: .info, expirationDate.formatted())
+                                Task { [weak self] in
+                                    guard let self else { return }
+                                    let settings = await self.nc.notificationSettings()
+                                    guard (settings.authorizationStatus == .authorized) ||
+                                            (settings.authorizationStatus == .provisional) else
+                                    { return }
+                                    let content = UNMutableNotificationContent()
+                                    content.title = "Smartcard EXPIRED"
+                                    content.body = "The smartcard inserted is EXPIRED"
+                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                    
+                                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                                    do {
+                                        try await self.nc.add(request)
+                                    } catch {
+                                        os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
         // Build a snapshot of the findings for the caller.
         let cardStatus: CardStatus = .init(readerName: slotName, isLocked: locked, hasCerts: hasCerts)
         

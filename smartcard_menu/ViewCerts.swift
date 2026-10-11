@@ -155,7 +155,7 @@ class ViewCerts{
                                     (settings.authorizationStatus == .provisional)  {
                                     let content = UNMutableNotificationContent()
                                     content.title = "Smartcard Certificate Expiring"
-                                    content.body = "A smartcard certificate is expiring in \(daysUntilExpiration) days"
+                                    content.body = "\(label) is expiring in \(daysUntilExpiration) days"
                                     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
                                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
                                     do {
@@ -171,7 +171,7 @@ class ViewCerts{
                                     (settings.authorizationStatus == .provisional)  {
                                     let content = UNMutableNotificationContent()
                                     content.title = "Certificate EXPIRED"
-                                    content.body = "A Certificate on the Smartcard is EXPIRED"
+                                    content.body = "\(label) is EXPIRED"
                                     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
                                     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
                                     do {
