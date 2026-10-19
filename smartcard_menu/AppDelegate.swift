@@ -19,6 +19,7 @@ import Subprocess
 import System
 import Sparkle
 import ArgumentParser
+import SwiftUI
 
 let subsystem = "com.ttinc.sc-menu"
 
@@ -451,11 +452,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
-        let freshPrefViewController = PreferencesViewController()
+//        let freshPrefViewController = PreferencesViewController()
+        let prefView = PrefView()
+        let hostingController = NSHostingController(rootView: prefView)
         
-        window?.contentViewController = freshPrefViewController
+//        window?.contentViewController = freshPrefViewController
+        window?.contentViewController = hostingController
         
-        freshPrefViewController.delegate = self
+//        freshPrefViewController.delegate = self
         
         NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window?.makeKeyAndOrderFront(nil)
@@ -1386,7 +1390,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                     let tlv_type = tv[0]
                     if tlv_type == 0x35 {
                         let expiration = smartCardAPDU().hex_to_string(with: Data(tv[1..<tv.count]))
-                        print("Card expiration \(expiration)")
                         let formatter = DateFormatter()
                         formatter.dateFormat = "yyyyMMdd"
                         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -1394,7 +1397,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         formatter.isLenient = false
 
                         if let expirationDate = formatter.date(from: expiration) {
-                            print(expirationDate)
                             var days = 30
                             if UserDefaults.standard.integer(forKey: "DaysToExpiration") != 0 {
                                 days = UserDefaults.standard.integer(forKey: "DaysToExpiration")

@@ -17,6 +17,7 @@
 		736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 736E51C62E8D37B200F07D9F /* Subprocess */; };
 		7396D1412E945E8A00DEB0E8 /* new_icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 7396D1402E945E8A00DEB0E8 /* new_icon.icon */; };
 		73ACFD0F2F115FC200460E13 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 73ACFD0E2F115FC200460E13 /* Sparkle */; };
+		73B2E1C5307BD7D800CE4B39 /* PrefView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73B2E1C4307BD7D800CE4B39 /* PrefView.swift */; };
 		73C772712D5C33BA00D4031A /* libopenjp2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 73C7726E2D5C33BA00D4031A /* libopenjp2.a */; };
 		73C772742D5C376C00D4031A /* ImageConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C772732D5C345100D4031A /* ImageConversion.swift */; };
 		73DE8C342D67925800458A21 /* nist80087.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73DE8C332D67925800458A21 /* nist80087.swift */; };
@@ -29,7 +30,6 @@
 		862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 862CDBB72B91209A00E75D2D /* WebWindow.swift */; };
 		868A89122B87BB0800328DDE /* CertWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868A89112B87BB0800328DDE /* CertWindow.swift */; };
 		86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */; };
-		86F7327D2B92D317007DFED7 /* PrefView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86F7327C2B92D317007DFED7 /* PrefView.swift */; };
 		86FF1DC42B7FA45A007F3959 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */; };
 		86FF1DC62B7FA45A007F3959 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86FF1DC52B7FA45A007F3959 /* ViewController.swift */; };
 		86FF1DC82B7FA45B007F3959 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86FF1DC72B7FA45B007F3959 /* Assets.xcassets */; };
@@ -48,6 +48,7 @@
 		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		7396D1402E945E8A00DEB0E8 /* new_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = new_icon.icon; sourceTree = "<group>"; };
 		73ACFD102F1166BC00460E13 /* SC-Menu-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SC-Menu-Info.plist"; sourceTree = "<group>"; };
+		73B2E1C4307BD7D800CE4B39 /* PrefView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefView.swift; sourceTree = "<group>"; };
 		73C7726E2D5C33BA00D4031A /* libopenjp2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libopenjp2.a; sourceTree = "<group>"; };
 		73C7726F2D5C33BA00D4031A /* openjpeg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = openjpeg.h; sourceTree = "<group>"; };
 		73C772702D5C33BA00D4031A /* opj_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = opj_config.h; sourceTree = "<group>"; };
@@ -63,7 +64,6 @@
 		862CDBB72B91209A00E75D2D /* WebWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWindow.swift; sourceTree = "<group>"; };
 		868A89112B87BB0800328DDE /* CertWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CertWindow.swift; sourceTree = "<group>"; };
 		86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindow.swift; sourceTree = "<group>"; };
-		86F7327C2B92D317007DFED7 /* PrefView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefView.swift; sourceTree = "<group>"; };
 		86FF1DC02B7FA45A007F3959 /* SC Menu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SC Menu.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		86FF1DC32B7FA45A007F3959 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		86FF1DC52B7FA45A007F3959 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -119,12 +119,12 @@
 				73DE8C332D67925800458A21 /* nist80087.swift */,
 				73EEEDF73079D4460078C066 /* Arguments.swift */,
 				731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */,
-				86F7327C2B92D317007DFED7 /* PrefView.swift */,
 				862CDBB52B911BD000E75D2D /* ATR.swift */,
 				73C772732D5C345100D4031A /* ImageConversion.swift */,
 				868A89112B87BB0800328DDE /* CertWindow.swift */,
 				862CDBB72B91209A00E75D2D /* WebWindow.swift */,
 				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
+				73B2E1C4307BD7D800CE4B39 /* PrefView.swift */,
 				86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */,
 				860203512B84F2DE00E84186 /* ViewCerts.swift */,
 				734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */,
@@ -237,13 +237,13 @@
 				73EEEDF63079D43E0078C066 /* ExportDebug.swift in Sources */,
 				862CDBB62B911BD000E75D2D /* ATR.swift in Sources */,
 				86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */,
+				73B2E1C5307BD7D800CE4B39 /* PrefView.swift in Sources */,
 				735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */,
 				731A33CA2CD5B80F00EE6778 /* APDUFunctions.swift in Sources */,
 				862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */,
 				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,
 				73DE8C342D67925800458A21 /* nist80087.swift in Sources */,
 				731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */,
-				86F7327D2B92D317007DFED7 /* PrefView.swift in Sources */,
 				734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
