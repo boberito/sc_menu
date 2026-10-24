@@ -175,7 +175,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					86FF1DBF2B7FA45A007F3959 = {
 						CreatedOnToolsVersion = 15.2;
@@ -397,7 +397,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = smartcard_menu/smartcard_menu.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 812;
@@ -420,7 +420,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/smartcard_menu",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -440,7 +440,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = smartcard_menu/smartcard_menu.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 812;
@@ -463,7 +463,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/smartcard_menu",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.ttinc.sc-menu";
 				PRODUCT_NAME = "$(TARGET_NAME)";

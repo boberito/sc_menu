@@ -46,10 +46,12 @@ struct CardStatus {
 /// - Build dynamic menus per reader with certificates and debug items
 /// - Drive APDU checks to determine lock status and cert presence
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLockedDelegate {
+@MainActor
+class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, PreferencesDelegate {
+    
     private var pinPromptHostWindow: NSWindow?
     
-    func pinFailedandLocked(slotName: String) {
+    nonisolated func pinFailedandLocked(slotName: String) {
         // Re-check card state off the main thread; UI updates happen on the main queue.
         Task { [weak self] in
             guard let self else { return }
@@ -121,8 +123,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             }
         }
     }
-    func didReceivePrefUpdate() {
-        
+//    func didReceivePrefUpdate() {
+//        
+//        var cardStatus = "out"
+//        if UserDefaults.standard.bool(forKey: "inserted") {
+//            cardStatus = "in"
+//        }
+//        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
+//            
+//            if let fileURLString = Bundle.main.path(forResource: "smartcard_\(cardStatus)_bw", ofType: "png") {
+//                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+//                if fileExists {
+//                    if let button = self.statusItem.button {
+//                        button.image = NSImage(byReferencingFile: fileURLString)
+//                    }
+//                }
+//            }
+//        } else {
+//            if let fileURLString = Bundle.main.path(forResource: "smartcard_\(cardStatus)", ofType: "png") {
+//                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
+//                if fileExists {
+//                    if let button = self.statusItem.button {
+//                        button.image = NSImage(byReferencingFile: fileURLString)
+//                    }
+//                }
+//            }
+//        }
+//        
+//    }
+    func preferencesDidChange() {
         var cardStatus = "out"
         if UserDefaults.standard.bool(forKey: "inserted") {
             cardStatus = "in"
@@ -442,7 +471,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         for currentWindow in NSApplication.shared.windows {
             if currentWindow.title.contains("SC Menu Preferences") {
-                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                NSRunningApplication.current.activate(options: [.activateAllWindows])
+                NSApp.activate()
                 return
             }
         }
@@ -453,7 +484,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
 //        let freshPrefViewController = PreferencesViewController()
-        let prefView = PrefView()
+        let prefView = PrefView(delegate: self)
         let hostingController = NSHostingController(rootView: prefView)
         
 //        window?.contentViewController = freshPrefViewController
@@ -461,7 +492,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
 //        freshPrefViewController.delegate = self
         
-        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        NSRunningApplication.current.activate(options: [.activateAllWindows])
+        NSApp.activate()
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
         
@@ -484,7 +517,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
             webView.load(URLRequest(url: URL(string: debugURL)!))
             
             window.contentView = webView
-            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            NSRunningApplication.current.activate(options: [.activateAllWindows])
+            NSApp.activate()
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
             
@@ -618,7 +653,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         savePanel.makeKeyAndOrderFront(nil)
         savePanel.orderFrontRegardless()
         
-        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        NSRunningApplication.current.activate(options: [.activateAllWindows])
+        NSApp.activate()
         
     }
     
@@ -628,7 +665,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         for currentWindow in NSApplication.shared.windows {
             if currentWindow.title.contains(sender.title) {
-                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                NSRunningApplication.current.activate(options: [.activateAllWindows])
+                NSApp.activate()
                 return
             }
         }
@@ -644,7 +683,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         viewCertsViewController.selectedCert = (sender.representedObject as! SecIdentity)
         window?.contentViewController = viewCertsViewController
         
-        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        NSRunningApplication.current.activate(options: [.activateAllWindows])
+        NSApp.activate()
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
         
@@ -875,7 +916,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 window = MyInfoWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
                 window?.title = "Additonal Card Information"
                 window?.identifier = NSUserInterfaceItemIdentifier(cardReader)
-                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+//                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                NSRunningApplication.current.activate(options: [.activateAllWindows])
+                NSApp.activate()
                 window?.makeKeyAndOrderFront(nil)
                 window?.orderFrontRegardless()
                 window?.contentViewController = myInfoViewController
@@ -892,30 +935,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     
     /// Append Preferences and Quit items to the bottom of the status menu (if not present),
     /// and restore a placeholder when no card is inserted.
-    func addQuit() {
-        
-        if statusItem.menu?.indexOfItem(withTitle: "Quit") == -1 {
-            statusItem.menu?.addItem(NSMenuItem.separator())
-            if statusItem.menu?.indexOfItem(withTitle: "Preferences") == -1 {
-                let prefMenu = NSMenuItem(title: "Preferences", action: #selector(preferencesWindow), keyEquivalent: "")
-                statusItem.menu?.addItem(prefMenu)
+    nonisolated func addQuit() {
+        Task { @MainActor in
+            if statusItem.menu?.indexOfItem(withTitle: "Quit") == -1 {
+                statusItem.menu?.addItem(NSMenuItem.separator())
+                if statusItem.menu?.indexOfItem(withTitle: "Preferences") == -1 {
+                    let prefMenu = NSMenuItem(title: "Preferences", action: #selector(preferencesWindow), keyEquivalent: "")
+                    statusItem.menu?.addItem(prefMenu)
+                }
+                let quitMenu = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "")
+                statusItem.menu?.addItem(quitMenu)
             }
-            let quitMenu = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "")
-            statusItem.menu?.addItem(quitMenu)
+            
+            if statusItem.menu?.indexOfItem(withTitle: "Quit") == 2 {
+                statusItem.menu?.insertItem(self.nothingInsertedMenu, at: 0)
+                UserDefaults.standard.setValue(false, forKey: "inserted")
+            }
         }
-        
-        if statusItem.menu?.indexOfItem(withTitle: "Quit") == 2 {
-            statusItem.menu?.insertItem(self.nothingInsertedMenu, at: 0)
-            UserDefaults.standard.setValue(false, forKey: "inserted")
-        }
-        
     }
     
     /// Update the status bar icon to the provided asset, overlaying a red dot if any
     /// currently tracked token is locked.
+    @MainActor
     func menuBarIcon(fileURLString: String) {
-        RunLoop.main.perform { [ weak self ] in
-            guard let self else { return }
+//        RunLoop.main.perform { [ weak self ] in
+//            guard let self else { return }
             let fileExists = FileManager.default.fileExists(atPath: fileURLString)
             if fileExists {
                 if let button = self.statusItem.button {
@@ -954,7 +998,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 self.statusItem.button?.title = "Inserted"
             }
             
-        }
+//        }
     }
     //script to run script on insert or removal
     func run_on(action: String, path: String) async {
@@ -1032,6 +1076,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
     }
     /// Handle a token insertion: optional script execution, lock/cert checks, notification,
     /// expiration scan, and UI/menu updates. Also registers a paired removal handler.
+    
     func update(CTKTokenID: String) {
         guard let slotName = myTKWatcher?.tokenInfo(forTokenID: CTKTokenID)?.slotName else { return }
         os_log("Smartcard Inserted %{public}s", log: appLog, type: .default, CTKTokenID.description)
@@ -1051,7 +1096,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                 }
             }
             
-            let shouldNotify = await self.applyInsertUI(CTKTokenID: CTKTokenID, status: status)
+            let shouldNotify = self.applyInsertUI(CTKTokenID: CTKTokenID, status: status)
             if UserDefaults.standard.bool(forKey: "show_notifications") && shouldNotify {
                 Task { [weak self] in
                     guard let self else { return }
@@ -1084,6 +1129,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
         
         myTKWatcher?.addRemovalHandler({ [weak self] CTKTokenID in
             guard let self = self else { return }
+            @MainActor
             func remove() {
                 for scMenuItem in self.statusItem.menu!.items {
                     if scMenuItem.title == "Keychain Locked Error Reading Smartcards" {
@@ -1129,9 +1175,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, PrefDataModelDelegate, isLoc
                         }
                     }
                 }
-                self.debugMenuItems.removeAll(where: { $0.menu == nil })
-                self.exportMenuItems.removeAll(where: { $0.menu == nil })
-                self.seperatorLines.removeAll(where: { $0.menu == nil })
+                Task { @MainActor in
+                    self.debugMenuItems.removeAll(where: { $0.menu == nil })
+                    self.exportMenuItems.removeAll(where: { $0.menu == nil })
+                    self.seperatorLines.removeAll(where: { $0.menu == nil })
+                }
             }
             
             os_log("Smartcard Removed %{public}s", log: self.appLog, type: .default, CTKTokenID.description)
@@ -1476,7 +1524,7 @@ extension AppDelegate: NSMenuDelegate {
 /// Present banner notifications while app is in the foreground.
 extension AppDelegate: UNUserNotificationCenterDelegate {
     
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void)
     {

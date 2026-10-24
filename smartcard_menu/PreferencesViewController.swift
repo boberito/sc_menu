@@ -326,7 +326,7 @@ class PreferencesViewController: NSViewController {
     /// Logs success/failure to the preferences log.
     @objc func loginItemChange(_ sender: NSButton) {
         if sender.intValue == 1 {
-            do {
+            do {            
                 try SMAppService.mainApp.register()
                 os_log("SC Menu set to launch at login", log: self.prefsLog, type: .default)
             } catch {
