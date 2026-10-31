@@ -52,7 +52,7 @@ struct PrefView: View {
     @State private var fileRemovalshow = false
     
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
-
+    
     weak var delegate: (any PreferencesDelegate)?
     
     var body: some View {
@@ -62,24 +62,24 @@ struct PrefView: View {
                     .padding(.leading, 10)
                 Picker(selection: $icon_mode, label: Text("")) {
                     VStack(alignment: .leading, spacing: 8) {
-                                    HStack(spacing: 20) {
-                                        Image(nsImage: NSImage(named: "smartcard_out")!)
-                                        Image(nsImage: NSImage(named: "smartcard_in")!)
-                                    }
-
-                                    Text("Colorful")
-                                }
-                                .tag("colorful")
-
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack(spacing: 20) {
-                                        Image(nsImage: NSImage(named: "smartcard_out_bw")!)
-                                        Image(nsImage: NSImage(named: "smartcard_in_bw")!)
-                                    }
-
-                                    Text("Black and White")
-                                }
-                                .tag("bw")
+                        HStack(spacing: 20) {
+                            Image(nsImage: NSImage(named: "smartcard_out")!)
+                            Image(nsImage: NSImage(named: "smartcard_in")!)
+                        }
+                        
+                        Text("Colorful")
+                    }
+                    .tag("colorful")
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 20) {
+                            Image(nsImage: NSImage(named: "smartcard_out_bw")!)
+                            Image(nsImage: NSImage(named: "smartcard_in_bw")!)
+                        }
+                        
+                        Text("Black and White")
+                    }
+                    .tag("bw")
                     
                 }.pickerStyle(.radioGroup)
                     .padding(.bottom, 5)
@@ -90,54 +90,50 @@ struct PrefView: View {
                 Toggle(isOn: $show_notifications) {
                     Text("Show Notifications")
                 }
-                    .toggleStyle(.checkbox)
-                    .padding(.leading, 8)
-                    .padding(.bottom, 3)
-                    .disabled(forcedNotifications)
-                    .onChange(of: show_notifications) {
-                        if show_notifications {
-                            notificationButtonsDisabled = false
-                        } else {
-                            notificationButtonsDisabled = true
-                        }
-                        
-                        
-                                                
-                        
+                .toggleStyle(.checkbox)
+                .padding(.leading, 8)
+                .padding(.bottom, 3)
+                .disabled(forcedNotifications)
+                .onChange(of: show_notifications) {
+                    if show_notifications {
+                        notificationButtonsDisabled = false
+                    } else {
+                        notificationButtonsDisabled = true
                     }
+                }
                 VStack(alignment: .leading) {
                     Toggle(isOn: $showCardInsert) {
                         Text("Insert")
                     }
-                        .toggleStyle(.checkbox)
-                        .padding(.leading, 8)
-                        .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled || forcedNotifications)
+                    .toggleStyle(.checkbox)
+                    .padding(.leading, 8)
+                    .padding(.bottom, 3)
+                    .disabled(notificationButtonsDisabled || forcedNotifications)
                     Toggle(isOn: $showCardRemoval) {
                         Text("Removal")
                     }
-                        .toggleStyle(.checkbox)
-                        .padding(.leading, 8)
-                        .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled || forcedNotifications)
+                    .toggleStyle(.checkbox)
+                    .padding(.leading, 8)
+                    .padding(.bottom, 3)
+                    .disabled(notificationButtonsDisabled || forcedNotifications)
                     Toggle(isOn: $showCertExpires) {
                         Text("Certificate Expiration")
                     }
-                        .toggleStyle(.checkbox)
-                        .padding(.leading, 8)
-                        .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled || forcedNotifications)
+                    .toggleStyle(.checkbox)
+                    .padding(.leading, 8)
+                    .padding(.bottom, 3)
+                    .disabled(notificationButtonsDisabled || forcedNotifications)
                     Toggle(isOn: $showCardExpires) {
                         Text("Card Expiration")
                     }
-                        .toggleStyle(.checkbox)
-                        .padding(.leading, 8)
-                        .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled || forcedNotifications)
+                    .toggleStyle(.checkbox)
+                    .padding(.leading, 8)
+                    .padding(.bottom, 3)
+                    .disabled(notificationButtonsDisabled || forcedNotifications)
                 }
                 .padding(.leading, 20)
                 
-             
+                
             }
             .frame(alignment: .leading)
             .padding(.top, 10)
@@ -150,7 +146,7 @@ struct PrefView: View {
                                 .font(.system(size: 16))
                                 .frame(alignment: .leading)
                             Text("Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0")")
-
+                            
                         }
                         Image(nsImage: NSImage(named: "new_icon")!)
                             .resizable()
@@ -180,7 +176,7 @@ struct PrefView: View {
                                     error.localizedDescription
                                 )
                             }
-
+                            
                             launchAtLogin = SMAppService.mainApp.status == .enabled
                         }
                     )) {
@@ -200,7 +196,7 @@ struct PrefView: View {
                             .frame(width: 120, height: 20, alignment: .leading)
                             .allowsHitTesting(false)
                             .focusable(false)
-                            
+                        
                         Button("Choose..."){
                             fileInsertshow = true
                         }
@@ -211,7 +207,7 @@ struct PrefView: View {
                         ) { result in
                             switch result {
                             case .success(let openUrl):
-                               
+                                
                                 run_on_insert_script_path = openUrl.path(percentEncoded: false)
                                 if let insertScript = run_on_insert_script_path {
                                     scriptOnInsert = URL(fileURLWithPath: insertScript).lastPathComponent
@@ -239,7 +235,7 @@ struct PrefView: View {
                             .allowsHitTesting(false)
                             .focusable(false)
                         Button("Choose...") {
-                         fileRemovalshow = true
+                            fileRemovalshow = true
                         }
                         .disabled(forcedRemovalRunPath)
                         .fileImporter(
@@ -248,7 +244,7 @@ struct PrefView: View {
                         ) { result in
                             switch result {
                             case .success(let openUrl):
-                               
+                                
                                 run_on_removal_script_path = openUrl.path(percentEncoded: false)
                                 if let removalScript = run_on_removal_script_path {
                                     scriptOnRemoval = URL(fileURLWithPath: removalScript).lastPathComponent
@@ -283,7 +279,7 @@ struct PrefView: View {
             default:
                 launchAtLogin = false
             }
-             
+            
             if let insertScript = run_on_insert_script_path {
                 scriptOnInsert = URL(fileURLWithPath: insertScript).lastPathComponent
             }
