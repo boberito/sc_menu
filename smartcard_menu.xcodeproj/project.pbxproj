@@ -13,7 +13,6 @@
 		734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */; };
 		734F914E2B95719F005C24ED /* smartcard_in_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914C2B95719F005C24ED /* smartcard_in_bw.png */; };
 		734F914F2B95719F005C24ED /* smartcard_out_bw.png in Resources */ = {isa = PBXBuildFile; fileRef = 734F914D2B95719F005C24ED /* smartcard_out_bw.png */; };
-		735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */; };
 		736E51C72E8D37B200F07D9F /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 736E51C62E8D37B200F07D9F /* Subprocess */; };
 		7396D1412E945E8A00DEB0E8 /* new_icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 7396D1402E945E8A00DEB0E8 /* new_icon.icon */; };
 		73ACFD0F2F115FC200460E13 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 73ACFD0E2F115FC200460E13 /* Sparkle */; };
@@ -45,7 +44,6 @@
 		734781812EA18AB900D9BD7A /* ViewCertsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewCertsViewController.swift; sourceTree = "<group>"; };
 		734F914C2B95719F005C24ED /* smartcard_in_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_in_bw.png; sourceTree = "<group>"; };
 		734F914D2B95719F005C24ED /* smartcard_out_bw.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smartcard_out_bw.png; sourceTree = "<group>"; };
-		735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
 		7396D1402E945E8A00DEB0E8 /* new_icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = new_icon.icon; sourceTree = "<group>"; };
 		73ACFD102F1166BC00460E13 /* SC-Menu-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "SC-Menu-Info.plist"; sourceTree = "<group>"; };
 		73B2E1C4307BD7D800CE4B39 /* PrefView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrefView.swift; sourceTree = "<group>"; };
@@ -123,7 +121,6 @@
 				73C772732D5C345100D4031A /* ImageConversion.swift */,
 				868A89112B87BB0800328DDE /* CertWindow.swift */,
 				862CDBB72B91209A00E75D2D /* WebWindow.swift */,
-				735C9DFD2B941082005EBF0B /* PreferencesViewController.swift */,
 				73B2E1C4307BD7D800CE4B39 /* PrefView.swift */,
 				86F7327A2B92CEC5007DFED7 /* PreferencesWindow.swift */,
 				860203512B84F2DE00E84186 /* ViewCerts.swift */,
@@ -238,7 +235,6 @@
 				862CDBB62B911BD000E75D2D /* ATR.swift in Sources */,
 				86F7327B2B92CEC5007DFED7 /* PreferencesWindow.swift in Sources */,
 				73B2E1C5307BD7D800CE4B39 /* PrefView.swift in Sources */,
-				735C9DFE2B941082005EBF0B /* PreferencesViewController.swift in Sources */,
 				731A33CA2CD5B80F00EE6778 /* APDUFunctions.swift in Sources */,
 				862CDBB82B91209A00E75D2D /* WebWindow.swift in Sources */,
 				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,

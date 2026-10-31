@@ -7,7 +7,5 @@
 
 import Cocoa
 class MyInfoWindow: NSWindow {
-//    override func close() {
-//        self.orderOut(NSApp)
-//    }
+
 }
