@@ -362,7 +362,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
                 if UserDefaults.standard.value(forKey: "show_notifications") == nil {
-                    UserDefaults.standard.set(true, forKey: "show_notifications")
+                    UserDefaults.standard.register(defaults: [
+                        "show_notifications": true,
+                        "showCardInsert": true,
+                        "showCardRemoval": true,
+                        "showCertExpires": true,
+                        "showCardExpires": true
+                    ])
                 }
                 os_log("Notifications allowed", log: self.appLog, type: .default)
             } else {
@@ -473,7 +479,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             if currentWindow.title.contains("SC Menu Preferences") {
 //                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                 NSRunningApplication.current.activate(options: [.activateAllWindows])
+//                NSApp.activate()
+                if currentWindow.isMiniaturized {
+                    currentWindow.deminiaturize(nil)
+                }
                 NSApp.activate()
+                currentWindow.makeKeyAndOrderFront(nil)
                 return
             }
         }
@@ -483,6 +494,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
+        window?.isReleasedWhenClosed = false
 //        let freshPrefViewController = PreferencesViewController()
         let prefView = PrefView(delegate: self)
         let hostingController = NSHostingController(rootView: prefView)
@@ -494,6 +506,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         
 //        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         NSRunningApplication.current.activate(options: [.activateAllWindows])
+        if let window = window, window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
         NSApp.activate()
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
@@ -515,10 +530,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             guard let atrString = pivCard.atrString else { return }
             let debugURL = "https://smartcard-atr.apdu.fr/parse?ATR=\(atrString)"
             webView.load(URLRequest(url: URL(string: debugURL)!))
-            
+            window?.isReleasedWhenClosed = false
             window.contentView = webView
 //            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             NSRunningApplication.current.activate(options: [.activateAllWindows])
+            if window.isMiniaturized {
+                window.deminiaturize(nil)
+            }
             NSApp.activate()
             window.makeKeyAndOrderFront(nil)
             window.orderFrontRegardless()
@@ -667,7 +685,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             if currentWindow.title.contains(sender.title) {
 //                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                 NSRunningApplication.current.activate(options: [.activateAllWindows])
+                if currentWindow.isMiniaturized {
+                    currentWindow.deminiaturize(nil)
+                }
                 NSApp.activate()
+                currentWindow.makeKeyAndOrderFront(nil)
                 return
             }
         }
@@ -679,12 +701,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         
         window?.title = sender.title
         window?.center()
+        window?.isReleasedWhenClosed = false
         let viewCertsViewController = ViewCertsViewController()
         viewCertsViewController.selectedCert = (sender.representedObject as! SecIdentity)
         window?.contentViewController = viewCertsViewController
         
 //        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         NSRunningApplication.current.activate(options: [.activateAllWindows])
+        if let window = window, window.isMiniaturized {
+            window.deminiaturize(nil)
+        }
         NSApp.activate()
         window?.makeKeyAndOrderFront(nil)
         window?.orderFrontRegardless()
@@ -915,9 +941,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 let rect = NSMakeRect(screenSize.width/2 - windowSize.width/2, screenSize.height/2 - windowSize.height/2, windowSize.width, windowSize.height)
                 window = MyInfoWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
                 window?.title = "Additonal Card Information"
+                window?.isReleasedWhenClosed = false
                 window?.identifier = NSUserInterfaceItemIdentifier(cardReader)
+                window?.isReleasedWhenClosed = false
 //                NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
                 NSRunningApplication.current.activate(options: [.activateAllWindows])
+                if let window = window, window.isMiniaturized {
+                    window.deminiaturize(nil)
+                }
                 NSApp.activate()
                 window?.makeKeyAndOrderFront(nil)
                 window?.orderFrontRegardless()
@@ -1010,7 +1041,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         
         let typeCheck = try? await run(
             .path("/bin/bash"),
-            arguments: ["-c", "/usr/bin/file -b --mime-type \(path) | /usr/bin/head -1 | /usr/bin/cut -d/ -f1"],
+            arguments: ["-c", "/usr/bin/file -b --mime-type \"\(path)\" | /usr/bin/head -1 | /usr/bin/cut -d/ -f1"],
             output: .string(limit: 4096, encoding: UTF8.self)
         )
         typeOfFile = String(describing: typeCheck?.standardOutput ?? "")
@@ -1020,8 +1051,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         //if no shebang, determine script type
         if typeOfFile == "text" {
             if let scriptContents = try? String(contentsOf: pathURL) {
-                if !"#!/".contains(scriptContents.components(separatedBy: "\n")[0]) {
-                    if "py".contains(ext) {
+                if !scriptContents.hasPrefix("#!"){
+                    if ext == "py" {
                         typeOfScript = "python"
                     }
                     if ["sh","zsh","bash"].contains(ext) {
@@ -1030,14 +1061,52 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 }
             }
         }
+        if typeOfFile == "inode" {
+            let runner: String
+            switch ext {
+            case "scptd":
+                runner = "/usr/bin/osascript"
+            case "app":
+                runner = "/usr/bin/open"
+            default:
+                return
+            }
+                do {
+                    let result = try await run(
+                        .path(FilePath(runner)),
+                        arguments: [path],
+                        output: .string(limit: 4096, encoding: UTF8.self),
+                        error: .string(limit: 4096, encoding: UTF8.self)
+                    )
+                    os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
+                    os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
+                    os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError ?? "")
+                } catch {
+                    os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
+                }
+                return
+            
+                
+            
+        }
         //if binary or has a shebang, just run it
         if typeOfScript == nil {
             do {
-                let result = try await run(
-                    .path(FilePath(path)),
-                    output: .string(limit: 4096, encoding: UTF8.self),
-                    error: .string(limit: 4096, encoding: UTF8.self)
-                )
+                var result: ExecutionResult<Void, StringOutput<UTF8>, StringOutput<UTF8>>
+                if ext == "scpt" {
+                    result = try await run(
+                        .path(FilePath("/usr/bin/osascript")),
+                        arguments: [path],
+                        output: .string(limit: 4096, encoding: UTF8.self),
+                        error: .string(limit: 4096, encoding: UTF8.self)
+                    )
+                } else {
+                    result = try await run(
+                        .path(FilePath(path)),
+                        output: .string(limit: 4096, encoding: UTF8.self),
+                        error: .string(limit: 4096, encoding: UTF8.self)
+                    )
+                }
                 
                 os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
                 os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
@@ -1045,22 +1114,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             } catch {
                 os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
             }
+            return
             //if text and has no shebang
             //find environment python3 if python
             //find the default user shell and run with that otherwise
         } else {
             var shell: String?
+            var args: [String] = []
             if typeOfScript == "python" {
-                shell = "/usr/bin/env python3"
+                shell = "/usr/bin/env"
+                args.append("python3")
             } else if typeOfScript == "shell" {
                 shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
             }
             do {
                 guard let shell else { return }
-                
+                args.append(path)
+                let commandArgs = Subprocess.Arguments(args)
                 let result = try await run(
                     .path(FilePath(shell)),
-                    arguments: [path],
+                    arguments: commandArgs,
                     output: .string(limit: 4096, encoding: UTF8.self),
                     error: .string(limit: 4096, encoding: UTF8.self)
                 )
@@ -1071,6 +1144,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             } catch {
                 os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
             }
+            return
             
         }
     }
@@ -1097,7 +1171,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             }
             
             let shouldNotify = self.applyInsertUI(CTKTokenID: CTKTokenID, status: status)
-            if UserDefaults.standard.bool(forKey: "show_notifications") && shouldNotify {
+            if UserDefaults.standard.bool(forKey: "show_notifications") && shouldNotify && !(UserDefaults.standard.bool(forKey: "showCardInsert") == false){
                 Task { [weak self] in
                     guard let self else { return }
                     let settings = await self.nc.notificationSettings()
@@ -1192,7 +1266,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             }
             self.checkCardStatus = nil
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
-                if UserDefaults.standard.bool(forKey: "show_notifications") {
+                if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCardRemoval") == false){
                     if !self.screenLockedVar {
                         Task {
                             let settings = await self.nc.notificationSettings()
@@ -1451,50 +1525,53 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                             }
                             guard let xDaysFromNow = Calendar.current.date(byAdding: .day, value: days, to: Date.now) else { continue }
                             
-                            if expirationDate <= xDaysFromNow && expirationDate >= Date.now {
-                                let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expirationDate).day ?? 0
-                                os_log("Smartcard is expiring within %{public}d days", log: appLog, type: .info, daysUntilExpiration)
-                                
-                                Task { [weak self] in
-                                    guard let self else { return }
-                                    let settings = await self.nc.notificationSettings()
-                                    guard (settings.authorizationStatus == .authorized) ||
-                                            (settings.authorizationStatus == .provisional) else
-                                    { return }
-                                    let content = UNMutableNotificationContent()
-                                    content.title = "Smartcard Expiring"
-                                    content.body = "The smartcard inserted is expiring in \(daysUntilExpiration) days"
-                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                    
-                                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                                    do {
-                                        try await self.nc.add(request)
-                                    } catch {
-                                        os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
+                                if expirationDate <= xDaysFromNow && expirationDate >= Date.now {
+                                    let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expirationDate).day ?? 0
+                                    os_log("Smartcard is expiring within %{public}d days", log: appLog, type: .info, daysUntilExpiration)
+                                    if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCardExpires") == false) {
+                                        Task { [weak self] in
+                                            guard let self else { return }
+                                            let settings = await self.nc.notificationSettings()
+                                            guard (settings.authorizationStatus == .authorized) ||
+                                                    (settings.authorizationStatus == .provisional) else
+                                            { return }
+                                            let content = UNMutableNotificationContent()
+                                            content.title = "Smartcard Expiring"
+                                            content.body = "The smartcard inserted is expiring in \(daysUntilExpiration) days"
+                                            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                            
+                                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                                            do {
+                                                try await self.nc.add(request)
+                                            } catch {
+                                                os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
+                                            }
+                                        }
+                                    }
+                                } else if expirationDate < Date.now {
+                                    os_log("Smartcard EXPIRED on %{public}s", log: appLog, type: .info, expirationDate.formatted())
+                                    if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCardExpires") == false) {
+                                        Task { [weak self] in
+                                            guard let self else { return }
+                                            let settings = await self.nc.notificationSettings()
+                                            guard (settings.authorizationStatus == .authorized) ||
+                                                    (settings.authorizationStatus == .provisional) else
+                                            { return }
+                                            let content = UNMutableNotificationContent()
+                                            content.title = "Smartcard EXPIRED"
+                                            content.body = "The smartcard inserted is EXPIRED"
+                                            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                            
+                                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                                            do {
+                                                try await self.nc.add(request)
+                                            } catch {
+                                                os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
+                                            }
+                                        }
                                     }
                                 }
-                                
-                            } else if expirationDate < Date.now {
-                                os_log("Smartcard EXPIRED on %{public}s", log: appLog, type: .info, expirationDate.formatted())
-                                Task { [weak self] in
-                                    guard let self else { return }
-                                    let settings = await self.nc.notificationSettings()
-                                    guard (settings.authorizationStatus == .authorized) ||
-                                            (settings.authorizationStatus == .provisional) else
-                                    { return }
-                                    let content = UNMutableNotificationContent()
-                                    content.title = "Smartcard EXPIRED"
-                                    content.body = "The smartcard inserted is EXPIRED"
-                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                    
-                                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                                    do {
-                                        try await self.nc.add(request)
-                                    } catch {
-                                        os_log("Unable to schedule insertion notification: %{public}s", log: appLog, type: .error, error.localizedDescription)
-                                    }
-                                }
-                            }
+                            
                         }
                     }
                 }

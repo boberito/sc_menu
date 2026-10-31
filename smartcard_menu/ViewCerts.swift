@@ -146,41 +146,48 @@ class ViewCerts{
                                 days = UserDefaults.standard.integer(forKey: "DaysToExpiration")
                             }
                             guard let xDaysFromNow = Calendar.current.date(byAdding: .day, value: days, to: Date.now) else { continue }
-                            if expDate <= xDaysFromNow && expDate >= Date.now {
-                                let nc = UNUserNotificationCenter.current()
-                                let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expDate).day ?? 0
-                                os_log("Certificate on the smartcard is expiring within %{public}d days", log: certLog, type: .info, daysUntilExpiration)
-                                let settings = await nc.notificationSettings()
-                                if (settings.authorizationStatus == .authorized) ||
-                                    (settings.authorizationStatus == .provisional)  {
-                                    let content = UNMutableNotificationContent()
-                                    content.title = "Smartcard Certificate Expiring"
-                                    content.body = "\(label) is expiring in \(daysUntilExpiration) days"
-                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                                    do {
-                                        try await nc.add(request)
-                                    } catch {
-                                        os_log("Notification error {public}s", log: appLog, type: .default, error.localizedDescription)
+                            
+                                if expDate <= xDaysFromNow && expDate >= Date.now {
+                                    let nc = UNUserNotificationCenter.current()
+                                    let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expDate).day ?? 0
+                                    os_log("Certificate %{public}s on the smartcard is expiring within %{public}d days", log: certLog, type: .info, label, daysUntilExpiration)
+                                    if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCertExpires") == false) {
+                                        let settings = await nc.notificationSettings()
+                                        if (settings.authorizationStatus == .authorized) ||
+                                            (settings.authorizationStatus == .provisional)  {
+                                            let content = UNMutableNotificationContent()
+                                            content.title = "Smartcard Certificate Expiring"
+                                            content.body = "\(label) is expiring in \(daysUntilExpiration) days"
+                                            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                                            do {
+                                                try await nc.add(request)
+                                            } catch {
+                                                os_log("Notification error {public}s", log: appLog, type: .default, error.localizedDescription)
+                                            }
+                                        }
+                                    }
+                                } else if expDate < Date.now {
+                                    os_log("Certificate %{public}s on the smartcard is EXPIRED within %{public}d days", log: certLog, type: .info, label)
+                                    if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCertExpires") == false) {
+                                        let nc = UNUserNotificationCenter.current()
+                                        let settings = await nc.notificationSettings()
+                                        if (settings.authorizationStatus == .authorized) ||
+                                            (settings.authorizationStatus == .provisional)  {
+                                            let content = UNMutableNotificationContent()
+                                            content.title = "Certificate EXPIRED"
+                                            content.body = "\(label) is EXPIRED"
+                                            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+                                            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+                                            do {
+                                                try await nc.add(request)
+                                            } catch {
+                                                os_log("Notification error {public}s", log: appLog, type: .default, error.localizedDescription)
+                                            }
+                                        }
                                     }
                                 }
-                            } else if expDate < Date.now {
-                                let nc = UNUserNotificationCenter.current()
-                                let settings = await nc.notificationSettings()
-                                if (settings.authorizationStatus == .authorized) ||
-                                    (settings.authorizationStatus == .provisional)  {
-                                    let content = UNMutableNotificationContent()
-                                    content.title = "Certificate EXPIRED"
-                                    content.body = "\(label) is EXPIRED"
-                                    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-                                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-                                    do {
-                                        try await nc.add(request)
-                                    } catch {
-                                        os_log("Notification error {public}s", log: appLog, type: .default, error.localizedDescription)
-                                    }
-                                }
-                            }
+                            
                         }
                     }
                 }

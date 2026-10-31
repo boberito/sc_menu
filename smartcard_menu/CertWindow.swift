@@ -8,7 +8,7 @@
 import Cocoa
 
 class CertWindow: NSWindow {
-    override func close() {
-        self.orderOut(NSApp)
-    }
+//    override func close() {
+//        self.orderOut(NSApp)
+//    }
 }

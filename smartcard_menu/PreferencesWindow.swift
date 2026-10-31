@@ -7,7 +7,5 @@
 
 import Cocoa
 class PreferencesWindow: NSWindow {
-    override func close() {
-        self.orderOut(NSApp)
-    }
+
 }

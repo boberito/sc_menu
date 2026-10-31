@@ -17,16 +17,6 @@ protocol PreferencesDelegate: AnyObject {
 
 struct PrefView: View {
     
-    @State private var iconSelected = ""
-    @State private var showNotifications = true
-    @State private var launchAtLogin = true
-    @State private var runOnInsert = false
-    @State private var runOnRemovable = false
-    @State private var showCertificateInsert = true
-    @State private var showCertificateRemoval = true
-    @State private var showCardExpiration = true
-    @State private var showCertExpiration = true
-    
     @AppStorage("run_on_insert_script_path") var run_on_insert_script_path: String?
     @AppStorage("run_on_insert") var run_on_insert: Bool = false
     
@@ -38,18 +28,28 @@ struct PrefView: View {
     @AppStorage("icon_mode") var icon_mode: String = "colorful"
     @AppStorage("DaysToExpiration") var DaysToExpiration: Int = 30
     @AppStorage("inserted") var inserted: Bool = false
-    @AppStorage("afterFirstLaunch") var afterFirstLaunch: Bool = false
     
-    @AppStorage("show_notifications") var show_notifications: Bool?
+    @AppStorage("show_notifications") var show_notifications = false
     @AppStorage("showCardInsert") var showCardInsert: Bool = true
     @AppStorage("showCardRemoval") var showCardRemoval: Bool = true
     @AppStorage("showCertExpires") var showCertExpires: Bool = true
     @AppStorage("showCardExpires") var showCardExpires: Bool = true
     
     @State private var notificationButtonsDisabled = false
+    @State private var forcedNotifications = false
+    @State private var forcedInsert = false
+    @State private var forcedRemoval = false
+    @State private var forcedInsertRunPath = false
+    @State private var forcedRemovalRunPath = false
+    @State private var forcedUpdate = false
+    
+    @State private var launchAtLogin = true
     
     @State private var scriptOnInsert = ""
     @State private var scriptOnRemoval = ""
+    
+    @State private var fileInsertshow = false
+    @State private var fileRemovalshow = false
     
     private let prefsLog = OSLog(subsystem: subsystem, category: "Preferences")
 
@@ -87,18 +87,18 @@ struct PrefView: View {
                         delegate?.preferencesDidChange()
                     }
                 
-                Toggle(isOn: Binding(get: { show_notifications ?? false}, set: {show_notifications = $0})) {
+                Toggle(isOn: $show_notifications) {
                     Text("Show Notifications")
                 }
                     .toggleStyle(.checkbox)
                     .padding(.leading, 8)
                     .padding(.bottom, 3)
-                    
+                    .disabled(forcedNotifications)
                     .onChange(of: show_notifications) {
-                        if let show_notifications = show_notifications, !show_notifications {
-                            notificationButtonsDisabled = true
-                        } else {
+                        if show_notifications {
                             notificationButtonsDisabled = false
+                        } else {
+                            notificationButtonsDisabled = true
                         }
                         
                         
@@ -112,28 +112,28 @@ struct PrefView: View {
                         .toggleStyle(.checkbox)
                         .padding(.leading, 8)
                         .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled)
+                        .disabled(notificationButtonsDisabled || forcedNotifications)
                     Toggle(isOn: $showCardRemoval) {
                         Text("Removal")
                     }
                         .toggleStyle(.checkbox)
                         .padding(.leading, 8)
                         .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled)
+                        .disabled(notificationButtonsDisabled || forcedNotifications)
                     Toggle(isOn: $showCertExpires) {
                         Text("Certificate Expiration")
                     }
                         .toggleStyle(.checkbox)
                         .padding(.leading, 8)
                         .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled)
+                        .disabled(notificationButtonsDisabled || forcedNotifications)
                     Toggle(isOn: $showCardExpires) {
                         Text("Card Expiration")
                     }
                         .toggleStyle(.checkbox)
                         .padding(.leading, 8)
                         .padding(.bottom, 3)
-                        .disabled(notificationButtonsDisabled)
+                        .disabled(notificationButtonsDisabled || forcedNotifications)
                 }
                 .padding(.leading, 20)
                 
@@ -158,49 +158,118 @@ struct PrefView: View {
                             .frame(width: 40, height: 40)
                         
                     }
-                    Text("https://github.com/boberito/sc_menu")
+                    Text("[https://github.com/boberito/sc_menu](https://github.com/boberito/sc_menu)")
                         .font(.custom("Helvetica", size: 12))
                         .underline()
                         .padding(.top, -5)
                     
-                    Toggle(isOn: $launchAtLogin) {
+                    Toggle(isOn: Binding(
+                        get: { launchAtLogin },
+                        set: { enabled in
+                            do {
+                                if enabled {
+                                    try SMAppService.mainApp.register()
+                                } else {
+                                    try SMAppService.mainApp.unregister()
+                                }
+                            } catch {
+                                os_log(
+                                    "Login item change failed: %{public}@",
+                                    log: prefsLog,
+                                    type: .error,
+                                    error.localizedDescription
+                                )
+                            }
+
+                            launchAtLogin = SMAppService.mainApp.status == .enabled
+                        }
+                    )) {
                         Text("Launch SC Menu at Login")
                     }
                     .toggleStyle(.checkbox)
                     .padding(.bottom, 5)
                     .padding(.top, 5)
                     
-                    Toggle(isOn: $runOnInsert){
+                    Toggle(isOn: $run_on_insert){
                         Text("Run Script on Insert")
                     }
+                    .disabled(forcedInsert)
                     HStack {
                         TextField("", text: $scriptOnInsert)
                             .textFieldStyle(.roundedBorder)
-//                            .padding(.leading, -1)
                             .frame(width: 120, height: 20, alignment: .leading)
+                            .allowsHitTesting(false)
+                            .focusable(false)
                             
                         Button("Choose..."){
-                            
+                            fileInsertshow = true
                         }
+                        .disabled(forcedInsertRunPath)
+                        .fileImporter(
+                            isPresented: $fileInsertshow,
+                            allowedContentTypes: [.shellScript, .appleScript, .osaScript, .javaScript, .perlScript, .phpScript, .script, .rubyScript, .pythonScript, .osaScriptBundle, .applicationBundle, .application, .executable],
+                        ) { result in
+                            switch result {
+                            case .success(let openUrl):
+                               
+                                run_on_insert_script_path = openUrl.path(percentEncoded: false)
+                                if let insertScript = run_on_insert_script_path {
+                                    scriptOnInsert = URL(fileURLWithPath: insertScript).lastPathComponent
+                                }
+                                
+                            case .failure(let error):
+                                os_log("Import failed: %{public}@", log: prefsLog, type: .default, error.localizedDescription)
+                            }
+                            fileInsertshow = false
+                        }
+                        .fileDialogMessage("Choose a Script to Run on Insert")
+                        .fileDialogConfirmationLabel("Open")
                     }
                     .padding(.top, -5)
-                    Toggle(isOn: $runOnRemovable){
+                    
+                    
+                    Toggle(isOn: $run_on_removal){
                         Text("Run Script on Removal")
                     }
+                    .disabled(forcedRemoval)
                     HStack {
                         TextField("", text: $scriptOnRemoval)
                             .textFieldStyle(.roundedBorder)
-//                            .padding(.leading, -1)
                             .frame(width: 120, height: 20)
+                            .allowsHitTesting(false)
+                            .focusable(false)
                         Button("Choose...") {
-                            
+                         fileRemovalshow = true
                         }
+                        .disabled(forcedRemovalRunPath)
+                        .fileImporter(
+                            isPresented: $fileRemovalshow,
+                            allowedContentTypes: [.shellScript, .appleScript, .osaScript, .javaScript, .perlScript, .phpScript, .script, .rubyScript, .pythonScript, .osaScriptBundle, .applicationBundle, .application, .executable],
+                        ) { result in
+                            switch result {
+                            case .success(let openUrl):
+                               
+                                run_on_removal_script_path = openUrl.path(percentEncoded: false)
+                                if let removalScript = run_on_removal_script_path {
+                                    scriptOnRemoval = URL(fileURLWithPath: removalScript).lastPathComponent
+                                }
+                                
+                            case .failure(let error):
+                                os_log("Import failed: %{public}@", log: prefsLog, type: .default, error.localizedDescription)
+                            }
+                            fileRemovalshow = false
+                        }
+                        .fileDialogMessage("Choose a Script to Run on Removal")
+                        .fileDialogConfirmationLabel("Open")
                     }
                     .padding(.top, -5)
-                    Button("Check For Updates") {
-                        
-                    }
                     
+                    Button("Check For Updates") {
+                        os_log("Update button pressed", log: prefsLog, type: .default)
+                        (NSApp.delegate as? AppDelegate)?.checkForUpdates(nil)
+                    }
+                    .padding(.top, 10)
+                    .disabled(forcedUpdate && disableUpdates)
                 }
             }
             .padding(.leading, -5)
@@ -224,12 +293,23 @@ struct PrefView: View {
             }
             let nc = UNUserNotificationCenter.current()
             let settings = await nc.notificationSettings()
-            if settings.authorizationStatus == .authorized {
-                show_notifications = true
-            } else {
+            if settings.authorizationStatus != .authorized {
                 show_notifications = false
-                
+                notificationButtonsDisabled = true
+                if settings.authorizationStatus == .denied {
+                    forcedNotifications = true
+                    notificationButtonsDisabled = true
+                }
             }
+        }
+        .onAppear() {
+            guard let appBundleID = Bundle.main.bundleIdentifier else { return }
+            forcedNotifications = CFPreferencesAppValueIsForced("show_notifications" as CFString, appBundleID as CFString)
+            forcedInsert = CFPreferencesAppValueIsForced("run_on_insert" as CFString, appBundleID as CFString)
+            forcedRemoval = CFPreferencesAppValueIsForced("run_on_removal" as CFString, appBundleID as CFString)
+            forcedRemovalRunPath = CFPreferencesAppValueIsForced("run_on_removal_script_path" as CFString, appBundleID as CFString)
+            forcedInsertRunPath = CFPreferencesAppValueIsForced("run_on_insert_script_path" as CFString, appBundleID as CFString)
+            forcedUpdate = CFPreferencesAppValueIsForced("disableUpdates" as CFString, appBundleID as CFString)
         }
     }
     
