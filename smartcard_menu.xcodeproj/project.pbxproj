@@ -499,7 +499,7 @@
 			repositoryURL = "https://github.com/swiftlang/swift-subprocess.git";
 			requirement = {
 				kind = versionRange;
-				maximumVersion = 2.0.0;
+				maximumVersion = 10.0.0;
 				minimumVersion = 0.1.0;
 			};
 		};

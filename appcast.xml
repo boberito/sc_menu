@@ -12,6 +12,35 @@
 
     <!-- Latest release -->
     <item>
+             <title>SC Menu 2.2</title>
+             <description sparkle:format="plain-text"><![CDATA[
+           - Added card expiration notification to show when a card is about to expire or is expired
+           - Added ability to pick the events for notifications to show for (card inserted, card removed, card expired, certificate expired)
+           - Converted the Preferences Window from AppKit to SwiftUI
+           - Certificate expiration notifications will now show the certificate name and days until expiration in the notification message (or expired if the certificate is expired).
+           - Expanded insertion/removal automation to support compiled AppleScripts, script bundles, and applications, with a broader selection of script types in Preferences.
+           - Added a --info command-line option for troubleshooting. Reports app and macOS versions, current user information, smartcard readers and drivers, certificate labels and public-key hashes, and paired/mapped identities.
+           - Added structured command-line argument parsing and help using swift-argument-parser, with a --help option to show usage information.           
+           - Bug fixes and improvements to the card insertion/removal automation, including better handling of script execution errors and improved logging for troubleshooting.
+           - Bug fixes around CryptoTokenKit, red locked card indicators, and card insertion/removal notifications.
+           - Updated Minimum System Version to macOS 14.0 (Sonoma) to support the new SwiftUI Preferences Window and other modern features.
+           - Updated Sparkle Framework Package dependency to 2.10.0, Swift Subprocess Package dependency to 1.0.2, and Swift Argument Parser Package dependency to 1.8.2.
+             ]]></description>
+             <sparkle:fullReleaseNotesLink>https://github.com/boberito/sc_menu/releases/tag/2.2</sparkle:fullReleaseNotesLink>
+             <pubDate>Fri, 09 Oct 2026 21:32:57 -0400</pubDate>
+             <dc:creator>Bob Gendler</dc:creator>
+             <sparkle:version>812</sparkle:version>
+             <sparkle:shortVersionString>2.2</sparkle:shortVersionString>
+             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+             <enclosure
+               url="https://github.com/boberito/sc_menu/releases/download/2.2/SC_Menu.dmg"
+               type="application/x-apple-diskimage"
+               sparkle:version="812"
+               sparkle:shortVersionString="2.2"
+               sparkle:edSignature="8DxYyDnm/zYHjdPucDCIEwf/kw2WhHNzalxJxwq8gWiJne+LE9HeWYWM/7AOeefeKJLmhgdgNaQcHBRdSQVfCA==" length="4430438"/>    
+         </item>
+
+    <item>
              <title>SC Menu 2.1.1</title>
              <description sparkle:format="plain-text"><![CDATA[
            - Updated Sparkle Framework Package dependency to 2.10.0
