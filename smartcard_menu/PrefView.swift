@@ -82,6 +82,7 @@ struct PrefView: View {
                     .tag("bw")
                     
                 }.pickerStyle(.radioGroup)
+                    .help("Choose icon style in the menu bar. White/Green for Out/In or Grey/Black for Out/In.")
                     .padding(.bottom, 5)
                     .onChange(of: icon_mode) {
                         delegate?.preferencesDidChange()
@@ -90,6 +91,7 @@ struct PrefView: View {
                 Toggle(isOn: $show_notifications) {
                     Text("Show Notifications")
                 }
+                .help("Display notifications for different events.")
                 .toggleStyle(.checkbox)
                 .padding(.leading, 8)
                 .padding(.bottom, 3)
@@ -105,6 +107,7 @@ struct PrefView: View {
                     Toggle(isOn: $showCardInsert) {
                         Text("Insert")
                     }
+                    .help("Show a notification when the card is inserted.")
                     .toggleStyle(.checkbox)
                     .padding(.leading, 8)
                     .padding(.bottom, 3)
@@ -112,6 +115,7 @@ struct PrefView: View {
                     Toggle(isOn: $showCardRemoval) {
                         Text("Removal")
                     }
+                    .help("Show a notification when the card is removed.")
                     .toggleStyle(.checkbox)
                     .padding(.leading, 8)
                     .padding(.bottom, 3)
@@ -119,6 +123,7 @@ struct PrefView: View {
                     Toggle(isOn: $showCertExpires) {
                         Text("Certificate Expiration")
                     }
+                    .help("Show a notification when a certificate on the inserted card is expiring or expired.")
                     .toggleStyle(.checkbox)
                     .padding(.leading, 8)
                     .padding(.bottom, 3)
@@ -126,6 +131,7 @@ struct PrefView: View {
                     Toggle(isOn: $showCardExpires) {
                         Text("Card Expiration")
                     }
+                    .help("Show a notification when the card inserted is expering or expired.")
                     .toggleStyle(.checkbox)
                     .padding(.leading, 8)
                     .padding(.bottom, 3)
@@ -182,6 +188,7 @@ struct PrefView: View {
                     )) {
                         Text("Launch SC Menu at Login")
                     }
+                    .help("Launch SC Menu at login. Adds or Removes from Login Items.")
                     .toggleStyle(.checkbox)
                     .padding(.bottom, 5)
                     .padding(.top, 5)
@@ -189,6 +196,7 @@ struct PrefView: View {
                     Toggle(isOn: $run_on_insert){
                         Text("Run Script on Insert")
                     }
+                    .help("Runs a script on card insertion.")
                     .disabled(forcedInsert)
                     HStack {
                         TextField("", text: $scriptOnInsert)
@@ -200,7 +208,8 @@ struct PrefView: View {
                         Button("Choose..."){
                             fileInsertshow = true
                         }
-                        .disabled(forcedInsertRunPath)
+                        .help("Choose a script to be ran on card insertion.")
+                        .disabled(forcedInsertRunPath || !run_on_insert)
                         .fileImporter(
                             isPresented: $fileInsertshow,
                             allowedContentTypes: [.shellScript, .appleScript, .osaScript, .javaScript, .perlScript, .phpScript, .script, .rubyScript, .pythonScript, .osaScriptBundle, .applicationBundle, .application, .executable],
@@ -227,6 +236,7 @@ struct PrefView: View {
                     Toggle(isOn: $run_on_removal){
                         Text("Run Script on Removal")
                     }
+                    .help("Run a script on card removal.")
                     .disabled(forcedRemoval)
                     HStack {
                         TextField("", text: $scriptOnRemoval)
@@ -237,7 +247,7 @@ struct PrefView: View {
                         Button("Choose...") {
                             fileRemovalshow = true
                         }
-                        .disabled(forcedRemovalRunPath)
+                        .disabled(forcedRemovalRunPath || !run_on_removal)
                         .fileImporter(
                             isPresented: $fileRemovalshow,
                             allowedContentTypes: [.shellScript, .appleScript, .osaScript, .javaScript, .perlScript, .phpScript, .script, .rubyScript, .pythonScript, .osaScriptBundle, .applicationBundle, .application, .executable],
@@ -259,13 +269,14 @@ struct PrefView: View {
                         .fileDialogConfirmationLabel("Open")
                     }
                     .padding(.top, -5)
-                    
+                    .help("Choose a script to run when the card is removed.")
                     Button("Check For Updates") {
                         os_log("Update button pressed", log: prefsLog, type: .default)
                         (NSApp.delegate as? AppDelegate)?.checkForUpdates(nil)
                     }
                     .padding(.top, 10)
                     .disabled(forcedUpdate && disableUpdates)
+                    .help("Check for updates to SC Menu app.")
                 }
             }
             .padding(.leading, -5)
