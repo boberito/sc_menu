@@ -96,10 +96,10 @@ class ExportDebug {
             driverName = myTKWatcher?.tokenInfo(forTokenID: TkID)?.driverName
             tokenID = myTKWatcher?.tokenInfo(forTokenID: TkID)?.tokenID
             print("")
-            print("PIV Token Identity: \(tokenID ?? "")")
-            print("Smartcard Reader: \(slotName ?? "")")
-            print("Smartcard Driver: \(driverName ?? "")")
-            
+            print("\u{001B}[1mPIV Token Identity:\u{001B}[0m \(tokenID ?? "")")
+            print("\u{001B}[1mSmartcard Reader:\u{001B}[0m \(slotName ?? "")")
+            print("\u{001B}[1mSmartcard Driver:\u{001B}[0m \(driverName ?? "")")
+            print("")
             var smartcard = SmartCard(
                 PivToken: tokenID,
                 Reader: slotName,
@@ -130,40 +130,40 @@ class ExportDebug {
     }
     
     func export() async {
-        
-        print("SC Menu App Version: \(appVersion ?? "")")
+        print("------------")
+        print("\u{001B}[1mSC Menu App Version:\u{001B}[0m \(appVersion ?? "")")
         print("macOS \(os_ver)")
         
         getCurrentConsoleUserRecord()
         
         await pivStuff()
         
-        print("Current User: \(currentConsoleUserName)")
-        print("Current UID: \(uid)")
+        print("\u{001B}[1mCurrent User:\u{001B}[0m \(currentConsoleUserName)")
+        print("\u{001B}[1mCurrent UID:\u{001B}[0m \(uid)")
+        print("")
         for mappedIdentity in mappedIdentities {
             if mappedIdentity == "" {
                 continue
             }
-            print("Mapped Identity: \(mappedIdentity)")
+            print("\u{001B}[1mMapped Identity:\u{001B}[0m \(mappedIdentity)")
         }
+        print("")
         for pairedIdentity in pairedIdentities {
             if pairedIdentity == "" {
                 continue
             }
-            print("Paired Identity: \(pairedIdentity)")
+            print("\u{001B}[1mPaired Identity:\u{001B}[0m \(pairedIdentity)")
         }
+        print("")
         if smartcards.count > 0 {
             for smartcard in smartcards {
-                print(smartcard.PivToken ?? "")
-                print(smartcard.Reader ?? "")
-                print(smartcard.Driver ?? "")
                 for cert in smartcard.Cert {
                     if let hash = cert?.hash, let label = cert?.label {
                         if mappedIdentities.contains(hash) {
-                            print("\(label): \(hash) - Mapped")
+                            print("\(label): \(hash) - \u{001B}[1mMapped\u{001B}[0m")
                         }
                         else if pairedIdentities.contains(hash) {
-                            print("\(label): \(hash) - Paired")
+                            print("\(label): \(hash) - \u{001B}[1mPaired\u{001B}[0m")
                         }
                         else {
                             print("\(label): \(hash)")
@@ -201,11 +201,11 @@ class ExportDebug {
                     for item in items {
                         if item.contains("amidentity") {
                             let mapped = item.split(separator: ";")[2].replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: ")", with: "")
-                            mappedIdentities.append(mapped)
+                            mappedIdentities.append(mapped.trimmingCharacters(in: .newlines))
                         }
                         if item.contains("tokenidentity") {
                             let paired = item.split(separator: ";")[2].replacingOccurrences(of: "\"", with: "").replacingOccurrences(of: ")", with: "")
-                            pairedIdentities.append(paired)
+                            pairedIdentities.append(paired.trimmingCharacters(in: .newlines))
                             
                         }
                     }
