@@ -1056,8 +1056,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                         error: .string(limit: 4096, encoding: UTF8.self)
                     )
                     os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
-                    os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
-                    os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError ?? "")
+                    os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput)
+                    os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError)
                 } catch {
                     os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
                 }
@@ -1086,8 +1086,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 }
                 
                 os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
-                os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
-                os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError ?? "")
+                os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput)
+                os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError)
             } catch {
                 os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
             }
@@ -1116,8 +1116,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 )
                 
                 os_log("%{public}s Script Exit Code %{public}s", log: appLog, type: .default, action, String(describing: result.terminationStatus))
-                os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput ?? "")
-                os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError ?? "")
+                os_log("%{public}s Script Output %{public}s", log: appLog, type: .debug, action, result.standardOutput)
+                os_log("%{public}s Script Stderr %{public}s", log: appLog, type: .debug, action, result.standardError)
             } catch {
                 os_log("%{public}s", log: appLog, type: .error, error.localizedDescription)
             }
