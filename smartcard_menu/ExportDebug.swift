@@ -10,6 +10,7 @@ import OSLog
 import OpenDirectory
 import Security
 
+/// Collects one token's reader, driver, certificate metadata, and answer-to-reset (ATR) bytes.
 struct SmartCard {
     var PivToken: String?
     var Reader: String?
@@ -20,11 +21,13 @@ struct SmartCard {
     
 }
 
+/// Pairs a certificate label with its hexadecimal public-key hash for identity matching.
 struct CertInfo {
     var label: String?
     var hash: String?
 }
 
+/// Collects local account and smartcard diagnostics for the command-line info report.
 class ExportDebug {
     
     var pairedIdentities = [String()]
@@ -40,7 +43,9 @@ class ExportDebug {
     let currentConsoleUserName: String = NSUserName()
     let uid: String = String(getuid())
     
+    /// Bridges the slot lookup callback to async and returns its ATR as lowercase hex, or nil if unavailable.
     private func getATR(slotName: String,manager: TKSmartCardSlotManager) async -> String? {
+        // Resume exactly once when CryptoTokenKit finishes resolving the reader slot.
         await withCheckedContinuation { continuation in
             manager.getSlot(withName: slotName) { slot in
                 let atrString = slot?.atr?.bytes.hexEncodedString()
@@ -50,6 +55,8 @@ class ExportDebug {
     }
     
     
+    /// Returns labels and uppercase public-key hashes for identities on the requested token.
+    /// Returns nil if the keychain query fails or its results cannot be decoded.
     private func queryKeychain(pivToken: String) -> [CertInfo]? {
         var certInfo: [CertInfo] = []
         let getquery: [String: Any] = [
@@ -80,6 +87,8 @@ class ExportDebug {
         return certInfo        
     }
     
+    /// Enumerates tokens, skips the built-in setoken and ctkcard identifiers, and prints reader details.
+    /// Appends each reader's ATR and certificate metadata to `smartcards` for the final report.
     private func pivStuff () async {
         
         var slotName: String?
@@ -129,6 +138,8 @@ class ExportDebug {
         }
     }
     
+    /// Prints app, OS, user, and token diagnostics to standard output.
+    /// Matches certificate public-key hashes against the account's mapped and paired identities.
     func export() async {
         print("------------")
         print("\u{001B}[1mSC Menu App Version:\u{001B}[0m \(appVersion ?? "")")
@@ -176,6 +187,8 @@ class ExportDebug {
     
     
     
+    /// Queries the local directory record for `NSUserName()` and collects smartcard identity hashes.
+    /// Authentication authority entries distinguish mapped (`amidentity`) from paired (`tokenidentity`) hashes.
     private func getCurrentConsoleUserRecord(){
         
         let session = ODSession.default()

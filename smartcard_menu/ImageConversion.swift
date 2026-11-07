@@ -4,9 +4,11 @@ import ImageIO
 import OSLog
 import UniformTypeIdentifiers
 
+/// Decodes raw JPEG 2000 codestreams with OpenJPEG and writes JPEG images through ImageIO.
 class ImageConversionService {
     
     private let ICSLog = OSLog(subsystem: subsystem, category: "ImageConversion")
+    /// Throws if the source is unreadable, decoding fails, or the output cannot be created or finalized.
     func convertJ2KToJPEG(inputURL: URL, outputURL: URL) async throws {
         // Ensure we can access the input file
         guard FileManager.default.isReadableFile(atPath: inputURL.path) else {

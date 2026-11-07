@@ -12,6 +12,8 @@ import SecurityInterface
 class ViewCertsViewController: NSViewController {
     var selectedCert: SecIdentity? = nil
     
+    /// Extracts the selected identity's certificate and embeds its system certificate view in a scroll view.
+    /// Leaves the view empty if no identity is selected or certificate extraction fails.
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view = NSView(frame: NSRect(x: 0, y: 0, width: 500, height: 500))

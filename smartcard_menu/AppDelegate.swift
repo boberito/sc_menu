@@ -51,6 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
     
     private var pinPromptHostWindow: NSWindow?
     
+    /// Rechecks the reader after a failed PIN attempt and marks its menu entry if the card is locked.
     nonisolated func pinFailedandLocked(slotName: String) {
         // Re-check card state off the main thread; UI updates happen on the main queue.
         Task { [weak self] in
@@ -61,6 +62,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         }
     }
     
+    /// Adds a locked-card menu entry and, in monochrome mode, overlays a red indicator on the icon.
     @MainActor
     private func applyLockedUI(slotName: String) {
         if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
@@ -123,34 +125,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             }
         }
     }
-//    func didReceivePrefUpdate() {
-//        
-//        var cardStatus = "out"
-//        if UserDefaults.standard.bool(forKey: "inserted") {
-//            cardStatus = "in"
-//        }
-//        if UserDefaults.standard.string(forKey: "icon_mode") == "bw" {
-//            
-//            if let fileURLString = Bundle.main.path(forResource: "smartcard_\(cardStatus)_bw", ofType: "png") {
-//                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-//                if fileExists {
-//                    if let button = self.statusItem.button {
-//                        button.image = NSImage(byReferencingFile: fileURLString)
-//                    }
-//                }
-//            }
-//        } else {
-//            if let fileURLString = Bundle.main.path(forResource: "smartcard_\(cardStatus)", ofType: "png") {
-//                let fileExists = FileManager.default.fileExists(atPath: fileURLString)
-//                if fileExists {
-//                    if let button = self.statusItem.button {
-//                        button.image = NSImage(byReferencingFile: fileURLString)
-//                    }
-//                }
-//            }
-//        }
-//        
-//    }
+
+    /// Reloads the menu bar image using the saved icon style and card insertion state.
     func preferencesDidChange() {
         var cardStatus = "out"
         if UserDefaults.standard.bool(forKey: "inserted") {
@@ -214,6 +190,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         super.init()
     }
     
+    /// Starts Sparkle's user-initiated update check, including its progress and result UI.
     @IBAction func checkForUpdates(_ sender: Any?) {
         updaterController.checkForUpdates(sender)
     }
@@ -386,10 +363,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         startup()
     }
     
+    /// Records the screen lock so insertion handling can suppress notifications while locked.
     @objc func screenLocked() {
         screenLockedVar = true
     }
     
+    /// Rebuilds reader menu entries for tokens already known to the watcher.
     func insertExistingTokens(){
         
         guard let tokenIDs = myTKWatcher?.tokenIDs else {
@@ -468,6 +447,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         
     }
     
+    /// Opts into AppKit's secure coding requirements for restorable application state.
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
         return true
     }
@@ -495,16 +475,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         window = PreferencesWindow(contentRect: rect, styleMask: [.miniaturizable, .closable, .titled], backing: .buffered, defer: false)
         window?.title = "SC Menu Preferences"
         window?.isReleasedWhenClosed = false
-//        let freshPrefViewController = PreferencesViewController()
         let prefView = PrefView(delegate: self)
         let hostingController = NSHostingController(rootView: prefView)
-        
-//        window?.contentViewController = freshPrefViewController
         window?.contentViewController = hostingController
         
-//        freshPrefViewController.delegate = self
-        
-//        NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         NSRunningApplication.current.activate(options: [.activateAllWindows])
         if let window = window, window.isMiniaturized {
             window.deminiaturize(nil)
@@ -532,7 +506,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             webView.load(URLRequest(url: URL(string: debugURL)!))
             window?.isReleasedWhenClosed = false
             window.contentView = webView
-//            NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             NSRunningApplication.current.activate(options: [.activateAllWindows])
             if window.isMiniaturized {
                 window.deminiaturize(nil)
@@ -959,6 +932,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         }
     }
     
+    /// Logs the Quit menu action and exits the process successfully.
     @objc func quit() {
         os_log("SC Menu is quitting.", log: appLog, type: .default)
         exit(0)
@@ -1032,6 +1006,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
 //        }
     }
     //script to run script on insert or removal
+    /// Runs the configured insertion or removal script, choosing a launcher from its file type.
+    /// Uses an interpreter for recognized text scripts without a shebang and logs the outcome;
+    /// `action` labels the log messages and does not select the script.
     func run_on(action: String, path: String) async {
         let pathURL = URL(fileURLWithPath: path)
         let ext = pathURL.pathExtension
@@ -1203,6 +1180,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         
         myTKWatcher?.addRemovalHandler({ [weak self] CTKTokenID in
             guard let self = self else { return }
+            /// Removes this token's menu entries, restores the empty-card state when needed,
+            /// and handles the removal script, notification, and remaining cards' lock indicators.
             @MainActor
             func remove() {
                 for scMenuItem in self.statusItem.menu!.items {
@@ -1313,6 +1292,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         }, forTokenID: CTKTokenID)
     }
     
+    /// Records the card's lock state and refreshes its reader menu and status icon.
+    /// Returns whether the screen-lock state allows an insertion notification;
+    /// the caller separately checks notification preferences and system authorization.
     @MainActor
     private func applyInsertUI(CTKTokenID: String, status: CardStatus?) -> Bool {
         self.checkCardStatus = status
@@ -1594,6 +1576,7 @@ extension AppDelegate: NSMenuDelegate {
         insertExistingTokens()
     }
     
+    /// Clears menu tracking so subsequent card changes can update the menu immediately.
     func menuDidClose(_ menu: NSMenu) {
         menuIsOpen = false
     }

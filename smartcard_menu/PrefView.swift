@@ -12,9 +12,11 @@ import UserNotifications
 
 @MainActor
 protocol PreferencesDelegate: AnyObject {
+    /// Notifies the app delegate that the menu bar should reflect changed appearance preferences.
     func preferencesDidChange()
 }
 
+/// Edits persisted app preferences and reflects system permission and managed-preference restrictions.
 struct PrefView: View {
     
     @AppStorage("run_on_insert_script_path") var run_on_insert_script_path: String?
@@ -183,6 +185,7 @@ struct PrefView: View {
                                 )
                             }
                             
+                            // Reflect the actual service status even when registration fails.
                             launchAtLogin = SMAppService.mainApp.status == .enabled
                         }
                     )) {
@@ -275,7 +278,7 @@ struct PrefView: View {
                         (NSApp.delegate as? AppDelegate)?.checkForUpdates(nil)
                     }
                     .padding(.top, 10)
-                    .disabled(forcedUpdate && disableUpdates)
+                    .disabled(forcedUpdate && disableUpdates)                    
                     .help("Check for updates to SC Menu app.")
                 }
             }
@@ -284,6 +287,7 @@ struct PrefView: View {
         .padding(10)
         .frame(width: 415, height: 300, alignment: .leading)
         .task {
+            // Load system-owned state separately from the preferences persisted by AppStorage.
             switch SMAppService.mainApp.status {
             case .enabled:
                 launchAtLogin = true
@@ -310,6 +314,7 @@ struct PrefView: View {
             }
         }
         .onAppear() {
+            // Managed preferences disable the corresponding controls so policy cannot be edited here.
             guard let appBundleID = Bundle.main.bundleIdentifier else { return }
             forcedNotifications = CFPreferencesAppValueIsForced("show_notifications" as CFString, appBundleID as CFString)
             forcedInsert = CFPreferencesAppValueIsForced("run_on_insert" as CFString, appBundleID as CFString)

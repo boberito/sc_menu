@@ -16,6 +16,7 @@ class PIVCard {
     let driverName: String?
     var atrString: String?
     
+    /// Stores token metadata and starts the callback-based ATR lookup; `atrString` is populated later.
     init(token: String, slotName: String?, driverName: String?) {
         self.token = token
         self.slotName = slotName
@@ -40,6 +41,7 @@ class PIVCard {
 
 /// MARK: - Utilities
 extension Data {
+    /// Formats each byte as two lowercase hexadecimal digits without separators.
     func hexEncodedString() -> String {
         return map { String(format: "%02hhx", $0) }.joined()
     }

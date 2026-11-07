@@ -219,6 +219,7 @@ class MyInfoViewController: NSViewController, APDUDelgate {
     let secureMessagingLabel = NSTextField()
     
     private let prefsLog = OSLog(subsystem: subsystem, category: "My Card Info")
+    /// Builds the cardholder details layout, assigns the APDU delegate, and starts reading with the supplied PIN and slot.
     override func loadView() {
         // Build the layout programmatically and immediately kick off APDU reads once `pin`
         // and `passedSlot` are provided. If either is missing, the window closes.
