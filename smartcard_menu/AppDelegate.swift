@@ -259,7 +259,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
         }
 
         UNUserNotificationCenter.current().delegate = self
-        
+        UserDefaults.standard.register(defaults: [
+            "show_notifications": true,
+            "showCardInsert": true,
+            "showCardRemoval": true,
+            "showCertExpires": true,
+            "showCardExpires": true
+        ])
         if UserDefaults.standard.bool(forKey: "afterFirstLaunch") == false && appService.status != .enabled {
             
             let alert = NSAlert()
@@ -338,15 +344,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
     func notificationPermissions() {
         nc.requestAuthorization(options: [.alert, .badge, .sound]) { (granted, error) in
             if granted {
-                if UserDefaults.standard.value(forKey: "show_notifications") == nil {
-                    UserDefaults.standard.register(defaults: [
-                        "show_notifications": true,
-                        "showCardInsert": true,
-                        "showCardRemoval": true,
-                        "showCertExpires": true,
-                        "showCardExpires": true
-                    ])
-                }
                 os_log("Notifications allowed", log: self.appLog, type: .default)
             } else {
                 UserDefaults.standard.set(false, forKey: "show_notifications")
@@ -940,8 +937,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
     
     /// Append Preferences and Quit items to the bottom of the status menu (if not present),
     /// and restore a placeholder when no card is inserted.
-    nonisolated func addQuit() {
-        Task { @MainActor in
+    @MainActor
+    func addQuit() {
             if statusItem.menu?.indexOfItem(withTitle: "Quit") == -1 {
                 statusItem.menu?.addItem(NSMenuItem.separator())
                 if statusItem.menu?.indexOfItem(withTitle: "Preferences") == -1 {
@@ -956,7 +953,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 statusItem.menu?.insertItem(self.nothingInsertedMenu, at: 0)
                 UserDefaults.standard.setValue(false, forKey: "inserted")
             }
-        }
     }
     
     /// Update the status bar icon to the provided asset, overlaying a red dot if any
@@ -1148,7 +1144,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             }
             
             let shouldNotify = self.applyInsertUI(CTKTokenID: CTKTokenID, status: status)
-            if UserDefaults.standard.bool(forKey: "show_notifications") && shouldNotify && !(UserDefaults.standard.bool(forKey: "showCardInsert") == false){
+            if UserDefaults.standard.bool(forKey: "show_notifications") && shouldNotify && UserDefaults.standard.bool(forKey: "showCardInsert"){
                 Task { [weak self] in
                     guard let self else { return }
                     let settings = await self.nc.notificationSettings()
@@ -1245,7 +1241,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             }
             self.checkCardStatus = nil
             if let index = self.lockedDictArray.firstIndex(where: { $0.keys.contains(CTKTokenID) }) {
-                if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCardRemoval") == false){
+                if UserDefaults.standard.bool(forKey: "show_notifications") && UserDefaults.standard.bool(forKey: "showCardRemoval"){
                     if !self.screenLockedVar {
                         Task {
                             let settings = await self.nc.notificationSettings()
@@ -1478,13 +1474,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 hasCerts = true
             }
         }
-        
-        print("next up card holder")
+                
         let CHUDdata = await sendMoreAPDUCommands(apdu: CHUD)
-        print("Card holder info")
+        
         if CHUDdata.1 == 0x90 && CHUDdata.2 == 0x00 {
-//            os_log("cardHolderInfo bytes received: %{public}s", log: apduLog, type: .debug, "\(cardHolderInfo.0.count)")
-            print("cardHolderInfo bytes received: \(CHUDdata.0.count)")
             if CHUDdata.1 == 0x90 && CHUDdata.2 == 0x00 {
                 let tv_data = smartCardAPDU().decodeBER_TLV(data: CHUDdata.0)
                 
@@ -1510,7 +1503,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                                 if expirationDate <= xDaysFromNow && expirationDate >= Date.now {
                                     let daysUntilExpiration = Calendar.current.dateComponents([.day], from: Date.now, to: expirationDate).day ?? 0
                                     os_log("Smartcard is expiring within %{public}d days", log: appLog, type: .info, daysUntilExpiration)
-                                    if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCardExpires") == false) {
+                                    if UserDefaults.standard.bool(forKey: "show_notifications") && UserDefaults.standard.bool(forKey: "showCardExpires"){
                                         Task { [weak self] in
                                             guard let self else { return }
                                             let settings = await self.nc.notificationSettings()
@@ -1532,7 +1525,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                                     }
                                 } else if expirationDate < Date.now {
                                     os_log("Smartcard EXPIRED on %{public}s", log: appLog, type: .info, expirationDate.formatted())
-                                    if UserDefaults.standard.bool(forKey: "show_notifications") && !(UserDefaults.standard.bool(forKey: "showCardExpires") == false) {
+                                    if UserDefaults.standard.bool(forKey: "show_notifications") && UserDefaults.standard.bool(forKey: "showCardExpires") {
                                         Task { [weak self] in
                                             guard let self else { return }
                                             let settings = await self.nc.notificationSettings()
