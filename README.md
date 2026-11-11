@@ -6,8 +6,8 @@
 
 A lightweight menu application for viewing PIV based smartcards.
     
-![macOS 3+](https://img.shields.io/badge/macOS-13%2B-blue?logo=apple)
-![Swift 5](https://img.shields.io/badge/Swift-5-red?logo=swift)
+![macOS 3+](https://img.shields.io/badge/macOS-14%2B-blue?logo=apple)
+![Swift 5](https://img.shields.io/badge/Swift-6-red?logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-green)
     
 </div>
@@ -49,6 +49,22 @@ Disables "Check for Updates" button and disables the auto-update check on launch
 `showNotifications` - **Type: Boolean**\
 Acceptable Value: **true** or **false**\
 When mixed with the Notifications payload, it will lock notifications on or off.
+
+`showCardInsert` - **Type: Boolean**\
+Acceptable Value: **true** or **false**\
+When notification are enabled, it will lock card insertion notifications on or off.
+
+`showCardRemoval`- **Type: Boolean**\
+Acceptable Value: **true** or **false**\
+When notification are enabled, it will lock card removal notifications on or off.
+
+`showCertExpires`- **Type: Boolean**\
+Acceptable Value: **true** or **false**\
+When notification are enabled, it will lock certification expiration or expired notifications on or off.
+
+`showCardExpires`- **Type: Boolean**\
+Acceptable Value: **true** or **false**\
+When notification are enabled, it will lock card expiration or expired notifications on or off.
 
 `run_on_insert` - **Type: Boolean**\
 Acceptable Value: **true** or **false**\
