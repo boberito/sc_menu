@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		20458D6030A93C8D00E79A2B /* IconColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20458D5F30A93C8D00E79A2B /* IconColor.swift */; };
 		731A33C62CD5B47400EE6778 /* MyInfoWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C52CD5B47400EE6778 /* MyInfoWindow.swift */; };
 		731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */; };
 		731A33CA2CD5B80F00EE6778 /* APDUFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */; };
@@ -38,6 +39,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		20458D5F30A93C8D00E79A2B /* IconColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconColor.swift; sourceTree = "<group>"; };
 		731A33C52CD5B47400EE6778 /* MyInfoWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyInfoWindow.swift; sourceTree = "<group>"; };
 		731A33C72CD5B49400EE6778 /* MyInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyInfoViewController.swift; sourceTree = "<group>"; };
 		731A33C92CD5B80F00EE6778 /* APDUFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APDUFunctions.swift; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		86FF1DC22B7FA45A007F3959 /* smartcard_menu */ = {
 			isa = PBXGroup;
 			children = (
+				20458D5F30A93C8D00E79A2B /* IconColor.swift */,
 				73C7726E2D5C33BA00D4031A /* libopenjp2.a */,
 				73C7726F2D5C33BA00D4031A /* openjpeg.h */,
 				73C772702D5C33BA00D4031A /* opj_config.h */,
@@ -240,6 +243,7 @@
 				868A89122B87BB0800328DDE /* CertWindow.swift in Sources */,
 				73DE8C342D67925800458A21 /* nist80087.swift in Sources */,
 				731A33C82CD5B49400EE6778 /* MyInfoViewController.swift in Sources */,
+				20458D6030A93C8D00E79A2B /* IconColor.swift in Sources */,
 				734781822EA18AB900D9BD7A /* ViewCertsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

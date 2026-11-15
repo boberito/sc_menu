@@ -86,6 +86,14 @@ POSIX path to a script to run on smartcard removal.
 Acceptable Value: **Integer numbers**\
 Sets the value on check for days to notify on certficate expiration. Default is 30 days.
 
+`icon_color_inserted` - **Type String**\
+Acceptable Value: **Hex color, #RRGGBB**\
+Optional. Colors the menu bar icon while a smartcard is inserted. Leave unset for the standard icon.
+
+`icon_color_removed` - **Type String**\
+Acceptable Value: **Hex color, #RRGGBB**\
+Optional. Colors the menu bar icon while no smartcard is inserted. Leave unset for the standard icon.
+
 
 Example mobileconfig
 ```
@@ -118,6 +126,10 @@ Example mobileconfig
             <true/>
             <key>DaysToExpiration</key>
             <integer>45</integer>
+            <key>icon_color_inserted</key>
+            <string>#2E7D32</string>
+            <key>icon_color_removed</key>
+            <string>#9E9E9E</string>
         </dict>
     </array>
     <key>PayloadDescription</key>

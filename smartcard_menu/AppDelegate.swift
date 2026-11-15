@@ -69,12 +69,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
             
             if let fileURLString = Bundle.main.path(forResource: "smartcard_in_bw", ofType: "png") {
                 
-                guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                guard let buttonImage = IconColor.image(forFile: fileURLString) else { return }
                 
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
-                        button.image = NSImage(byReferencingFile: fileURLString)
+                        button.image = IconColor.image(forFile: fileURLString)
                         let circleSize = NSSize(width: 10, height: 10)
                         let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
                         let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
@@ -92,11 +92,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 }
             } else {
                 guard let fileURLString = Bundle.main.path(forResource: "smartcard_in", ofType: "png") else { return }
-                guard let buttonImage = NSImage(byReferencingFile: fileURLString) else { return }
+                guard let buttonImage = IconColor.image(forFile: fileURLString) else { return }
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
-                        button.image = NSImage(byReferencingFile: fileURLString)
+                        button.image = IconColor.image(forFile: fileURLString)
                         let circleSize = NSSize(width: 10, height: 10)
                         let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
                         let redCircleImage = NSImage(size: buttonImage.size, flipped: false) { (newImageRect: NSRect) -> Bool in
@@ -138,7 +138,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
-                        button.image = NSImage(byReferencingFile: fileURLString)
+                        button.image = IconColor.image(forFile: fileURLString)
                     }
                 }
             }
@@ -147,7 +147,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
-                        button.image = NSImage(byReferencingFile: fileURLString)
+                        button.image = IconColor.image(forFile: fileURLString)
                     }
                 }
             }
@@ -391,7 +391,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
-                        button.image = NSImage(byReferencingFile: fileURLString)
+                        button.image = IconColor.image(forFile: fileURLString)
                     }
                 } else {
                     self.statusItem.button?.title = "NOT Inserted"
@@ -402,7 +402,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                 let fileExists = FileManager.default.fileExists(atPath: fileURLString)
                 if fileExists {
                     if let button = self.statusItem.button {
-                        button.image = NSImage(byReferencingFile: fileURLString)
+                        button.image = IconColor.image(forFile: fileURLString)
                     }
                 } else {
                     self.statusItem.button?.title = "NOT Inserted"
@@ -968,7 +968,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                     for dict in self.lockedDictArray {
                         
                         if dict.values.contains(true) {
-                            if let buttonImage = NSImage(byReferencingFile: fileURLString){
+                            if let buttonImage = IconColor.image(forFile: fileURLString){
                                 
                                 let circleSize = NSSize(width: 10, height: 10)
                                 let circleOrigin = NSPoint(x: buttonImage.size.width - circleSize.width, y: buttonImage.size.height - circleSize.height)
@@ -989,7 +989,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                             }
                             break
                         } else {
-                            button.image = NSImage(byReferencingFile: fileURLString)
+                            button.image = IconColor.image(forFile: fileURLString)
                         }
                         
                     }
@@ -1201,7 +1201,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                                 
                                 if let button = self.statusItem.button {
                                     DispatchQueue.main.async {
-                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                        button.image = IconColor.image(forFile: fileURLString)
                                     }
                                     
                                 }
@@ -1215,7 +1215,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, isLockedDelegate, Preference
                             if fileExists {
                                 if let button = self.statusItem.button {
                                     DispatchQueue.main.async {
-                                        button.image = NSImage(byReferencingFile: fileURLString)
+                                        button.image = IconColor.image(forFile: fileURLString)
                                     }
                                 }
                             } else {
